@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import json
 import time
+from pathlib import Path
 from threading import Thread
 from typing import Any, Callable
 
@@ -158,9 +159,6 @@ def callback_example(response: Any) -> None:
     """
     if isinstance(response, dict):
         # instead of printing, you could save the object to a file:
-        import json
-        from pathlib import Path
-
         HERE = Path.cwd()  # root of your project folder
         filepath = HERE / "your_output.json"
         # a = append; figure out yourself to create multiple callback functions, probably one for each type of call that
@@ -591,6 +589,7 @@ class Bitvavo:
           "nonce": 10378032,
           "bids": [["1.1908", "600"], ["1.1902", "4091.359809"], ["1.1898", "7563"]],
           "asks": [["1.1917", "2382.166997"], ["1.1919", "440.7"], ["1.192", "600"]],
+          "timestamp": 1700000000000,
         }
 
         # Notice how each bid and ask is also a list

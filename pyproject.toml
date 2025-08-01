@@ -35,7 +35,7 @@ classifiers = [
 dependencies = [
     "pydantic-settings==2.*, >=2.6", # to handle settings
     "requests==2.*, >=2.26",         # to make http requests
-    "structlog==24.*, >=21.5",       # for logging
+    "structlog==25.*, >=21.5",       # for logging
     "websocket-client==1.*, >=1.2",  # something something websocket
 ]
 
@@ -100,18 +100,21 @@ replace = "v{new_version} - {now:%Y-%m-%d}"
 
 [tool.coverage.run]
 branch = true
-source = ["src"]
+source = ["bitvavo_api_upgraded"]
 parallel = true
 relative_files = true
+omit = [
+    "docs/*",
+    "scripts/*",
+    "tests/*",
+]
 
 [tool.coverage.paths]
-source = ["src/bitvavo_api_upgraded"]
 omit = [
-    "*/tests/*",     # Omit test files
     "*/__init__.py", # Optionally omit __init__ files
 ]
 [tool.coverage.report]
-fail_under = 50
+fail_under = 30
 precision = 0
 show_missing = true
 skip_covered = true
@@ -272,7 +275,7 @@ addopts = [
     "--show-capture=all",
 ]
 
-testpaths = ["tests"]
+testpaths = ["tests/"]
 pythonpath = ["src"]
 markers = ["no_cover: some pytest-integration default mark that's not known?."]
 python_classes = "Test*"

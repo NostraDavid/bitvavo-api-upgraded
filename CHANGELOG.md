@@ -1,6 +1,22 @@
 # Changelog
 
-v1.17.1 - 2024-12-24
+## $UNRELEASED
+
+Maintenance release, no functional changes. At least not from my side. I do note
+the API has changed on Bitvavo's side, but I'll need to cover that soon enough.
+
+### Added
+
+- `copilot-instructions.md`
+
+### Changed
+
+- `structlog` v25 can now be used
+- fixed `coverage` reporting
+  - it broke; don't know why; solution was to add `coverage combine` to
+    `tox.ini`
+
+## v1.17.1 - 2024-12-24
 
 Turns out the settings weren't working as expected, so I switched
 `python-decouple` out from `pydantic-settings`, which (once setup) works a lot

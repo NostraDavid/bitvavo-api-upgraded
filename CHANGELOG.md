@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v1.17.2 - 2025-08-01
 
 Maintenance release, no functional changes. At least not from my side. I do note
 the API has changed on Bitvavo's side, but I'll need to cover that soon enough.

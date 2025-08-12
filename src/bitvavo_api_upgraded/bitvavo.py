@@ -653,7 +653,7 @@ class Bitvavo:
         postfix = createPostfix(options)
         return self.publicRequest(f"{self.base}/{market}/trades{postfix}", 5)  # type: ignore[return-value]
 
-    def candles(  # noqa: PLR0913
+    def candles(
         self,
         market: str,
         interval: str,
@@ -876,7 +876,95 @@ class Bitvavo:
         postfix = createPostfix(options)
         return self.publicRequest(f"{self.base}/ticker/24h{postfix}", rateLimitingWeight)  # type: ignore[return-value]
 
-    def placeOrder(self, market: str, side: str, orderType: str, body: anydict) -> anydict:
+    def reportTrades(self, market: str, options: strintdict | None = None) -> list[anydict] | errordict:
+        """Get MiCA-compliant trades report for a specific market
+
+        Returns trades from the specified market and time period made by all Bitvavo users.
+        The returned trades are sorted by timestamp in descending order (latest to earliest).
+        Includes data compliant with the European Markets in Crypto-Assets (MiCA) regulation.
+
+        ---
+        Examples:
+        * https://api.bitvavo.com/v2/report/BTC-EUR/trades
+        * https://api.bitvavo.com/v2/report/BTC-EUR/trades?limit=100&start=1640995200000
+
+        ---
+        Args:
+        ```python
+        market="BTC-EUR"
+        options={
+            "limit": [ 1 .. 1000 ], default 500
+            "start": int timestamp in ms >= 0
+            "end": int timestamp in ms <= 8_640_000_000_000_000  # Cannot be more than 24 hours after start
+            "tradeIdFrom": ""  # if you get a list and want everything AFTER a certain id, put that id here
+            "tradeIdTo": ""  # if you get a list and want everything BEFORE a certain id, put that id here
+        }
+        ```
+
+        ---
+        Rate Limit Weight:
+        ```python
+        5
+        ```
+
+        ---
+        Returns:
+        ```python
+        [
+          {
+            "timestamp": 1542967486256,
+            "id": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
+            "amount": "0.1",
+            "price": "5012",
+            "side": "sell"
+          }
+        ]
+        ```
+        """
+        postfix = createPostfix(options)
+        return self.publicRequest(f"{self.base}/report/{market}/trades{postfix}", 5)  # type: ignore[return-value]
+
+    def reportBook(self, market: str, options: intdict | None = None) -> dict[str, str | int | list[str]] | errordict:
+        """Get MiCA-compliant order book report for a specific market
+
+        Returns the list of all bids and asks for the specified market, sorted by price.
+        Includes data compliant with the European Markets in Crypto-Assets (MiCA) regulation.
+
+        ---
+        Examples:
+        * https://api.bitvavo.com/v2/report/BTC-EUR/book
+        * https://api.bitvavo.com/v2/report/BTC-EUR/book?depth=100
+
+        ---
+        Args:
+        ```python
+        market="BTC-EUR"
+        options={"depth": 100}  # returns the best 100 asks and 100 bids, default 1000
+        options={}  # returns up to 1000 bids and asks for that book
+        ```
+
+        ---
+        Rate Limit Weight:
+        ```python
+        1
+        ```
+
+        ---
+        Returns:
+        ```python
+        {
+          "market": "BTC-EUR",
+          "nonce": 10378032,
+          "bids": [["41648", "0.12"], ["41647", "0.25"], ["41646", "0.33"]],
+          "asks": [["41649", "0.15"], ["41650", "0.28"], ["41651", "0.22"]],
+          "timestamp": 1700000000000,
+        }
+        ```
+        """
+        postfix = createPostfix(options)
+        return self.publicRequest(f"{self.base}/report/{market}/book{postfix}")  # type: ignore[return-value]
+
+    def placeOrder(self, market: str, side: str, orderType: str, operatorId: int, body: anydict) -> anydict:
         """Place a new order on the exchange
 
         ---
@@ -886,9 +974,11 @@ class Bitvavo:
         side="buy" # Choose: buy, sell
         # For market orders either `amount` or `amountQuote` is required
         orderType="market"  # Choose: market, limit, stopLoss, stopLossLimit, takeProfit, takeProfitLimit
+        operatorId=123  # Your identifier for the trader or bot that made the request
         body={
           "amount": "1.567",
           "amountQuote": "5000",
+          "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",  # Optional: your identifier for the order
           # GTC orders will remain on the order book until they are filled or canceled.
           # IOC orders will fill against existing orders, but will cancel any remaining amount after that.
           # FOK orders will fill against existing orders in its entirety, or will be canceled (if the entire order cannot be filled).
@@ -904,6 +994,7 @@ class Bitvavo:
 
         # For limit orders `amount` and `price` are required.
         orderType="limit"  # Choose: market, limit, stopLoss, stopLossLimit, takeProfit, takeProfitLimit
+        operatorId=123
         body={
           "amount": "1.567",
           "price": "6000",
@@ -916,6 +1007,7 @@ class Bitvavo:
         orderType="stopLoss"
         # or
         orderType="takeProfit"
+        operatorId=123
         body={
           "amount": "1.567",
           "amountQuote": "5000",
@@ -931,6 +1023,7 @@ class Bitvavo:
         orderType="stopLossLimit"
         # or
         orderType="takeProfitLimit"
+        operatorId=123
         body={
           "amount": "1.567",
           "price": "6000",
@@ -999,9 +1092,10 @@ class Bitvavo:
         body["market"] = market
         body["side"] = side
         body["orderType"] = orderType
+        body["operatorId"] = operatorId
         return self.privateRequest("/order", "", body, "POST")  # type: ignore[return-value]
 
-    def updateOrder(self, market: str, orderId: str, body: anydict) -> anydict:
+    def updateOrder(self, market: str, orderId: str, operatorId: int, body: anydict) -> anydict:
         """Update an existing order for a specific market. Make sure that at least one of the optional parameters is set, otherwise nothing will be updated.
 
         ---
@@ -1009,11 +1103,13 @@ class Bitvavo:
         ```python
         market="BTC-EUR"
         orderId="95d92d6c-ecf0-4960-a608-9953ef71652e"
+        operatorId=123  # Your identifier for the trader or bot that made the request
         body={
           "amount": "1.567",
           "amountRemaining": "1.567",
           "price": "6000",
           "triggerAmount": "4000",  # only for stop orders
+          "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",  # Optional: your identifier for the order
           # GTC orders will remain on the order book until they are filled or canceled.
           # IOC orders will fill against existing orders, but will cancel any remaining amount after that.
           # FOK orders will fill against existing orders in its entirety, or will be canceled (if the entire order cannot be filled).
@@ -1082,22 +1178,32 @@ class Bitvavo:
         """  # noqa: E501
         body["market"] = market
         body["orderId"] = orderId
+        body["operatorId"] = operatorId
         return self.privateRequest("/order", "", body, "PUT")  # type: ignore[return-value]
 
-    def cancelOrder(self, market: str, orderId: str) -> strdict:
+    def cancelOrder(
+        self,
+        market: str,
+        operatorId: int,
+        orderId: str | None = None,
+        clientOrderId: str | None = None,
+    ) -> strdict:
         """Cancel an existing order for a specific market
 
         ---
         Args:
         ```python
         market="BTC-EUR"
-        orderId="a4a5d310-687c-486e-a3eb-1df832405ccd"
+        operatorId=123  # Your identifier for the trader or bot that made the request
+        orderId="a4a5d310-687c-486e-a3eb-1df832405ccd"  # Either orderId or clientOrderId required
+        clientOrderId="2be7d0df-d8dc-7b93-a550-8876f3b393e9"  # Either orderId or clientOrderId required
+        # If both orderId and clientOrderId are provided, clientOrderId takes precedence
         ```
 
         ---
         Rate Limit Weight:
         ```python
-        1
+        N/A
         ```
 
         ---
@@ -1106,7 +1212,22 @@ class Bitvavo:
         {"orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"}
         ```
         """
-        postfix = createPostfix({"market": market, "orderId": orderId})
+        if orderId is None and clientOrderId is None:
+            msg = "Either orderId or clientOrderId must be provided"
+            raise ValueError(msg)
+
+        params = {
+            "market": market,
+            "operatorId": operatorId,
+        }
+
+        # clientOrderId takes precedence if both are provided
+        if clientOrderId is not None:
+            params["clientOrderId"] = clientOrderId
+        elif orderId is not None:
+            params["orderId"] = orderId
+
+        postfix = createPostfix(params)
         return self.privateRequest("/order", postfix, {}, "DELETE")  # type: ignore[return-value]
 
     def getOrder(self, market: str, orderId: str) -> list[anydict] | errordict:
@@ -1421,6 +1542,35 @@ class Bitvavo:
         return self.privateRequest("/account", "", {}, "GET")  # type: ignore[return-value]
 
     def fees(self, market: str | None = None, quote: str | None = None) -> list[strdict] | errordict:
+        """Get market fees for a specific market or quote currency
+
+        ---
+        Args:
+        ```python
+        market="BTC-EUR"  # Optional: get fees for specific market
+        quote="EUR"       # Optional: get fees for all markets with EUR as quote currency
+        # If both are provided, market takes precedence
+        # If neither are provided, returns fees for all markets
+        ```
+
+        ---
+        Rate Limit Weight:
+        ```python
+        1
+        ```
+
+        ---
+        Returns:
+        ```python
+        [
+          {
+            "market": "BTC-EUR",
+            "maker": "0.0015",
+            "taker": "0.0025"
+          }
+        ]
+        ```
+        """
         options = {}
         if market is not None:
             options["market"] = market
@@ -1459,6 +1609,53 @@ class Bitvavo:
         """
         postfix = createPostfix(options)
         return self.privateRequest("/balance", postfix, {}, "GET", 5)  # type: ignore[return-value]
+
+    def accountHistory(self, options: strintdict | None = None) -> anydict | errordict:
+        """Get all past transactions for your account
+
+        ---
+        Args:
+        ```python
+        options={
+            "fromDate": int timestamp in ms >= 0,  # Starting timestamp to return transactions from
+            "toDate": int timestamp in ms <= 8_640_000_000_000_000,  # Timestamp up to which to return transactions
+            "maxItems": [ 1 .. 100 ], default 100,  # Maximum number of transactions per page
+            "page": 1,  # Page number to return (1-indexed)
+        }
+        ```
+
+        ---
+        Rate Limit Weight:
+        ```python
+        1
+        ```
+
+        ---
+        Returns:
+        ```python
+        {
+          "items": [
+            {
+              "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+              "timestamp": 1542967486256,
+              "type": "deposit",
+              "symbol": "BTC",
+              "amount": "0.99994",
+              "description": "Deposit via bank transfer",
+              "status": "completed",
+              "feesCurrency": "EUR",
+              "feesAmount": "0.01",
+              "address": "BitcoinAddress"
+            }
+          ],
+          "currentPage": 1,
+          "totalPages": 1,
+          "maxItems": 100
+        }
+        ```
+        """
+        postfix = createPostfix(options)
+        return self.privateRequest("/account/history", postfix, {}, "GET")  # type: ignore[return-value]
 
     def depositAssets(self, symbol: str) -> strdict:
         """Get the deposit address (with paymentId for some assets) or bank account information to increase your balance
@@ -2311,6 +2508,7 @@ class Bitvavo:
             market: str,
             side: str,
             orderType: str,
+            operatorId: int,
             body: anydict,
             callback: Callable[[Any], None],
         ) -> None:
@@ -2323,9 +2521,11 @@ class Bitvavo:
             side="buy" # Choose: buy, sell
             # For market orders either `amount` or `amountQuote` is required
             orderType="market"  # Choose: market, limit, stopLoss, stopLossLimit, takeProfit, takeProfitLimit
+            operatorId=123  # Your identifier for the trader or bot that made the request
             body={
               "amount": "1.567",
               "amountQuote": "5000",
+              "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",  # Optional: your identifier for the order
               # GTC orders will remain on the order book until they are filled or canceled.
               # IOC orders will fill against existing orders, but will cancel any remaining amount after that.
               # FOK orders will fill against existing orders in its entirety, or will be canceled (if the entire order cannot be filled).
@@ -2341,6 +2541,7 @@ class Bitvavo:
 
             # For limit orders `amount` and `price` are required.
             orderType="limit"  # Choose: market, limit, stopLoss, stopLossLimit, takeProfit, takeProfitLimit
+            operatorId=123
             body={
               "amount": "1.567",
               "price": "6000",
@@ -2353,6 +2554,7 @@ class Bitvavo:
             orderType="stopLoss"
             # or
             orderType="takeProfit"
+            operatorId=123
             body={
               "amount": "1.567",
               "amountQuote": "5000",
@@ -2368,6 +2570,7 @@ class Bitvavo:
             orderType="stopLossLimit"
             # or
             orderType="takeProfitLimit"
+            operatorId=123
             body={
               "amount": "1.567",
               "price": "6000",
@@ -2438,6 +2641,7 @@ class Bitvavo:
             body["market"] = market
             body["side"] = side
             body["orderType"] = orderType
+            body["operatorId"] = operatorId
             body["action"] = "privateCreateOrder"
             self.doSend(self.ws, json.dumps(body), True)
 
@@ -2445,6 +2649,7 @@ class Bitvavo:
             self,
             market: str,
             orderId: str,
+            operatorId: int,
             body: anydict,
             callback: Callable[[Any], None],
         ) -> None:
@@ -2457,11 +2662,13 @@ class Bitvavo:
             ```python
             market="BTC-EUR"
             orderId="95d92d6c-ecf0-4960-a608-9953ef71652e"
+            operatorId=123  # Your identifier for the trader or bot that made the request
             body={
               "amount": "1.567",
               "amountRemaining": "1.567",
               "price": "6000",
               "triggerAmount": "4000",  # only for stop orders
+              "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",  # Optional: your identifier for the order
               # GTC orders will remain on the order book until they are filled or canceled.
               # IOC orders will fill against existing orders, but will cancel any remaining amount after that.
               # FOK orders will fill against existing orders in its entirety, or will be canceled (if the entire order cannot be filled).
@@ -2532,24 +2739,35 @@ class Bitvavo:
             self.callbacks["updateOrder"] = callback
             body["market"] = market
             body["orderId"] = orderId
+            body["operatorId"] = operatorId
             body["action"] = "privateUpdateOrder"
             self.doSend(self.ws, json.dumps(body), True)
 
-        def cancelOrder(self, market: str, orderId: str, callback: Callable[[Any], None]) -> None:
+        def cancelOrder(
+            self,
+            market: str,
+            operatorId: int,
+            callback: Callable[[Any], None],
+            orderId: str | None = None,
+            clientOrderId: str | None = None,
+        ) -> None:
             """Cancel an existing order for a specific market
 
             ---
             Args:
             ```python
             market="BTC-EUR"
-            orderId="a4a5d310-687c-486e-a3eb-1df832405ccd"
+            operatorId=123  # Your identifier for the trader or bot that made the request
             callback=callback_example
+            orderId="a4a5d310-687c-486e-a3eb-1df832405ccd"  # Either orderId or clientOrderId required
+            clientOrderId="2be7d0df-d8dc-7b93-a550-8876f3b393e9"  # Either orderId or clientOrderId required
+            # If both orderId and clientOrderId are provided, clientOrderId takes precedence
             ```
 
             ---
             Rate Limit Weight:
             ```python
-            1
+            N/A
             ```
 
             ---
@@ -2558,12 +2776,23 @@ class Bitvavo:
             {"orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"}
             ```
             """
+            if orderId is None and clientOrderId is None:
+                msg = "Either orderId or clientOrderId must be provided"
+                raise ValueError(msg)
+
             self.callbacks["cancelOrder"] = callback
             options = {
                 "action": "privateCancelOrder",
                 "market": market,
-                "orderId": orderId,
+                "operatorId": operatorId,
             }
+
+            # clientOrderId takes precedence if both are provided
+            if clientOrderId is not None:
+                options["clientOrderId"] = clientOrderId
+            elif orderId is not None:
+                options["orderId"] = orderId
+
             self.doSend(self.ws, json.dumps(options), True)
 
         def getOrder(self, market: str, orderId: str, callback: Callable[[Any], None]) -> None:

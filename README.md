@@ -1,76 +1,301 @@
 # Bitvavo API (upgraded)
 
-## Userguide
+A **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency exchange API. This is an "upgraded" fork of the official Bitvavo SDK with comprehensive type hints, unit tests, and improved developer experience.
 
-`pip install bitvavo_api_upgraded`
+## Quick Start
 
-Works the same as the official API lib, but I have:
+```bash
+pip install bitvavo_api_upgraded
+```
 
-- typing for _all_ functions and classes
-- unit tests (I already found three bugs that I fixed, because the original code
-  wasn't tested, at all)
-- a changelog, so you can track of the changes that I make
-- compatible with Python 3.7 and newer ([3.6 isn't supported as of
-  2021-12-23](https://endoflife.date/python))
+Scroll down for detailed usage examples and configuration instructions.
 
-## Devguide
+## What Makes This "Upgraded"?
+
+This wrapper improves upon the official Bitvavo SDK with:
+
+- 🎯 **Complete type annotations** for all functions and classes
+- 🧪 **Comprehensive test suite** (found and fixed multiple bugs in the original)
+- 📋 **Detailed changelog** tracking all changes and improvements
+- 🔄 **Up-to-date API compliance** including MiCA regulatory requirements
+- 📚 **Enhanced documentation** with examples and clear usage patterns
+- 🐍 **Modern Python support** (3.9+, dropped EOL versions)
+- ⚡ **Better error handling** and rate limiting
+- 🔧 **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
+
+## Features
+
+### Full API Coverage
+
+- ✅ All REST endpoints (public and private)
+- ✅ WebSocket support with reconnection logic
+- ✅ Rate limiting with automatic throttling
+- ✅ MiCA compliance reporting endpoints
+
+### Developer Experience
+
+- ✅ Type hints for better IDE support
+- ✅ Comprehensive error handling
+- ✅ Detailed logging with `structlog`
+- ✅ Configuration via `.env` files
+- ✅ Extensive test coverage
+
+### Production Ready
+
+- ✅ Automatic rate limit management
+- ✅ Connection retry logic
+- ✅ Proper error responses
+- ✅ Memory efficient WebSocket handling
+
+## Configuration
+
+Create a `.env` file in your project root:
+
+```env
+BITVAVO_APIKEY=your-api-key-here
+BITVAVO_APISECRET=your-api-secret-here
+```
+
+Then use the settings:
+
+```python
+from bitvavo_api_upgraded import Bitvavo, BitvavoSettings
+
+# Option 1: Manual configuration
+bitvavo = Bitvavo({
+    'APIKEY': 'your-key',
+    'APISECRET': 'your-secret'
+})
+
+# Option 2: Auto-load from .env
+settings = BitvavoSettings()
+bitvavo = Bitvavo(settings.model_dump())
+```
+
+## WebSocket Usage
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+def handle_ticker(data):
+    print(f"Ticker update: {data}")
+
+def handle_error(error):
+    print(f"Error: {error}")
+
+# Initialize WebSocket
+bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+ws = bitvavo.newWebsocket()
+ws.setErrorCallback(handle_error)
+
+# Subscribe to ticker updates
+ws.subscriptionTicker("BTC-EUR", handle_ticker)
+
+# Keep connection alive
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    ws.closeSocket()
+```
+
+## API Examples
+
+### Public Endpoints (No Authentication)
+
+```python
+# Get server time
+time_resp = bitvavo.time()
+
+# Get all markets
+markets = bitvavo.markets({})
+
+# Get specific market
+btc_market = bitvavo.markets({'market': 'BTC-EUR'})
+
+# Get order book
+book = bitvavo.book('BTC-EUR', {})
+
+# Get recent trades
+trades = bitvavo.publicTrades('BTC-EUR', {})
+
+# Get 24h ticker
+ticker = bitvavo.ticker24h({'market': 'BTC-EUR'})
+```
+
+### Private Endpoints (Authentication Required)
+
+```python
+# Get account info
+account = bitvavo.account()
+
+# Get balance
+balance = bitvavo.balance({})
+
+# Place order (requires operatorId for MiCA compliance)
+order = bitvavo.placeOrder(
+    market="BTC-EUR",
+    side="buy",
+    orderType="limit",
+    body={"amount": "0.01", "price": "45000"},
+    operatorId=12345
+)
+
+# Get order history
+orders = bitvavo.getOrders('BTC-EUR', {})
+
+# Cancel order
+cancel_result = bitvavo.cancelOrder(
+    market="BTC-EUR",
+    orderId="order-id-here",
+    operatorId=12345
+)
+```
+
+### MiCA Compliance Features
+
+```python
+# Generate trade report
+trade_report = bitvavo.reportTrades(
+    market="BTC-EUR",
+    options={
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-01-31T23:59:59.999Z"
+    }
+)
+
+# Generate order book report
+book_report = bitvavo.reportBook(
+    market="BTC-EUR",
+    options={
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-01-31T23:59:59.999Z"
+    }
+)
+
+# Get account history
+history = bitvavo.accountHistory(options={})
+```
+
+## Error Handling
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+
+response = bitvavo.placeOrder(
+    market="BTC-EUR",
+    side="buy",
+    orderType="limit",
+    body={"amount": "0.01", "price": "45000"},
+    operatorId=12345
+)
+
+# Check for errors
+if isinstance(response, dict) and 'errorCode' in response:
+    print(f"Error {response['errorCode']}: {response['error']}")
+else:
+    print(f"Order placed successfully: {response['orderId']}")
+```
+
+## Rate Limiting
+
+```python
+# Check remaining rate limit
+remaining = bitvavo.getRemainingLimit()
+print(f"Remaining API calls: {remaining}")
+
+# The library automatically handles rate limiting
+# But you can check limits before making calls
+if remaining > 10:
+    # Safe to make API calls
+    response = bitvavo.balance({})
+```
+
+## Development & Contributing
 
 ```shell
 echo "install development requirements"
 uv sync
 echo "run tox, a program that creates separate environments for different python versions, for testing purposes (among other things)"
 uv run tox
+## Development & Contributing
+
+### Setup Development Environment
+
+```shell
+# Install uv (modern Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and setup
+git clone https://github.com/Thaumatorium/bitvavo-api-upgraded.git
+cd bitvavo-api-upgraded
+
+# Install dependencies
+uv sync
+
+# Run tests across Python versions
+uv run tox
+
+# Run tests for current Python version
+uv run pytest
+
+# Type checking
+uv run mypy src/
+
+# Linting and formatting
+uv run ruff check
+uv run ruff format
 ```
 
-### Semantic Versioning (SemVer)
+### Project Structure
 
-I'm using semantic versioning, which means that changes mean this:
+```text
+src/bitvavo_api_upgraded/   # Source code
+├── __init__.py             # Main exports
+├── bitvavo.py              # Core API class
+├── settings.py             # Pydantic settings
+├── helper_funcs.py         # Utility functions
+└── type_aliases.py         # Type definitions
 
-1. MAJOR version when you make incompatible API changes,
-1. MINOR version when you add functionality in a backwards compatible manner,
-   and
-1. PATCH version when you make backwards compatible bug fixes.
-
-### Versioning
-
-Copy the following block to CHANGELOG.md and add all information since last
-version bump
-
-```markdown
-## $UNRELEASED
-
-### Added
-
-...
-
-### Changed
-
-...
-
-### Removed
-
-...
+tests/                      # Comprehensive test suite
+docs/                       # Documentation
 ```
 
-Commit those changes.
+### Semantic Versioning
 
-After that, run `bump-my-version bump (major|minor|patch)` to automatically
-replace `$UNRELEASED` with the new version number, and also automatically tag
-and commit (with tag) to release a new version via the Github workflow.
+This project follows [semantic versioning](https://semver.org/):
 
-## py.typed
+1. **MAJOR** version for incompatible API changes
+2. **MINOR** version for backwards-compatible functionality additions
+3. **PATCH** version for backwards-compatible bug fixes
 
-Perhaps a curious file, but it simply exists to let `mypy` know that the code is
-typed: [Don't forget `py.typed` for your typed Python package
-](https://blog.whtsky.me/tech/2021/dont-forget-py.typed-for-your-typed-python-package/)
+## Type Annotations
 
-## Last note
+This package includes a `py.typed` file to enable type checking. Reference: [Don't forget py.typed for your typed Python package](https://blog.whtsky.me/tech/2021/dont-forget-py.typed-for-your-typed-python-package/)
 
-_below this line is the old README.md_
+## Migration from Official SDK
+
+### Key Differences
+
+- Import: `from bitvavo_api_upgraded import Bitvavo` (instead of `from python_bitvavo_api.bitvavo import Bitvavo`)
+- **Breaking Change**: Trading operations require `operatorId` parameter
+- Enhanced error handling and type safety
+- Better configuration management with `.env` support
+
+### Migration Steps
+
+1. Update import statements
+2. Add `operatorId` to trading method calls
+3. Optional: Migrate to `.env` configuration
+4. Enjoy improved type hints and error handling!
 
 ---
 
-# Bitvavo SDK for Python
+## Original Bitvavo SDK Documentation
+
+The following is preserved from the original Bitvavo SDK for reference.
 
 Crypto starts with Bitvavo. You use Bitvavo SDK for Python to buy, sell, and
 store over 200 digital assets on Bitvavo from inside your app.

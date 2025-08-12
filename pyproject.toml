@@ -1,3 +1,8 @@
+# https://docs.astral.sh/uv/concepts/projects/layout/
+[build-system]
+requires = ["uv_build>=0.8.7,<0.9.0"]
+build-backend = "uv_build"
+
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
 [project]
 name = "bitvavo-api-upgraded"
@@ -61,11 +66,8 @@ dev-dependencies = [
     "tox-uv>=1.16.0",            # to ensure tox can use uv
     "tox>=3.24.4",               # run `tox` to test everything
     "types-requests>=2.26.2",    # typing for mypy
+    "uv>=0.8.0",                 # project manager (building, version bump, etc.)
 ]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
 
 [tool.bumpversion]
 current_version = "1.17.2"
@@ -103,11 +105,7 @@ branch = true
 source = ["bitvavo_api_upgraded"]
 parallel = true
 relative_files = true
-omit = [
-    "docs/*",
-    "scripts/*",
-    "tests/*",
-]
+omit = ["docs/*", "scripts/*", "tests/*"]
 
 [tool.coverage.paths]
 omit = [
@@ -314,11 +312,12 @@ ignore = [
     "ISC001", # (single-line-implicit-string-concatenation)
     "ANN401", # (any-type)
     # above this, is based on some other project
-    "N802",   # (invalid-function-name) - this is due to how Bitvavo defined their functions
-    "N803",   # invalid-argument-name
-    "N806",   # (non-lowercase-variable-in-function)
-    "FBT003", # (boolean-positional-value-in-call) - same as N802
-    "T201",   # (print)
+    "N802",    # (invalid-function-name) - this is due to how Bitvavo defined their functions
+    "N803",    # invalid-argument-name
+    "N806",    # (non-lowercase-variable-in-function)
+    "FBT003",  # (boolean-positional-value-in-call) - same as N802
+    "T201",    # (print)
+    "PLR0913", # (too-many-arguments) Bitvavo API simply has a lot of arguments.
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.

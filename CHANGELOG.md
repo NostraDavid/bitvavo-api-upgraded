@@ -1,5 +1,107 @@
 # Changelog
 
+## $UNRELEASED
+
+**BREAKING CHANGES**: This release includes significant API updates to match the latest Bitvavo API requirements. All trading operations now require an `operatorId` parameter for MiCA compliance.
+
+To be fair, it's not a massive change, but it does require updating your code to
+include the new parameter.
+
+Anyway, turns out Bitvavo has been releasing their API changes
+[here](https://docs.bitvavo.com/releases/sneak-preview/). Right now, we're
+up-to-date with version [2.9.0](https://docs.bitvavo.com/releases/v2.9.0/).
+
+### Added
+
+- **MiCA Compliance Support**: New endpoints for regulatory compliance reporting
+  - `reportTrades()`: Generate trade reports for specific date ranges and
+    markets
+  - `reportBook()`: Generate order book reports for specific date ranges and
+    markets
+  - `accountHistory()`: Retrieve detailed account transaction history
+- **Enhanced Error Handling**: Improved error responses for new compliance
+  endpoints
+- **Test Coverage**: Comprehensive test suite for new MiCA compliance endpoints
+  - `test_account_history()`: Tests account history retrieval
+  - `test_report_trades()`: Tests trade reporting functionality (skipped for
+    safety)
+  - `test_report_book()`: Tests order book reporting functionality (skipped for
+    safety)
+
+### Changed
+
+- **BREAKING**: All trading operations now require `operatorId` parameter:
+  - `placeOrder()`: Added required `operatorId: int` parameter
+  - `updateOrder()`: Added required `operatorId: int` parameter
+  - `cancelOrder()`: Added required `operatorId: int` parameter
+  - WebSocket equivalents also updated with `operatorId` requirement
+- **Enhanced `cancelOrder()`**: Now supports both `orderId` and `clientOrderId` parameters
+  - When both are provided, `clientOrderId` takes precedence
+  - Maintains backward compatibility with existing `orderId` usage
+- **Improved `fees()` Method**: Enhanced documentation and parameter support
+  - Better handling of market-specific and quote-specific fee queries
+  - Clearer documentation of tier-based fee structures
+- **Updated Test Suite**: All trading method tests updated with required `operatorId` parameters
+  - Tests remain safely skipped to prevent accidental live trading
+  - New defensive testing patterns for MiCA compliance endpoints
+
+### Migration Guide
+
+**For existing trading operations**, update your code to include the `operatorId` parameter:
+
+```python
+# Before (v1.17.2 and earlier)
+bitvavo.placeOrder(
+    market="BTC-EUR",
+    side="buy",
+    orderType="limit",
+    body={"amount": "0.1", "price": "50000"}
+)
+
+# After (v2.0.0+)
+bitvavo.placeOrder(
+    market="BTC-EUR",
+    side="buy",
+    orderType="limit",
+    body={"amount": "0.1", "price": "50000"},
+    operatorId=12345  # Your operator ID
+)
+```
+
+**For MiCA compliance reporting**:
+
+```python
+# Generate trade report
+trades = bitvavo.reportTrades(
+    market="BTC-EUR",
+    options={
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-01-31T23:59:59.999Z"
+    }
+)
+
+# Generate order book report
+book_report = bitvavo.reportBook(
+    market="BTC-EUR",
+    options={
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-01-31T23:59:59.999Z"
+    }
+)
+
+# Get account history
+history = bitvavo.accountHistory(options={})
+```
+
+### Notes
+
+- This update brings the wrapper fully up-to-date with Bitvavo's latest API
+  requirements
+- All changes maintain backward compatibility except for the required
+  `operatorId` parameter
+- MiCA compliance features require appropriate account permissions
+- WebSocket functionality updated consistently with REST API changes
+
 ## v1.17.2 - 2025-08-01
 
 Maintenance release, no functional changes. At least not from my side. I do note

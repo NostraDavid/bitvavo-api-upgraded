@@ -622,6 +622,7 @@ class TestBitvavo:
             side="buy",
             orderType="limit",
             body={"amount": "0.1", "price": "2000"},
+            operatorId=12345,
         )
         print(json.dumps(response, indent=2))
 
@@ -637,6 +638,7 @@ class TestBitvavo:
                 "triggerReference": "lastTrade",
                 "triggerAmount": "5000",
             },
+            operatorId=12345,
         )
         print(json.dumps(response, indent=2))
 
@@ -659,6 +661,7 @@ class TestBitvavo:
             market="BTC-EUR",
             orderId="dd055772-0f02-493c-a049-f4356fa0d221",
             body={"amount": "0.2"},
+            operatorId=12345,
         )
         assert len(response) == 2
         assert "errorCode" in response
@@ -671,7 +674,11 @@ class TestBitvavo:
 
     @pytest.mark.skipif(True, reason="This test is very sensitive to the data on the account, so I'm skipping it")
     def test_cancel_order(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.cancelOrder(market="BTC-EUR", orderId="dd055772-0f02-493c-a049-f4356fa0d221")
+        response = bitvavo.cancelOrder(
+            market="BTC-EUR",
+            orderId="dd055772-0f02-493c-a049-f4356fa0d221",
+            operatorId=12345,
+        )
         assert len(response) == 2
         assert "errorCode" in response
         assert "error" in response
@@ -1170,6 +1177,72 @@ class TestBitvavo:
                 "awaiting_processing",
             ]  # TODO(NostraDavid): expand this list, if possible
 
+    def test_account_history(self, bitvavo: Bitvavo) -> None:
+        """Test the new accountHistory method for MiCA compliance."""
+        response = bitvavo.accountHistory(options={})
+
+        # Should return a list or an error dict
+        assert isinstance(response, (list, dict))
+
+        # If it's an error (likely due to permissions), check error structure
+        if isinstance(response, dict) and "errorCode" in response:
+            assert "error" in response
+            assert isinstance(response["errorCode"], int)
+            assert isinstance(response["error"], str)
+        # If it's successful, check the list structure
+        elif isinstance(response, list):
+            for item in response:
+                # Based on API docs, should have these fields
+                assert isinstance(item, dict)
+                # Can't assert specific fields without knowing the exact response structure
+
+    def test_report_trades(self, bitvavo: Bitvavo) -> None:
+        """Test the new reportTrades method for MiCA compliance."""
+        # Using a date range that shouldn't have any trades
+        response = bitvavo.reportTrades(
+            market="BTC-EUR",
+            options={
+                "startDate": "2020-01-01T00:00:00.000Z",
+                "endDate": "2020-01-02T00:00:00.000Z",
+            },
+        )
+
+        # Should return a list or an error dict
+        assert isinstance(response, (list, dict))
+
+        # If it's an error (likely due to permissions), check error structure
+        if isinstance(response, dict) and "errorCode" in response:
+            assert "error" in response
+            assert isinstance(response["errorCode"], int)
+            assert isinstance(response["error"], str)
+        # If it's successful, check the list structure
+        elif isinstance(response, list):
+            for item in response:
+                assert isinstance(item, dict)
+
+    def test_report_book(self, bitvavo: Bitvavo) -> None:
+        """Test the new reportBook method for MiCA compliance."""
+        # Using a date range that shouldn't have any book changes
+        response = bitvavo.reportBook(
+            market="BTC-EUR",
+            options={
+                "startDate": "2020-01-01T00:00:00.000Z",
+                "endDate": "2020-01-02T00:00:00.000Z",
+            },
+        )
+
+        # Should return a dict or an error dict
+        assert isinstance(response, dict)
+
+        # If it's an error (likely due to permissions), check error structure
+        if "errorCode" in response:
+            assert "error" in response
+            assert isinstance(response["errorCode"], int)
+            assert isinstance(response["error"], str)
+        else:
+            # If it's successful, should be a report response
+            assert isinstance(response, dict)
+
 
 # Normally you would define a separate callback for every function.
 def generic_callback(response: Any | errordict) -> None:
@@ -1367,10 +1440,10 @@ class TestWebsocket:
             side="buy",
             orderType="limit",
             body={"amount": "1", "price": "3000"},
+            operatorId=12345,
             callback=generic_callback,
         )
 
-    # @pytest.mark.skipif(True, reason="properly broken?")
     def test_get_order(
         self,
         caplog: pytest.LogCaptureFixture,
@@ -1407,6 +1480,7 @@ class TestWebsocket:
             market="BTC-EUR",
             orderId="6d0dffa7-07fe-448e-9928-233821e7cdb5",
             body={"amount": "1.1"},
+            operatorId=12345,
             callback=generic_callback,
         )
 
@@ -1420,6 +1494,7 @@ class TestWebsocket:
         websocket.cancelOrder(
             market="BTC-EUR",
             orderId="6d0dffa7-07fe-448e-9928-233821e7cdb5",
+            operatorId=12345,
             callback=generic_callback,
         )
 

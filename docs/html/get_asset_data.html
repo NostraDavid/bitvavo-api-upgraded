@@ -1,0 +1,234 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Synchronization</li>
+<li>Get asset data</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get asset data</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/assets</h2>
+<p>Returns the information about the specified assets.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>public</em> endpoint. However, <a href="/docs/authentication/">authenticating</a> your request gives you a <a href="/docs/rate-limits/#how-its-calculated">higher rate limit. </a></p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: <strong>1</strong></p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>symbol string</strong></strong>
+<p>The asset for which to return the information. If not specified, all supported assets are returned.</p>
+<div><strong>Example: </strong>BTC</div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<li>
+<div>Array [</div>
+</li>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>symbolstring</strong></strong>
+<p>The asset for which the information is returned.</p>
+<div><strong>Example: <code>BTC </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>namestring</strong></strong>
+<p>The full name of the asset.</p>
+<div><strong>Example: <code>Bitcoin </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>decimalsinteger</strong></strong>
+<p>The number of decimal digits for this asset.</p>
+<div><strong>Example: <code>8 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>depositFeestring</strong></strong>
+<p>The fee for depositing the asset.</p>
+<div><strong>Example: <code>0 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>depositConfirmationsinteger</strong></strong>
+<p>The minimum number of network confirmations to credit the asset to your account.</p>
+<div><strong>Example: <code>10 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>depositStatusstring</strong></strong>
+<p>The status of the asset being deposited.</p>
+<p><strong>Possible values: [<code>OK</code>, <code>MAINTENANCE, <code>DELISTED] </code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>withdrawalFeestring</strong></strong>
+<p>The fee for withdrawing the asset.</p>
+<div><strong>Example: <code>0.2 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>withdrawalMinAmountstring</strong></strong>
+<p>The minimum amount that can be withdrawn.</p>
+<div><strong>Example: <code>0.2 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>withdrawalStatusstring</strong></strong>
+<p>The status of the asset being withdrawn.</p>
+<p><strong>Possible values: [<code>OK</code>, <code>MAINTENANCE, <code>DELISTED] </code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>networksarray[]</strong></strong>
+<p>The list of supported networks.</p>
+<div><strong>Example: <code>["Mainnet"] </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>messagestring</strong></strong>
+<p>The reason if the <code>withdrawalStatus or <code>depositStatus is not <code>OK. </code></code></code></p>
+<div><strong>Example: <code></code> </strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>]</div>
+</li>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>[<br /> {<br /> "symbol": "BTC",<br /> "name": "Bitcoin",<br /> "decimals": 8,<br /> "depositFee": "0",<br /> "depositConfirmations": 10,<br /> "depositStatus": "OK",<br /> "withdrawalFee": "0.2",<br /> "withdrawalMinAmount": "0.2",<br /> "withdrawalStatus": "OK",<br /> "networks": [<br /> "Mainnet"<br /> ],<br /> "message": ""<br /> }<br />]<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo()<br />response = bitvavo.assets({})<br />for asset in response:<br /> print(asset)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json'<br />}<br />conn.request("GET", "/v2/assets", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<button type="button">Show optional parameters </button>
+<div>
+<div><label><label>symbol &mdash; query</label></label>
+<div><input title="The asset for which to return the information. If not specified, all supported assets are returned." autocomplete="off" name="symbol" type="text" value="" placeholder="The asset for which to return the information. If not specified, all supported assets are returned." /></div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Get markets</div>
+</nav></div>
+</div>

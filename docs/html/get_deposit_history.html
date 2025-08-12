@@ -1,0 +1,309 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Transfer</li>
+<li>Get deposit history</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get deposit history</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/depositHistory</h2>
+<p>Returns all past deposits for your account.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>private</em> endpoint. To send requests, you need to <a href="/docs/authentication/">authenticate</a>.</p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: <strong>5</strong></p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>symbol string</strong></strong>
+<p>The asset for which to return the deposit history. If not specified, all deposits are returned.</p>
+</div>
+<div><strong><strong>limit integer</strong></strong>
+<p><strong>Possible values:</strong> <code>&gt;= 1</code> and <code>&lt;= 1000</code></p>
+<p>The maximum number of deposits to return, from latest to earliest.</p>
+<div><strong>Default value: <code>500</code> </strong></div>
+</div>
+<div><strong><strong>start unix-timestamp in milliseconds</strong></strong>
+<p>The Unix timestamp starting from which to return deposits.</p>
+</div>
+<div><strong><strong>end unix-timestamp in milliseconds</strong></strong>
+<p><strong>Possible values:</strong> <code>&lt;= 8640000000000000</code></p>
+<p>The Unix timestamp up to which to return deposits.</p>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example - history-digital-asset</li>
+<li tabindex="-1">Example - history-fiat</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<div>
+<div>
+oneOf
+<div>
+<div>
+<ul>
+<li tabindex="0">history-digital-asset</li>
+<li tabindex="-1">history-fiat</li>
+</ul>
+</div>
+<div>
+<div>
+<div>
+<div><strong><strong>timestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The Unix timestamp when the deposit was made.</p>
+<div><strong>Example: <code>1706609321000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>symbolstring</strong></strong>
+<p>The asset you deposited on Bitvavo.</p>
+<div><strong>Example: <code>BTC </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountstring</strong></strong>
+<p>The quantity of the asset you deposited on Bitvavo.</p>
+<div><strong>Example: <code>0.99994 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>addressstring</strong></strong>
+<p>The address where you deposited assets.</p>
+<div><strong>Example: <code>14qViLJfdGaP4EeHnDyJbEGQysnCpwk3gd </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>paymentIdstring</strong></strong>
+<p>The unique identifier of the deposit. Returned if specified in the request.</p>
+<div><strong>Example: <code>10002653 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>txIdstring</strong></strong>
+<p>The unique identifier of the transaction on the blockchain.</p>
+<div><strong>Example: <code>927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3 </code> </strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feestring</strong></strong>
+<p>The <a href="https://bitvavo.com/en/fees">transaction fee for a deposit on Bitvavo. </a></p>
+<div><strong>Example: <code>0.000063 </code></strong></div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div><strong><strong>timestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The Unix timestamp when the deposit was made.</p>
+<div><strong>Example: <code>1706609321000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>symbolstring</strong></strong>
+<p>The currency you deposited on Bitvavo.</p>
+<div><strong>Example: <code>EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountstring</strong></strong>
+<p>The quantity of the asset you deposited on Bitvavo.</p>
+<div><strong>Example: <code>500 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feestring</strong></strong>
+<p>The <a href="https://bitvavo.com/en/fees">transaction fee for a deposit on Bitvavo. </a></p>
+<div><strong>Example: <code>0 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>statusstring</strong></strong>
+<p>The state of the deposit. Can be <strong>completed or <strong>canceled. </strong></strong></p>
+<div><strong>Example: <code>completed </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>addressstring</strong></strong>
+<p>The bank account from which the deposit was made. For example, NL89BANK0123456789.</p>
+<div><strong>Example: <code>NL89BANK0123456789 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "timestamp": 1706609321000,<br /> "symbol": "BTC",<br /> "amount": "0.99994",<br /> "address": "14qViLJfdGaP4EeHnDyJbEGQysnCpwk3gd",<br /> "paymentId": "10002653",<br /> "txId": "927b3ea50c5bb52c6854152d305dfa1e27fc01d10464cf10825d96d69d235eb3\n",<br /> "fee": "0.000063"<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "timestamp": 1706609321000,<br /> "symbol": "EUR",<br /> "amount": "500",<br /> "fee": "0",<br /> "status": "completed",<br /> "address": "NL89BANK0123456789"<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div><details>
+<h4>Authorization: Bitvavo-Access-Key</h4>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Key</a><strong>type: </strong>apiKey<strong>description: </strong>Your 64-character API key with the required [permissions](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Timestamp</a><strong>type: </strong>apiKey<strong>description: </strong>A Unix timestamp in milliseconds of the time when you make the request.
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Signature</a><strong>type: </strong>apiKey<strong>description: </strong>An HMAC-SHA256 hex-encoded string of the time, HTTP method, path, and parameters used to make the request. To learn more, see [Authentication](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Window</a><strong>type: </strong>apiKey<strong>description: </strong>The execution timeout in milliseconds after Bitvavo-Access-Timestamp. The default value
+is 10000, the maximum value is 60000.
+<strong>in: </strong>header</pre>
+</details>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo({<br /> 'APIKEY': '&lt;APIKEY&gt;',<br /> 'APISECRET': '&lt;APISECRET&gt;'<br />})<br />response = bitvavo.depositHistory({})<br />for item in response:<br /> print(item)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json',<br /> 'Bitvavo-Access-Key': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Timestamp': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Signature': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Window': '&lt;Bitvavo-Access-Key&gt;'<br />}<br />conn.request("GET", "/v2/depositHistory", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Auth</summary>
+<div>
+<div><label>Bitvavo-Access-Key</label>
+<div><input title="Bitvavo-Access-Key" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Key" /></div>
+</div>
+<div><label>Bitvavo-Access-Timestamp</label>
+<div><input title="Bitvavo-Access-Timestamp" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Timestamp" /></div>
+</div>
+<div><label>Bitvavo-Access-Signature</label>
+<div><input title="Bitvavo-Access-Signature" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Signature" /></div>
+</div>
+<div><label>Bitvavo-Access-Window</label>
+<div><input title="Bitvavo-Access-Window" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Window" /></div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<button type="button">Show optional parameters </button>
+<div>
+<div><label><label>symbol &mdash; query</label></label>
+<div><input title="The asset for which to return the deposit history. If not specified, all deposits are returned." autocomplete="off" name="symbol" type="text" value="" placeholder="The asset for which to return the deposit history. If not specified, all deposits are returned." /></div>
+</div>
+<div><label><label>limit &mdash; query</label></label>
+<div><input title="The maximum number of deposits to return, from latest to earliest." autocomplete="off" name="limit" type="text" value="" placeholder="The maximum number of deposits to return, from latest to earliest." /></div>
+</div>
+<div><label><label>start &mdash; query</label></label>
+<div><input title="The Unix timestamp starting from which to return deposits." autocomplete="off" name="start" type="text" value="" placeholder="The Unix timestamp starting from which to return deposits." /></div>
+</div>
+<div><label><label>end &mdash; query</label></label>
+<div><input title="The Unix timestamp up to which to return deposits." autocomplete="off" name="end" type="text" value="" placeholder="The Unix timestamp up to which to return deposits." /></div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Get deposit data</div>
+<div>Next</div>
+<div>Withdraw assets</div>
+</nav></div>
+</div>

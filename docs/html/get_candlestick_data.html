@@ -1,0 +1,261 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Market data</li>
+<li>Get candlestick data</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get candlestick data</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/{market}/candles</h2>
+<p>Returns the <a href="https://www.investopedia.com/terms/o/ohlcchart.asp" target="_blank" rel="noopener noreferrer">OHLCV market data used to create </a><a href="https://learn.bitvavo.com/article/what-are-candlestick-patterns/1199" target="_blank" rel="noopener noreferrer">candlestick charts. </a></p>
+<p>Candlestick data is always returned in chronological data from newest to oldest. Data is returned when trades are made in the <code>interval</code> represented by that candlestick. When no trades occur you see a gap in data flow, zero trades are represented by zero candlesticks.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>public</em> endpoint. However, <a href="/docs/authentication/">authenticating</a> your request gives you a <a href="/docs/rate-limits/#how-its-calculated">higher rate limit. </a></p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: 1</p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Path Parameters</h3>
+<div>
+<div>
+<div><strong><strong>market stringrequired</strong></strong>
+<p>The market for which to return the candlestick data.</p>
+<blockquote>
+<p>For the list of all markets on Bitvavo, make a <a href="/docs/rest-api/get-markets">Get markets request. </a></p>
+</blockquote>
+<div><strong>Example: </strong>BTC-EUR</div>
+</div>
+</div>
+</div>
+</details> <details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>interval stringrequired</strong></strong>
+<p><strong>Possible values:</strong> [<code>1m</code>, <code>5m</code>, <code>15m</code>, <code>30m</code>, <code>1h</code>, <code>2h</code>, <code>4h</code>, <code>6h</code>, <code>8h</code>, <code>12h</code>, <code>1d</code>, <code>1W</code>, <code>1M</code>]</p>
+<p>The time interval between each candlestick.</p>
+</div>
+<div><strong><strong>limit integer</strong></strong>
+<p><strong>Possible values:</strong> <code>&gt;= 1</code> and <code>&lt;= 1440</code></p>
+<p>The maximum number of candlestick data to return.</p>
+<div><strong>Default value: <code>1440</code> </strong></div>
+</div>
+<div><strong><strong>start unix-timestamp in milliseconds</strong></strong>
+<p>The Unix timestamp starting from which to return the candlestick data. Candlestick data is always returned in a chronological order from latest to earliest.</p>
+<div><strong>Example: </strong>1704153600000</div>
+</div>
+<div><strong><strong>end unix-timestamp in milliseconds</strong></strong>
+<p><strong>Possible values:</strong> <code>&lt;= 8640000000000000</code></p>
+<p>The Unix timestamp until which to return the candlestick data. Candlestick data is always returned in a chronological order from latest to earliest. We recommend using the <code>end</code> query parameter.</p>
+<div><strong>Example: </strong>1704153600000</div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<li>
+<div>Array [</div>
+</li>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>timestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The start time for this candlestick data.</p>
+<div><strong>Example: <code>1538784000000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>openstring</strong></strong>
+<p>The starting price for the <code>market at <code>timestamp. </code></code></p>
+<div><strong>Example: <code>4999 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>highstring</strong></strong>
+<p>The highest price for the <code>market during the <code>interval. </code></code></p>
+<div><strong>Example: <code>5012 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>lowstring</strong></strong>
+<p>The lowest price for the <code>market during the <code>interval. </code></code></p>
+<div><strong>Example: <code>4999 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>closestring</strong></strong>
+<p>The closing price for the <code>market after the <code>interval. </code></code></p>
+<div><strong>Example: <code>5012 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>volumestring</strong></strong>
+<p>The amount traded in the <code>market during the <code>interval. </code></code></p>
+<div><strong>Example: <code>0.45 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>]</div>
+</li>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>[<br /> "1538784000000",<br /> "4999",<br /> "5012",<br /> "4999",<br /> "5012",<br /> "0.45"<br />]<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br />from datetime import datetime, timezone<br /><br />bitvavo = Bitvavo()<br /><br /># Query the last 1440 one hour candles of the BTC-EUR market<br />candles = bitvavo.candles('BTC-EUR', '1h')<br />for (ts, o, h, l, c, v) in candles:<br /> print('Timestamp', ts, 'open', o, 'high', h, 'low', l, 'close', c, 'volume', v)<br /><br /># Limit the result to 10 values<br />candles = bitvavo.candles('BTC-EUR', '1h', limit=10)<br />for (ts, o, h, l, c, v) in candles:<br /> print('Timestamp', ts, 'open', o, 'high', h, 'low', l, 'close', c, 'volume', v)<br /><br /># Specify a date range<br />start = datetime(year=2024, month=1, day=1, hour=0, minute=0, tzinfo=timezone.utc)<br />end = datetime(year=2024, month=1, day=1, hour=1, minute=0, tzinfo=timezone.utc)<br />candles = bitvavo.candles('BTC-EUR', '15m', start=start, end=end)<br />for (ts, o, h, l, c, v) in candles:<br /> print('Timestamp', ts, 'open', o, 'high', h, 'low', l, 'close', c, 'volume', v)<br /><br /># Before 1.3.2<br />candles = bitvavo.candles('BTC-EUR', '1h', {})<br />for candle in candles:<br /> print('Timestamp', candle[0], ' open', candle[1], ' high', candle[2], ' low', candle[3], ' close', candle[4], ' volume', candle[5])<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json'<br />}<br />conn.request("GET", "/v2/{market}/candles", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<div><label><label>market &mdash; pathrequired</label></label>
+<div><input title="The market for which to return the candlestick data." autocomplete="off" name="market" type="text" value="" placeholder="The market for which to return the candlestick data." /></div>
+</div>
+<div><label><label>interval &mdash; queryrequired</label></label>
+<div><select>
+<option value="---">---</option>
+<option value="1m">1m</option>
+<option value="5m">5m</option>
+<option value="15m">15m</option>
+<option value="30m">30m</option>
+<option value="1h">1h</option>
+<option value="2h">2h</option>
+<option value="4h">4h</option>
+<option value="6h">6h</option>
+<option value="8h">8h</option>
+<option value="12h">12h</option>
+<option value="1d">1d</option>
+<option value="1W">1W</option>
+<option value="1M">1M</option>
+</select></div>
+</div>
+<button type="button">Show optional parameters </button>
+<div>
+<div><label><label>limit &mdash; query</label></label>
+<div><input title="The maximum number of candlestick data to return." autocomplete="off" name="limit" type="text" value="" placeholder="The maximum number of candlestick data to return." /></div>
+</div>
+<div><label><label>start &mdash; query</label></label>
+<div><input title="The Unix timestamp starting from which to return the candlestick data." autocomplete="off" name="start" type="text" value="" placeholder="The Unix timestamp starting from which to return the candlestick data." /></div>
+</div>
+<div><label><label>end &mdash; query</label></label>
+<div><input title="The Unix timestamp until which to return the candlestick data." autocomplete="off" name="end" type="text" value="" placeholder="The Unix timestamp until which to return the candlestick data." /></div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Get ticker book</div>
+<div>Next</div>
+<div>Get candlestick data 24h</div>
+</nav></div>
+</div>

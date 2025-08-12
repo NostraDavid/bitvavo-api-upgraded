@@ -1,0 +1,235 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Market data</li>
+<li>Get order book</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get order book</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/{market}/book</h2>
+<p>Returns the list of up to 1000 bids and asks per request for the specified&nbsp;<code>market</code>, sorted by&nbsp;<code>price</code>.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>public</em> endpoint. However, <a href="/docs/authentication/">authenticating</a> your request gives you a <a href="/docs/rate-limits/#how-its-calculated">higher rate limit. </a></p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: 1</p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Path Parameters</h3>
+<div>
+<div>
+<div><strong><strong>market stringrequired</strong></strong>
+<p>The market for which to return the order book.</p>
+<div><strong>Example: </strong>BTC-EUR</div>
+</div>
+</div>
+</div>
+</details> <details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>depth integer</strong></strong>
+<p><strong>Possible values:</strong> <code>&lt;= 1000</code></p>
+<p>The number of <code>bids</code> and <code>asks</code> to return.</p>
+<div><strong>Default value: <code>1000</code> </strong></div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<details data-collapsed="true"> <summary> <strong>Response Headers</strong> </summary>
+<div>
+<div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-remaining</strong></strong>
+<p>The number of remaining <a href="/docs/rate-limits">weight points before it resets at <code>bitvavo-ratelimit-resetat. </code></a></p>
+</div>
+</div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-resetat</strong></strong>
+<p>The time when <code>bitvavo-ratelimit-remaining resets to <code>bitvavo-ratelimit-limit. </code></code></p>
+</div>
+</div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-limit</strong></strong>
+<p>The number of available <a href="/docs/rate-limits">weight points in one minute. </a></p>
+</div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>marketstring</strong></strong>
+<p>The market for which the order book is returned.</p>
+<div><strong>Example: <code>BTC-EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>nonceinteger</strong></strong>
+<p>Unique identifier of the market data in the order book at a specific time. <code>nonce is incremented by 1 every time the order book changes. For example, when an order is placed, updated, or deleted. </code></p>
+<div><strong>Example: <code>438524 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>bidsarray[]</strong></strong>
+<p>The list of buy orders for the specified <code>market and <code>depth. Every bid contains: </code></code></p>
+<ul>
+<li>
+<p><code>price: the offer for 1 unit of base currency in the amount of quote currency. For example, <strong>34243 Euros. </strong></code></p>
+</li>
+<li>
+<p><code>size: the amount of base currency in the offer. For example, <strong>0.1 Bitcoin. </strong></code></p>
+</li>
+</ul>
+<div><strong>Example: <code>[["4999.9","0.015"],["4999.8","0.015"],["4999.7","0.015"],["4999.6","0.015"]] </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>asksarray[]</strong></strong>
+<p>The list of sell orders for the specified <code>market and <code>depth. Every bid contains: </code></code></p>
+<ul>
+<li>
+<p><code>price: the offer for 1 unit of base currency in the amount of quote currency. For example, <strong>34243 Euros. </strong></code></p>
+</li>
+<li>
+<p><code>size: the amount of base currency in the offer. For example, <strong>0.1 Bitcoin. </strong></code></p>
+</li>
+</ul>
+<div><strong>Example: <code>[["5001.1","0.015"],["5001.2","0.015"],["5001.3","0.015"],["5001.4","0.015"]] </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>timestampinteger&lt;unix-timestamp in nanoseconds&gt;</strong></strong>
+<p>A Unix timestamp when the snapshot was taken.</p>
+<div><strong>Example: <code>1542967486256 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "market": "BTC-EUR",<br /> "nonce": 438524,<br /> "bids": [<br /> [<br /> "4999.9",<br /> "0.015"<br /> ],<br /> [<br /> "4999.8",<br /> "0.015"<br /> ],<br /> [<br /> "4999.7",<br /> "0.015"<br /> ],<br /> [<br /> "4999.6",<br /> "0.015"<br /> ]<br /> ],<br /> "asks": [<br /> [<br /> "5001.1",<br /> "0.015"<br /> ],<br /> [<br /> "5001.2",<br /> "0.015"<br /> ],<br /> [<br /> "5001.3",<br /> "0.015"<br /> ],<br /> [<br /> "5001.4",<br /> "0.015"<br /> ]<br /> ],<br /> "timestamp": 1542967486256<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo()<br />response = bitvavo.book('BTC-EUR', {})<br />for item in response['bids']:<br /> print('Bids', item)<br />for item in response['asks']:<br /> print('Asks', item)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json'<br />}<br />conn.request("GET", "/v2/{market}/book", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<div><label><label>market &mdash; pathrequired</label></label>
+<div><input title="The market for which to return the order book." autocomplete="off" name="market" type="text" value="" placeholder="The market for which to return the order book." /></div>
+</div>
+<button type="button">Show optional parameters </button>
+<div>
+<div><label><label>depth &mdash; query</label></label>
+<div><input title="The number of &#96;bids&#96; and &#96;asks&#96; to return." autocomplete="off" name="depth" type="text" value="" placeholder="The number of &#96;bids&#96; and &#96;asks&#96; to return." /></div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Introduction</div>
+<div>Next</div>
+<div>Get order book report</div>
+</nav></div>
+</div>

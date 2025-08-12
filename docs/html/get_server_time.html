@@ -1,0 +1,137 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Synchronization</li>
+<li>Get server time</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get server time</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/time</h2>
+<p>Returns the current Unix timestamp of Bitvavo servers.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>public</em> endpoint. However, <a href="/docs/authentication/">authenticating</a> your request gives you a <a href="/docs/rate-limits/#how-its-calculated">higher rate limit. </a></p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: <strong>1</strong></p>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>timeinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The current Unix timestamp of Bitvavo servers.</p>
+<div><strong>Example: <code>1539180275424 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "time": 1539180275424<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json'<br />}<br />conn.request("GET", "/v2/time", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Get transaction history</div>
+<div>Next</div>
+<div>Get markets</div>
+</nav></div>
+</div>

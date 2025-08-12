@@ -1,0 +1,720 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Trading</li>
+<li>Update order</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Update order</h1>
+<pre>PUT</pre>
+<h2>https://api.bitvavo.com/v2/order</h2>
+<p>Updates an existing <em>limit</em> or <em>trigger</em> order.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>private</em> endpoint. To send requests, you need to <a href="/docs/authentication/">authenticate</a>.</p>
+</div>
+</div>
+<div>
+<div>info</div>
+<div>
+<p>You must set either <code>orderId</code> or <code>clientOrderId</code>. If you set both, we use the <code>clientOrderId</code> to identify the order. <code>clientOrderId</code> is only returned if you set it when you created the order.</p>
+</div>
+</div>
+<div>
+<div>tip</div>
+<div>
+<p>Updating an order is faster than canceling and creating new orders. During the update, your order is briefly removed from the order book.</p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: 1.</p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false">
+<h3>Body</h3>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>marketstringrequired</strong></strong>
+<p>The market in which to update an order.</p>
+<div><strong>Example: <code>BTC-EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>orderIdstring&lt;UUID&gt;</strong></strong>
+<p>Bitvavo identifier of the order to update.</p>
+<div><strong>Example: <code>95d92d6c-ecf0-4960-a608-9953ef71652e </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>operatorIdinteger&lt;int64&gt;required</strong></strong>
+<p>Your identifier for the trader or the bot within your account that made the request.</p>
+<div><strong>Example: <code>543462 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>clientOrderIdstring&lt;UUID&gt;</strong></strong>
+<p>Your identifier of the order to update. Must be unique among open orders.</p>
+<strong><strong><br /></strong></strong>
+<blockquote>
+<p>If both <code>clientOrderId and <code>orderId are set, we use the <code>clientOrderId to identify the order. </code></code></code></p>
+</blockquote>
+<div><strong>Example: <code>2be7d0df-d8dc-7b93-a550-8876f3b393e9 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountstring</strong></strong>
+<p>The amount of base currency to update. Specifying the <code>amount automatically adjusts the <code>amountRemaining. To get the number of allowed decimals, make a <a href="/docs/rest-api/get-markets/">Get markets request and check the <code>quantityDecimals field. </code></a></code></code></p>
+<div><strong>Example: <code>1.567 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountQuotestring</strong></strong>
+<p><em>Only for market orders The amount of quote currency to buy or sell at the best available price. To get the number of allowed decimals, make a <a href="/docs/rest-api/get-markets/">Get markets request and check the <code>notionalDecimals field. </code></a></em></p>
+<div><strong>Example: <code>5000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountRemainingstring</strong></strong>
+<p>The remaining amount of base currency to update. Specifying the <code>amountRemaining automatically adjusts the <code>amount. </code></code></p>
+<strong><strong><br /></strong></strong>
+<blockquote>
+<p>We discourage updating the <code>amountRemaining because you can end up buying or selling more than you intended. </code></p>
+</blockquote>
+<div><strong>Example: <code>1.560 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>pricestring</strong></strong>
+<p>The amount of quote currency for 1 unit of the base currency.</p>
+<div><strong>Example: <code>6000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>triggerAmountstring</strong></strong>
+<p><em>Only for stop orders The price at which you want to buy or sell 1 unit of base currency in the quote currency. </em></p>
+<div><strong>Example: <code>4000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>timeInForcestring</strong></strong>
+<p>How long an <code>orderType stays active for. </code></p>
+<p>Possible values:</p>
+<ul>
+<li><code>FOK: <em>Fill-Or-Kill. Fills the entire order from existing orders, or cancels the entire order. </em></code></li>
+<li><code>GTC: <em>Good-Til-Canceled. Stays in the order book until the entire order is filled or you manually cancel it. </em></code></li>
+<li><code>IOC: <em>Immediate-Or-Cancel. Fills existing orders and cancels the unfilled balance. </em></code></li>
+</ul>
+<p><strong>Possible values: [<code>GTC</code>, <code>IOC, <code>FOK] </code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>selfTradePreventionstring</strong></strong>
+<p><strong><a href="https://bitvavo.com/en/trading-rules">Self-trading is not allowed on Bitvavo. </a></strong></p>
+<p>Indicates how to prevent self-trading for conflicting orders of any type.</p>
+<p>Possible values:</p>
+<ul>
+<li><code>decrementAndCancel: (default) decreases the amount in the conflicting order by the difference between the buy and sell orders in the same market. Cancels the lower order. For example, if a sell order is for 500 BTC and a buy order is for 300 BTC, it cancels the buy order and adjusts the sell order to 200 BTC. </code></li>
+<li><code>cancelOldest: cancels the older conflicting order in the same market. </code></li>
+<li><code>cancelNewest: cancels the later conflicting order in the same market. </code></li>
+<li><code>cancelBoth: cancels both conflicting orders in the same market. </code></li>
+</ul>
+<p><strong>Possible values: [<code>decrementAndCancel</code>, <code>cancelOldest, <code>cancelNewest, <code>cancelBoth] </code></code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>postOnlyboolean</strong></strong>
+<p>Indicates how your fees are calculated for limit orders.</p>
+<p>Possible values:</p>
+<ul>
+<li><code>true: the order is filled with orders placed after this one and you only pay the<br /> <a href="https://bitvavo.com/en/fees">maker fee. If the order has to be filled using existing orders, the entire order is cancelled. </a></code></li>
+<li><code>false: (default) the order is filled with existing and more recent orders. </code></li>
+</ul>
+</div>
+</div>
+<div>
+<div><strong><strong>responseRequiredboolean</strong></strong>
+<p>Indicates whether the response returns all parameters (<strong>true</strong>) or only the HTTP status code (<strong>false</strong>).</p>
+<div><strong>Default value: <code>true </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "market": "BTC-EUR",<br /> "orderId": "95d92d6c-ecf0-4960-a608-9953ef71652e",<br /> "operatorId": 543462,<br /> "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",<br /> "amount": "1.567",<br /> "amountQuote": "5000",<br /> "amountRemaining": "1.560",<br /> "price": "6000",<br /> "triggerAmount": "4000",<br /> "timeInForce": "GTC",<br /> "selfTradePrevention": "decrementAndCancel",<br /> "postOnly": true,<br /> "responseRequired": true<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<details data-collapsed="true"> <summary> <strong>Response Headers</strong> </summary>
+<div>
+<div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-remaining</strong></strong>
+<p>The number of remaining <a href="/docs/rate-limits">weight points before it resets at <code>bitvavo-ratelimit-resetat. </code></a></p>
+</div>
+</div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-resetat</strong></strong>
+<p>The time when <code>bitvavo-ratelimit-remaining resets to <code>bitvavo-ratelimit-limit. </code></code></p>
+</div>
+</div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-limit</strong></strong>
+<p>The number of available <a href="/docs/rate-limits">weight points in one minute. </a></p>
+</div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example - responseRequired=true</li>
+<li tabindex="-1">Example - responseRequired=false</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<div>
+<div>
+oneOf
+<div>
+<div>
+<ul>
+<li tabindex="0">responseRequired=true</li>
+<li tabindex="-1">responseRequired=false</li>
+</ul>
+</div>
+<div>
+<div>
+<div>
+<div><strong><strong>orderIdstring&lt;UUID&gt;</strong></strong>
+<p>Bitvavo identifier of the order. An <code>orderId is unique per <code>market. Different markets can use the same <code>orderId values. </code></code></code></p>
+<div><strong>Example: <code>1be6d0df-d5dc-4b53-a250-3376f3b393e6 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>clientOrderIdstring&lt;UUID&gt;</strong></strong>
+<p>Your identifier of the order. Only returned if specified in the request.</p>
+<div><strong>Example: <code>2be7d0df-d8dc-7b93-a550-8876f3b393e9 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>marketmarket (string)</strong></strong>
+<p>The market where you created an order.</p>
+<div><strong>Example: <code>BTC-EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>createdinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The Unix timestamp when the order was created.</p>
+<div><strong>Example: <code>1706100650751 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>updatedinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The Unix timestamp when the order was last updated.</p>
+<div><strong>Example: <code>1706100650751 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>statusstring</strong></strong>
+<p>The status of an order. Possible values:</p>
+<ul>
+<li>
+<p><code>new: the <code>orderId has been added to the order book and has not been filled. </code></code></p>
+</li>
+<li>
+<p><code>awaitingTrigger: the conditions to fill an order haven't been met. </code></p>
+</li>
+<li>
+<p><code>canceled: the <code>orderId has been manually removed from the order book. </code></code></p>
+</li>
+<li>
+<p><code>canceledAuction: Bitvavo cancelled the market order during an auction phase. </code></p>
+</li>
+<li>
+<p><code>canceledSelfTradePrevention: Bitvavo cancelled the order because you are both the buyer and the seller. </code></p>
+</li>
+<li>
+<p><code>canceledIOC: the <code>filledAmount was filled against existing orders. The rest of the order has been cancelled and the <code>amountRemaining returned to your balance. </code></code></code></p>
+</li>
+<li>
+<p><code>canceledFOK: the <code>amount could not be filled against existing orders. The <code>order has been cancelled and the <code>onHold currency is processed. </code></code></code></code></p>
+</li>
+<li>
+<p><code>canceledMarketProtection: Bitvavo cancelled the order because the spread is too high. </code></p>
+</li>
+<li>
+<p><code>canceledPostOnly: Bitvavo cancelled the order because it can't be filled in accordance with your <code>postOnly requirements. </code></code></p>
+</li>
+<li>
+<p><code>filled: all trades necessary to complete the order have been filled. </code></p>
+</li>
+<li>
+<p><code>partiallyFilled: the order is still active. Bitvavo needs to receive more matching orders to completely fill the order. </code></p>
+</li>
+</ul>
+<p><strong>Possible values: [<code>new</code>, <code>awaitingTrigger, <code>canceled, <code>canceledAuction, <code>canceledSelfTradePrevention, <code>canceledIOC, <code>canceledFOK, <code>canceledMarketProtection, <code>canceledPostOnly, <code>filled, <code>partiallyFilled] </code></code></code></code></code></code></code></code></code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>sidestring</strong></strong>
+<p>Indicates whether the order is to buy or sell the asset.</p>
+<p><strong>Possible values: [<code>buy</code>, <code>sell] </code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>orderTypestring</strong></strong>
+<p>The type of order you created.</p>
+<p><strong>Possible values: [<code>limit</code>, <code>market] </code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>amountstring</strong></strong>
+<p>The amount of the base currency to buy or sell. If you set <code>amountQuote in your order, <code>amount is not returned. </code></code></p>
+<div><strong>Example: <code>10 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountRemainingstring</strong></strong>
+<p>The amount of the base currency remaining after the sum of fills is subtracted from the <code>amount. If you set <code>amountQuote in your order, <code>amountRemaining is not returned. </code></code></code></p>
+<div><strong>Example: <code>10 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>pricestring</strong></strong>
+<p>The price you set for a <code>limit, <code>stopLossLimit, <code>takeProfit, or a <code>takeProfitLimit order. For other types of orders, the <code>price is not returned. </code></code></code></code></code></p>
+<div><strong>Example: <code>7000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountQuotestring</strong></strong>
+<p>The amount of the quote currency to buy or sell for the market, stopLoss, or takeProfit types of order. If you set <code>amount in your order, <code>amountQuote is not returned. </code></code></p>
+<div><strong>Example: <code>5000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountQuoteRemainingstring</strong></strong>
+<p>The amount of quote currency remaining after the sum of all fills is subtracted from <code>amountQuote. </code></p>
+<p>If you set <code>amount in the order, <code>amountQuoteRemaining is not returned. </code></code></p>
+<div><strong>Example: <code>5000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>onHoldstring</strong></strong>
+<p>The amount of <code>onHoldCurrency locked while an order is not yet <code>settled after an order is filled. All funds are released when order is filled. </code></code></p>
+<div><strong>Example: <code>9109.61 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>onHoldCurrencystring</strong></strong>
+<p>The currency that is <code>onHold while the order is processed. This depends on the <code>side you set for the <code>orderId. </code></code></code></p>
+<div><strong>Example: <code>BTC </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>triggerPricestring</strong></strong>
+<p>The price calculated using <code>triggerAmount and <code>triggerType for the <code>stopLoss, <code>stopLossLimit, <code>takeProfit, or <code>takeProfitLimit types of orders. </code></code></code></code></code></code></p>
+<p>For example, when you set <code>triggerAmount to 4000 and <code>triggerType to <code>price, your order is placed in a <code>market when the <code>triggerReference price in quote currency reaches 4000. </code></code></code></code></code></p>
+<div><strong>Example: <code>4000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>triggerAmountstring</strong></strong>
+<p>The price at which you want to buy or sell 1 unit of base currency in the quote currency.<br /> This value and <code>triggerType are used to calculate <code>triggerPrice. </code></code></p>
+<div><strong>Example: <code>4000 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>triggerTypestring</strong></strong>
+<p>The type of trigger you set to fill the order when the condition is met. This value and <code>triggerAmount are used to calculate <code>triggerPrice. </code></code></p>
+<p><strong>Possible values: [<code>price</code>] </strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>triggerReferencestring</strong></strong>
+<p>The price you set to trigger the order to be filled for the <code>stopLoss, <code>stopLossLimit, <code>takeProfit, or <code>takeProfitLimit types of orders. </code></code></code></code></p>
+<p><strong>Possible values: [<code>lastTrade</code>, <code>bestBid, <code>bestAsk, <code>midPrice] </code></code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>filledAmountstring</strong></strong>
+<p>The total amount bought or sold in base currency.</p>
+<div><strong>Example: <code>0 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>filledAmountQuotestring</strong></strong>
+<p>The total amount bought or sold in quote currency.</p>
+<div><strong>Example: <code>0 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feePaidstring</strong></strong>
+<p>The amount you pay Bitvavo to process the order. This value is negative for rebates. For more information, see GET <a href="/docs/rest-api/get-market-fees">/account/fees. </a></p>
+<div><strong>Example: <code>0 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feeCurrencystring</strong></strong>
+<p>The currency of the <code>feePaid. </code></p>
+<div><strong>Example: <code>EUR </code></strong></div>
+</div>
+</div>
+<div><details open="" data-collapsed="false"> <summary> <strong>fills object[] </strong></summary>
+<div>
+<div>
+<div>
+<div>
+<div>
+<p>The fill generated by the update order request.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>Array [</div>
+</li>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>idstring</strong></strong>
+<p>The identifier of this fill.</p>
+<div><strong>Example: <code>371c6bd3-d06d-4573-9f15-18697cd210e5 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>timestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>A Unix timestamp when Bitvavo processed the fill.</p>
+<div><strong>Example: <code>1542967486256 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>amountstring</strong></strong>
+<p>The amount of base currency exchanged in the fill.</p>
+<div><strong>Example: <code>0.005 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>pricestring</strong></strong>
+<p>The price of the fill in quote currency.</p>
+<div><strong>Example: <code>5000.1 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>takerboolean</strong></strong>
+<p>Returns <code>true when you are the taker for the fill. </code></p>
+<div><strong>Example: <code>true </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feestring</strong></strong>
+<p>The amount you pay Bitvavo in <code>feeCurrency to process the fill. For more information about your fees, see GET <a href="/docs/rest-api/get-market-fees">/account/fees. This value is negative for rebates. </a></code></p>
+<p>If <code>settled is <code>false, this parameter is not included in the return parameters. </code></code></p>
+<div><strong>Example: <code>0.03 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feeCurrencystring</strong></strong>
+<p>The currency that the <code>fee is paid in. </code></p>
+<p>If <code>settled is <code>false, this object is not returned. </code></code></p>
+<div><strong>Example: <code>EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>settledboolean</strong></strong>
+<p>On Bitvavo, trade settlement happens after an order is filled. When the fill is complete and the <code>fee is not yet paid, <code>settled is <code>false. </code></code></code></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>]</div>
+</li>
+</details></div>
+<div>
+<div><strong><strong>selfTradePreventionstring</strong></strong>
+<p>The value you set to prevent self-trading for conflicting orders of any type</p>
+<p><strong>Possible values: [<code>decrementAndCancel</code>, <code>cancelOldest, <code>cancelNewest, <code>cancelBoth] </code></code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>visibleboolean</strong></strong>
+<p>Returns <code>true when the <code>orderId is visible in the <a href="/docs/rest-api/get-order-book">order book for a <code>market. </code></a></code></code></p>
+</div>
+</div>
+<div>
+<div><strong><strong>timeInForcestring</strong></strong>
+<p>The value you set for how long an order stays active.</p>
+<p><strong>Possible values: [<code>GTC</code>, <code>IOC, <code>FOK] </code></code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>postOnlyboolean</strong></strong>
+<p>The value you set for how your fees are calculated for <code>limit, <code>stopLossLimit, or <code>takeProfitLimit types of orders. </code></code></code></p>
+</div>
+</div>
+<div>
+<div><strong><strong>disableMarketProtectionbooleandeprecated</strong></strong>
+<p>Must be <strong>false because market protection can no longer be disabled. </strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>operatorIdinteger&lt;int64&gt;</strong></strong>
+<p>Your identifier for the trader or the bot within your account that made the request.</p>
+<div><strong>Example: <code>543462 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>restatementReasonstring</strong></strong>
+<p>Specifies the reason why the status of the order was changed. For example when an order is canceled by the <a href="/docs/order-lifecycle/#price-protection">Price protection checks. </a></p>
+<p><strong>Possible values: [<code>decrementOnSelfTradePrevention</code>, <code>cancelOnSelfTradePrevention, <code>cancelOnPlacementPriceProtection, <code>cancelOnExecutionPriceProtection, <code>cancelOnSpreadProtection, <code>cancelOnReferencePriceProtection, <code>cancelPostOnlyOnAuctionMatching, <code>cancelOnMaintenance, <code>cancelOnDisconnect, <code>cancelOnDelisting, <code>cancelOnLockPlaced, <code>cancelOnAdminRequest] </code></code></code></code></code></code></code></code></code></code></code></strong></p>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div><strong><strong>marketmarket (string)</strong></strong>
+<p>The market where you created an order.</p>
+<div><strong>Example: <code>BTC-EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>orderIdstring&lt;UUID&gt;</strong></strong>
+<p>Bitvavo identifier of the order. An <code>orderId is unique per <code>market. Different markets can use the same <code>orderId values. </code></code></code></p>
+<div><strong>Example: <code>1be6d0df-d5dc-4b53-a250-3376f3b393e6 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>clientOrderIdstring&lt;UUID&gt;</strong></strong>
+<p>Your identifier of the order. Only returned if specified in the request.</p>
+<div><strong>Example: <code>2be7d0df-d8dc-7b93-a550-8876f3b393e9 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>createdinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The Unix timestamp when the order was created.</p>
+<div><strong>Example: <code>1706100650751 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>updatedinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The Unix timestamp when the order was last updated.</p>
+<div><strong>Example: <code>1706100650751 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "orderId": "1be6d0df-d5dc-4b53-a250-3376f3b393e6",<br /> "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",<br /> "market": "BTC-EUR",<br /> "created": 1706100650751,<br /> "updated": 1706100650751,<br /> "status": "new",<br /> "side": "buy",<br /> "orderType": "limit",<br /> "amount": "10",<br /> "amountRemaining": "10",<br /> "price": "7000",<br /> "amountQuote": "5000",<br /> "amountQuoteRemaining": "5000",<br /> "onHold": "9109.61",<br /> "onHoldCurrency": "BTC",<br /> "triggerPrice": "4000",<br /> "triggerAmount": "4000",<br /> "triggerType": "price",<br /> "triggerReference": "lastTrade",<br /> "filledAmount": "0",<br /> "filledAmountQuote": "0",<br /> "feePaid": "0",<br /> "feeCurrency": "EUR",<br /> "fills": [<br /> {<br /> "id": "371c6bd3-d06d-4573-9f15-18697cd210e5",<br /> "timestamp": 1542967486256,<br /> "amount": "0.005",<br /> "price": "5000.1",<br /> "taker": true,<br /> "fee": "0.03",<br /> "feeCurrency": "EUR",<br /> "settled": true<br /> }<br /> ],<br /> "selfTradePrevention": "decrementAndCancel",<br /> "visible": true,<br /> "timeInForce": "GTC",<br /> "postOnly": true,<br /> "operatorId": 543462,<br /> "restatementReason": "decrementOnSelfTradePrevention"<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "market": "BTC-EUR",<br /> "orderId": "1be6d0df-d5dc-4b53-a250-3376f3b393e6",<br /> "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",<br /> "created": 1706100650751,<br /> "updated": 1706100650751<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div><details>
+<h4>Authorization: Bitvavo-Access-Key</h4>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Key</a><strong>type: </strong>apiKey<strong>description: </strong>Your 64-character API key with the required [permissions](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Timestamp</a><strong>type: </strong>apiKey<strong>description: </strong>A Unix timestamp in milliseconds of the time when you make the request.
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Signature</a><strong>type: </strong>apiKey<strong>description: </strong>An HMAC-SHA256 hex-encoded string of the time, HTTP method, path, and parameters used to make the request. To learn more, see [Authentication](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Window</a><strong>type: </strong>apiKey<strong>description: </strong>The execution timeout in milliseconds after Bitvavo-Access-Timestamp. The default value
+is 10000, the maximum value is 60000.
+<strong>in: </strong>header</pre>
+</details>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo({<br /> 'APIKEY': '&lt;APIKEY&gt;',<br /> 'APISECRET': '&lt;APISECRET&gt;'<br />})<br />response = bitvavo.updateOrder('BTC-EUR', 'a4a5d310-687c-486e-a3eb-1df832405ccd', { 'amount': '1.1', 'operatorId': 543462 })<br />print(response)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br />import json<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = json.dumps({<br /> "market": "BTC-EUR",<br /> "orderId": "95d92d6c-ecf0-4960-a608-9953ef71652e",<br /> "operatorId": 543462,<br /> "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",<br /> "amount": "1.567",<br /> "amountQuote": "5000",<br /> "amountRemaining": "1.560",<br /> "price": "6000",<br /> "triggerAmount": "4000",<br /> "timeInForce": "GTC",<br /> "selfTradePrevention": "decrementAndCancel",<br /> "postOnly": True,<br /> "responseRequired": True<br />})<br />headers = {<br /> 'Content-Type': 'application/json',<br /> 'Accept': 'application/json',<br /> 'Bitvavo-Access-Key': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Timestamp': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Signature': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Window': '&lt;Bitvavo-Access-Key&gt;'<br />}<br />conn.request("PUT", "/v2/order", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Auth</summary>
+<div>
+<div><label>Bitvavo-Access-Key</label>
+<div><input title="Bitvavo-Access-Key" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Key" /></div>
+</div>
+<div><label>Bitvavo-Access-Timestamp</label>
+<div><input title="Bitvavo-Access-Timestamp" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Timestamp" /></div>
+</div>
+<div><label>Bitvavo-Access-Signature</label>
+<div><input title="Bitvavo-Access-Signature" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Signature" /></div>
+</div>
+<div><label>Bitvavo-Access-Window</label>
+<div><input title="Bitvavo-Access-Window" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Window" /></div>
+</div>
+</div>
+</details> <details open=""> <summary>Body</summary>
+<div>
+<div>
+<div>
+<div>
+<div>
+<pre contenteditable="plaintext-only" spellcheck="false" data-darkreader-inline-outline="" data-darkreader-inline-color="" data-darkreader-inline-bgcolor="">{
+ "market": "BTC-EUR",
+ "orderId": "95d92d6c-ecf0-4960-a608-9953ef71652e",
+ "operatorId": 543462,
+ "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",
+ "amount": "1.567",
+ "amountQuote": "5000",
+ "amountRemaining": "1.560",
+ "price": "6000",
+ "triggerAmount": "4000",
+ "timeInForce": "GTC",
+ "selfTradePrevention": "decrementAndCancel",
+ "postOnly": true,
+ "responseRequired": true
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Create order</div>
+<div>Next</div>
+<div>Get order</div>
+</nav></div>
+</div>

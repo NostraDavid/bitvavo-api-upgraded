@@ -1,0 +1,357 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Market data</li>
+<li>Get order book report</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get order book report</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/report/{market}/book</h2>
+<p>Returns the list of all bids and asks for the specified <code>market</code>, sorted by <code>price</code>. Includes the data compliant with the European Markets in Crypto-Assets (MiCA) regulation.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>public</em> endpoint. However, <a href="/docs/authentication/">authenticating</a> your request gives you a <a href="/docs/rate-limits/#how-its-calculated">higher rate limit. </a></p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: 1</p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Path Parameters</h3>
+<div>
+<div>
+<div><strong><strong>market stringrequired</strong></strong>
+<p>The market for which to return the order book.</p>
+<div><strong>Example: </strong>BTC-EUR</div>
+</div>
+</div>
+</div>
+</details> <details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>depth integer</strong></strong>
+<p><strong>Possible values:</strong> <code>&lt;= 1000</code></p>
+<p>The number of <code>bids</code> and <code>asks</code> to return.</p>
+<div><strong>Default value: <code>1000</code> </strong></div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<details data-collapsed="true"> <summary> <strong>Response Headers</strong> </summary>
+<div>
+<div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-remaining</strong></strong>
+<p>The number of remaining <a href="/docs/rate-limits">weight points before it resets at <code>bitvavo-ratelimit-resetat. </code></a></p>
+</div>
+</div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-resetat</strong></strong>
+<p>The time when <code>bitvavo-ratelimit-remaining resets to <code>bitvavo-ratelimit-limit. </code></code></p>
+</div>
+</div>
+<div>
+<div><strong><strong>bitvavo-ratelimit-limit</strong></strong>
+<p>The number of available <a href="/docs/rate-limits">weight points in one minute. </a></p>
+</div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>submissionTimestampstring&lt;date-time&gt;</strong></strong>
+<p>The timestamp when the order book is submitted to the database.</p>
+<div><strong>Example: <code>2025-05-02T14:23:11.123456Z </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>assetCodestring</strong></strong>
+<p>The DTI code or a symbol of the asset.</p>
+<div><strong>Example: <code>4K6P57CMJ </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>assetNamestring</strong></strong>
+<p>The full name of the asset.</p>
+<div><strong>Example: <code>Bitcoin </code></strong></div>
+</div>
+</div>
+<div><details open="" data-collapsed="false"> <summary> <strong>bids object[] </strong></summary>
+<div>
+<div>
+<div>
+<div>
+<div>
+<p>The list of buy orders for the specified <code>market and <code>depth. Each bid includes: </code></code></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>Array [</div>
+</li>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>sidestring</strong></strong>
+<p>Indicates if the order is to buy or sell.</p>
+<p><strong>Possible values: [<code>BUYI</code>] </strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>pricestring&lt;decimal&gt;</strong></strong>
+<p>The amount of quote currency for 1 unit of the base currency.</p>
+<div><strong>Example: <code>28500.1234567890123 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>quantitystring&lt;decimal&gt;</strong></strong>
+<p>The quantity of the asset.</p>
+<div><strong>Example: <code>0.00123456789012345 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>numOrdersinteger</strong></strong>
+<p>The number of individual orders at this price level.</p>
+<div><strong>Example: <code>38 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>]</div>
+</li>
+</details></div>
+<div><details open="" data-collapsed="false"> <summary> <strong>asks object[] </strong></summary>
+<div>
+<div>
+<div>
+<div>
+<div>
+<p>The list of sell orders for the specified <code>market and <code>depth. Each ask includes: </code></code></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>Array [</div>
+</li>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>sidestring</strong></strong>
+<p>Indicates if the order is to buy or sell.</p>
+<p><strong>Possible values: [<code>SELL</code>] </strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>pricestring&lt;decimal&gt;</strong></strong>
+<p>The amount of quote currency for 1 unit of the base currency.</p>
+<div><strong>Example: <code>28500.1234567890123 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>quantitystring&lt;decimal&gt;</strong></strong>
+<p>The quantity of the asset.</p>
+<div><strong>Example: <code>0.00123456789012345 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>numOrdersinteger</strong></strong>
+<p>The number of individual orders at this price level.</p>
+<div><strong>Example: <code>38 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>]</div>
+</li>
+</details></div>
+<div>
+<div><strong><strong>priceCurrencystring</strong></strong>
+<p>The DTI code or a symbol of the currency in which the price is expressed.</p>
+<div><strong>Example: <code>4K6P57CMJ </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>priceNotationstring</strong></strong>
+<p>The price expressed as a monetary value.</p>
+<p><strong>Possible values: [<code>MONE</code>] </strong></p>
+<div><strong>Example: <code>MONE </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>quantityCurrencystring</strong></strong>
+<p>The currency in which the quantity of the crypto asset is expressed.</p>
+<div><strong>Example: <code>EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>quantityNotationstring</strong></strong>
+<p>The quantity of the crypto asset.</p>
+<p><strong>Possible values: [<code>CRYP</code>] </strong></p>
+<div><strong>Example: <code>CRYP </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>venuestring</strong></strong>
+<p>The Market Identifier Code of the Bitvavo trading platform.</p>
+<div><strong>Example: <code>VAVO </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>tradingSystemstring</strong></strong>
+<p>The trading system identifier of the Bitvavo trading platform.</p>
+<div><strong>Example: <code>VAVO </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>publicationTimestampstring&lt;date-time&gt;</strong></strong>
+<p>The timestamp when the book snapshot is added to the database.</p>
+<div><strong>Example: <code>2025-05-02T14:23:11.123456Z </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "submissionTimestamp": "2025-05-02T14:23:11.123456Z",<br /> "assetCode": "4K6P57CMJ",<br /> "assetName": "Bitcoin",<br /> "bids": [<br /> {<br /> "side": "BUYI",<br /> "price": "28500.12",<br /> "quantity": "0.5",<br /> "numOrders": 12<br /> },<br /> {<br /> "side": "BUYI",<br /> "price": "28499.90",<br /> "quantity": "0.75",<br /> "numOrders": 8<br /> }<br /> ],<br /> "asks": [<br /> {<br /> "side": "SELL",<br /> "price": "28510.00",<br /> "quantity": "0.4",<br /> "numOrders": 9<br /> },<br /> {<br /> "side": "SELL",<br /> "price": "28520.00",<br /> "quantity": "1.1",<br /> "numOrders": 14<br /> }<br /> ],<br /> "priceCurrency": "4K6P57CMJ",<br /> "priceNotation": "MONE",<br /> "quantityCurrency": "EUR",<br /> "quantityNotation": "CRYP",<br /> "venue": "VAVO",<br /> "tradingSystem": "VAVO",<br /> "publicationTimestamp": "2025-05-02T14:23:11.123456Z"<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo()<br />response = bitvavo.book('BTC-EUR', {})<br />for item in response['bids']:<br /> print('Bids', item)<br />for item in response['asks']:<br /> print('Asks', item)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json'<br />}<br />conn.request("GET", "/v2/report/{market}/book", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<div><label><label>market &mdash; pathrequired</label></label>
+<div><input title="The market for which to return the order book." autocomplete="off" name="market" type="text" value="" placeholder="The market for which to return the order book." /></div>
+</div>
+<button type="button">Show optional parameters </button>
+<div>
+<div><label><label>depth &mdash; query</label></label>
+<div><input title="The number of &#96;bids&#96; and &#96;asks&#96; to return." autocomplete="off" name="depth" type="text" value="" placeholder="The number of &#96;bids&#96; and &#96;asks&#96; to return." /></div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Get order book</div>
+<div>Next</div>
+<div>Get trades</div>
+</nav></div>
+</div>

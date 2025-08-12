@@ -1,0 +1,267 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Market data</li>
+<li>Get candlestick data 24h</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get candlestick data 24h</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/ticker/24h</h2>
+<p>Returns the <a href="https://www.investopedia.com/terms/o/ohlcchart.asp" target="_blank" rel="noopener noreferrer">OHLCV data about trades and orders for all markets, or a single <code>market</code>, on Bitvavo during the latest 24 hours. </a></p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>public</em> endpoint. However, <a href="/docs/authentication/">authenticating</a> your request gives you a <a href="/docs/rate-limits/#how-its-calculated">higher rate limit. </a></p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>:</p>
+<ul>
+<li>All markets: 25</li>
+<li>One <code>market</code>: 1</li>
+</ul>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>market string</strong></strong>
+<p>The market for which to return the latest information.</p>
+<blockquote>
+<p>For the list of all markets on Bitvavo, make a <a href="/docs/rest-api/get-markets">Get markets request. </a></p>
+</blockquote>
+<div><strong>Example: </strong>BTC-EUR</div>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<li>
+<div>Array [</div>
+</li>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>marketstring</strong></strong>
+<p>The market for which you requested the ticker data.</p>
+<div><strong>Example: <code>BTC-EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>startTimestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The time starting from which to return the data.</p>
+<div><strong>Example: <code>1700490607372 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>timestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The time when the data was requested.</p>
+<div><strong>Example: <code>1700576057382 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>openstring</strong></strong>
+<p>The opening price for the <code>market in the base currency. </code></p>
+<div><strong>Example: <code>5001.1 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>openTimestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The time when the <code>market opened after the <code>startTimestamp. </code></code></p>
+<div><strong>Example: <code>1700490620146 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>highstring</strong></strong>
+<p>The highest trade price for 1 unit of base currency in the quote currency.</p>
+<div><strong>Example: <code>5003.2 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>lowstring</strong></strong>
+<p>The lowest trade price for 1 unit of base currency in the quote currency.</p>
+<div><strong>Example: <code>5001.1 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>laststring</strong></strong>
+<p>The latest trade price for 1 unit of base currency in the quote currency.</p>
+<div><strong>Example: <code>5003.2 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>closeTimestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The time when the <code>market closed after the <code>startTimestamp. </code></code></p>
+<div><strong>Example: <code>1700490620146 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>bidstring</strong></strong>
+<p>The highest buy order in the quote currency.</p>
+<div><strong>Example: <code>4999.9 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>bidSizestring</strong></strong>
+<p>The amount of base currency for the <code>bid. </code></p>
+<div><strong>Example: <code>0.15 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>askstring</strong></strong>
+<p>The lowest sell order in the quote currency.</p>
+<div><strong>Example: <code>5003.3 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>askSizestring</strong></strong>
+<p>The amount of base currency for the <code>ask. </code></p>
+<div><strong>Example: <code>0.2 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>volumestring</strong></strong>
+<p>The total amount of base currency traded.</p>
+<div><strong>Example: <code>0.15 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>volumeQuotestring</strong></strong>
+<p>The total amount of quote currency traded.</p>
+<div><strong>Example: <code>750.2865 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>]</div>
+</li>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>[<br /> {<br /> "market": "BTC-EUR",<br /> "startTimestamp": 1700490607372,<br /> "timestamp": 1700576057382,<br /> "open": "5001.1",<br /> "openTimestamp": 1700490620146,<br /> "high": "5003.2",<br /> "low": "5001.1",<br /> "last": "5003.2",<br /> "closeTimestamp": 1700490620146,<br /> "bid": "4999.9",<br /> "bidSize": "0.15",<br /> "ask": "5003.3",<br /> "askSize": "0.2",<br /> "volume": "0.15",<br /> "volumeQuote": "750.2865"<br /> }<br />]<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo()<br />response = bitvavo.ticker24h({})<br />for market in response:<br /> print(market)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json'<br />}<br />conn.request("GET", "/v2/ticker/24h", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<button type="button">Show optional parameters </button>
+<div>
+<div><label><label>market &mdash; query</label></label>
+<div><input title="The market for which to return the latest information." autocomplete="off" name="market" type="text" value="" placeholder="The market for which to return the latest information." /></div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Get candlestick data</div>
+<div>Next</div>
+<div>Create order</div>
+</nav></div>
+</div>

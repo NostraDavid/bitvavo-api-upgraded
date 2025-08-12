@@ -1,0 +1,237 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Transfer</li>
+<li>Get deposit data</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get deposit data</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/deposit</h2>
+<p>Returns wallet or bank account information required to deposit digital or fiat assets.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>private</em> endpoint. To send requests, you need to <a href="/docs/authentication/">authenticate</a>.</p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: <strong>1</strong></p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>symbol stringrequired</strong></strong>
+<p>The asset you want to deposit.</p>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example - deposit-digital-asset</li>
+<li tabindex="-1">Example - deposit-fiat</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<div>
+<div>
+oneOf
+<div>
+<div>
+<ul>
+<li tabindex="0">deposit-digital-asset</li>
+<li tabindex="-1">deposit-fiat</li>
+</ul>
+</div>
+<div>
+<div>
+<div>
+<div><strong><strong>addressstring</strong></strong>
+<p>The address where to deposit assets.</p>
+<div><strong>Example: <code>CryptoCurrencyAddress </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>paymentidstring</strong></strong>
+<p>If available, you need to specify <code>paymentid with your deposit. It is sometimes called <em>note, <em>memo, or <em>tag. </em></em></em></code></p>
+<div><strong>Example: <code>10002653 </code></strong></div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div><strong><strong>ibanstring</strong></strong>
+<p>International bank account number where to deposit assets.</p>
+<div><strong>Example: <code>NL32BUNQ2291234129 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>bicstring</strong></strong>
+<p>Bank identification code sometimes necessary for international transfers.</p>
+<div><strong>Example: <code>BUNQNL2A </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>descriptionstring</strong></strong>
+<p>Description which must be used for the deposit.</p>
+<div><strong>Example: <code>254D20CC94 </code></strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "address": "CryptoCurrencyAddress",<br /> "paymentid": "10002653"<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>{<br /> "iban": "NL32BUNQ2291234129",<br /> "bic": "BUNQNL2A",<br /> "description": "254D20CC94"<br />}<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div><details>
+<h4>Authorization: Bitvavo-Access-Key</h4>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Key</a><strong>type: </strong>apiKey<strong>description: </strong>Your 64-character API key with the required [permissions](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Timestamp</a><strong>type: </strong>apiKey<strong>description: </strong>A Unix timestamp in milliseconds of the time when you make the request.
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Signature</a><strong>type: </strong>apiKey<strong>description: </strong>An HMAC-SHA256 hex-encoded string of the time, HTTP method, path, and parameters used to make the request. To learn more, see [Authentication](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Window</a><strong>type: </strong>apiKey<strong>description: </strong>The execution timeout in milliseconds after Bitvavo-Access-Timestamp. The default value
+is 10000, the maximum value is 60000.
+<strong>in: </strong>header</pre>
+</details>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo({<br /> 'APIKEY': '&lt;APIKEY&gt;',<br /> 'APISECRET': '&lt;APISECRET&gt;'<br />})<br />response = bitvavo.depositAssets('BTC')<br />print(response)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json',<br /> 'Bitvavo-Access-Key': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Timestamp': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Signature': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Window': '&lt;Bitvavo-Access-Key&gt;'<br />}<br />conn.request("GET", "/v2/deposit", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Auth</summary>
+<div>
+<div><label>Bitvavo-Access-Key</label>
+<div><input title="Bitvavo-Access-Key" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Key" /></div>
+</div>
+<div><label>Bitvavo-Access-Timestamp</label>
+<div><input title="Bitvavo-Access-Timestamp" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Timestamp" /></div>
+</div>
+<div><label>Bitvavo-Access-Signature</label>
+<div><input title="Bitvavo-Access-Signature" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Signature" /></div>
+</div>
+<div><label>Bitvavo-Access-Window</label>
+<div><input title="Bitvavo-Access-Window" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Window" /></div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<div><label><label>symbol &mdash; queryrequired</label></label>
+<div><input title="The asset you want to deposit." autocomplete="off" name="symbol" type="text" value="" placeholder="The asset you want to deposit." /></div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Cancel orders</div>
+<div>Next</div>
+<div>Get deposit history</div>
+</nav></div>
+</div>

@@ -1,0 +1,318 @@
+<ul>
+<li><a href="/docs/rest-api/">REST API</a></li>
+<li>Trading</li>
+<li>Get trade history</li>
+</ul>
+<div>
+<div>
+<div>
+<h1>Get trade history</h1>
+<pre>GET</pre>
+<h2>https://api.bitvavo.com/v2/trades</h2>
+<p>Returns the specified number of past trades for your account, excluding Price Guarantee. The returned trades are sorted by their <code>timestamp</code> in a descending order, from the latest to the earliest.</p>
+<div>
+<div>info</div>
+<div>
+<p>This is a <em>private</em> endpoint. To send requests, you need to <a href="/docs/authentication/">authenticate</a>.</p>
+</div>
+</div>
+<div>
+<div>tip</div>
+<div>
+<p>To get a specific list of trades, use the <code>start</code>, <code>end</code>, <code>tradeIdFrom</code>, and <code>tradeIdTo</code> parameters.</p>
+</div>
+</div>
+<div>
+<div>tip</div>
+<div>
+<p>To get all past transactions for your account, use the <a href="/docs/rest-api/get-transaction-history/">Get transaction history request. </a></p>
+</div>
+</div>
+<p><strong>Rate limit weight points</strong>: <strong>5</strong></p>
+<h2>Request<a title="Direct link to Request" href="#request"> </a></h2>
+<details open="" data-collapsed="false">
+<h3>Query Parameters</h3>
+<div>
+<div>
+<div><strong><strong>market stringrequired</strong></strong>
+<p>The market for which to return the past trades.</p>
+<div><strong>Example: </strong>BTC-EUR</div>
+</div>
+<div><strong><strong>limit integer</strong></strong>
+<p><strong>Possible values:</strong> <code>&gt;= 1</code> and <code>&lt;= 1000</code></p>
+<p>The maximum number of trades to return, from latest to earliest.</p>
+<div><strong>Default value: <code>500</code> </strong></div>
+</div>
+<div><strong><strong>start unix-timestamp in milliseconds</strong></strong>
+<p>The Unix timestamp starting from which to return trades.</p>
+</div>
+<div><strong><strong>end unix-timestamp in milliseconds</strong></strong>
+<p><strong>Possible values:</strong> <code>&lt;= 8640000000000000</code></p>
+<p>The Unix timestamp up to which to return trades.</p>
+</div>
+<div><strong><strong>tradeIdFrom string</strong></strong>
+<p>The unique identifier of the trade starting from which to return the trades.</p>
+</div>
+<div><strong><strong>tradeIdTo string</strong></strong>
+<p>The unique identifier of the trade up to which to return the trades.</p>
+</div>
+<div><strong><strong>tradeId stringdeprecated</strong></strong>
+<p><strong>Deprecated</strong>: <code>tradeId</code> is interpreted as <code>tradeIdTo</code>. If used, returns all trades up to this <code>tradeId</code>.</p>
+</div>
+</div>
+</div>
+</details>
+<div>
+<div>
+<h2>Responses<a title="Direct link to Responses" href="#responses"> </a></h2>
+<div>
+<ul>
+<li tabindex="0">200</li>
+<li tabindex="-1">4XX</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<p>The request was successful.</p>
+</div>
+</div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">application/json</li>
+</ul>
+</div>
+</div>
+<div>
+<div>
+<div>
+<div>
+<ul>
+<li tabindex="0">Schema</li>
+<li tabindex="-1">Example (body)</li>
+</ul>
+</div>
+<div>
+<div><details open="" data-collapsed="false"> <summary> <strong>Schema </strong></summary>
+<li>
+<div>Array [</div>
+</li>
+<div>
+<div>
+<div>
+<div>
+<div>
+<div><strong><strong>idstring</strong></strong>
+<p>The identifier of the fill, unique per market. Different markets can use the same <code>id values. </code></p>
+<div><strong>Example: <code>108c3633-0276-4480-a902-17a01829deae </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>orderIdstring&lt;UUID&gt;</strong></strong>
+<p>Bitvavo identifier of the order that was filled.</p>
+<div><strong>Example: <code>1d671998-3d44-4df4-965f-0d48bd129a1b </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>clientOrderIdstring&lt;UUID&gt;</strong></strong>
+<p>Your identifier of the order that was filled.</p>
+<div><strong>Example: <code>2be7d0df-d8dc-7b93-a550-8876f3b393e9 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>timestampinteger&lt;unix-timestamp in milliseconds&gt;</strong></strong>
+<p>The Unix timestamp when the trade was made.</p>
+<div><strong>Example: <code>1542967486256 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>marketstring</strong></strong>
+<p>The market for which to return past trades.</p>
+<div><strong>Example: <code>BTC-EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>sidestring</strong></strong>
+<p>Indicates if the taker, who filled the order, is selling or buying.</p>
+<p><strong>Possible values: [<code>buy</code>, <code>sell] </code></strong></p>
+</div>
+</div>
+<div>
+<div><strong><strong>amountstring</strong></strong>
+<p>The amount of base currency exchanged in the trade.</p>
+<div><strong>Example: <code>0.005 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>pricestring</strong></strong>
+<p>The price of 1 unit of base currency in the amount of quote currency at the time of the trade.</p>
+<div><strong>Example: <code>5000.1 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>takerboolean</strong></strong>
+<p>Indicates whether you are the taker for the fill.</p>
+<div><strong>Example: <code>true </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feestring</strong></strong>
+<p>The fee that was paid. Value is negative for rebates. Only available if <code>settled is true. </code></p>
+<div><strong>Example: <code>0.03 </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>feeCurrencystring</strong></strong>
+<p>Currency in which the fee was paid. Only available is <code>settled is true. </code></p>
+<div><strong>Example: <code>EUR </code></strong></div>
+</div>
+</div>
+<div>
+<div><strong><strong>settledboolean</strong></strong>
+<p>Indicates whether the fee was deducted and the exchanged currency is available for further trading.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<li>
+<div>]</div>
+</li>
+</details></div>
+<div hidden="">
+<div>
+<div>
+<div>
+<pre tabindex="0" data-darkreader-inline-color="" data-darkreader-inline-bgcolor=""><code>[<br /> {<br /> "id": "108c3633-0276-4480-a902-17a01829deae",<br /> "orderId": "1d671998-3d44-4df4-965f-0d48bd129a1b",<br /> "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9",<br /> "timestamp": 1542967486256,<br /> "market": "BTC-EUR",<br /> "side": "buy",<br /> "amount": "0.005",<br /> "price": "5000.1",<br /> "taker": true,<br /> "fee": "0.03",<br /> "feeCurrency": "EUR",<br /> "settled": true<br /> }<br />]<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div hidden="">
+<div>
+<div>
+<p>For error codes, see <a href="/docs/errors">Handle errors. </a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div><details>
+<h4>Authorization: Bitvavo-Access-Key</h4>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Key</a><strong>type: </strong>apiKey<strong>description: </strong>Your 64-character API key with the required [permissions](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Timestamp</a><strong>type: </strong>apiKey<strong>description: </strong>A Unix timestamp in milliseconds of the time when you make the request.
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Signature</a><strong>type: </strong>apiKey<strong>description: </strong>An HMAC-SHA256 hex-encoded string of the time, HTTP method, path, and parameters used to make the request. To learn more, see [Authentication](/docs/authentication).
+<strong>in: </strong>header</pre>
+<pre data-darkreader-inline-bg=""><strong>name:</strong> <a href="/docs/rest-api/bitvavo-rest-api/#authentication">Bitvavo-Access-Window</a><strong>type: </strong>apiKey<strong>description: </strong>The execution timeout in milliseconds after Bitvavo-Access-Timestamp. The default value
+is 10000, the maximum value is 60000.
+<strong>in: </strong>header</pre>
+</details>
+<div>
+<ul>
+<li tabindex="-1">curl</li>
+<li tabindex="-1">javascript</li>
+<li tabindex="0">python</li>
+<li tabindex="-1">go</li>
+</ul>
+<div>
+<div>
+<ul>
+<li tabindex="0">Python</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>from python_bitvavo_api.bitvavo import Bitvavo<br /><br />bitvavo = Bitvavo({<br /> 'APIKEY': '&lt;APIKEY&gt;',<br /> 'APISECRET': '&lt;APISECRET&gt;'<br />})<br />response = bitvavo.trades('BTC-EUR', {})<br />for item in response:<br /> print(item)<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div>
+<ul>
+<li tabindex="0">HTTP.CLIENT</li>
+<li tabindex="-1">REQUESTS</li>
+</ul>
+<div>
+<div>
+<div>
+<pre tabindex="0"><code>import http.client<br /><br />conn = http.client.HTTPSConnection("api.bitvavo.com")<br />payload = ''<br />headers = {<br /> 'Accept': 'application/json',<br /> 'Bitvavo-Access-Key': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Timestamp': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Signature': '&lt;Bitvavo-Access-Key&gt;',<br /> 'Bitvavo-Access-Window': '&lt;Bitvavo-Access-Key&gt;'<br />}<br />conn.request("GET", "/v2/trades", payload, headers)<br />res = conn.getresponse()<br />data = res.read()<br />print(data.decode("utf-8"))<br /></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<form>
+<div>Request Collapse all</div>
+<div><details open=""> <summary>Base URL</summary>
+<div tabindex="0"><button tabindex="0">Edit</button>
+<div>
+<div>https://api.bitvavo.com/v2 </div>
+</div>
+</div>
+</details> <details open=""> <summary>Auth</summary>
+<div>
+<div><label>Bitvavo-Access-Key</label>
+<div><input title="Bitvavo-Access-Key" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Key" /></div>
+</div>
+<div><label>Bitvavo-Access-Timestamp</label>
+<div><input title="Bitvavo-Access-Timestamp" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Timestamp" /></div>
+</div>
+<div><label>Bitvavo-Access-Signature</label>
+<div><input title="Bitvavo-Access-Signature" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Signature" /></div>
+</div>
+<div><label>Bitvavo-Access-Window</label>
+<div><input title="Bitvavo-Access-Window" autocomplete="off" type="password" value="" placeholder="Bitvavo-Access-Window" /></div>
+</div>
+</div>
+</details> <details open=""> <summary>Parameters</summary>
+<div><label><label>market &mdash; queryrequired</label></label>
+<div><input title="The market for which to return the past trades." autocomplete="off" name="market" type="text" value="" placeholder="The market for which to return the past trades." /></div>
+</div>
+<button type="button">Show optional parameters </button>
+<div>
+<div><label><label>limit &mdash; query</label></label>
+<div><input title="The maximum number of trades to return, from latest to earliest." autocomplete="off" name="limit" type="text" value="" placeholder="The maximum number of trades to return, from latest to earliest." /></div>
+</div>
+<div><label><label>start &mdash; query</label></label>
+<div><input title="The Unix timestamp starting from which to return trades." autocomplete="off" name="start" type="text" value="" placeholder="The Unix timestamp starting from which to return trades." /></div>
+</div>
+<div><label><label>end &mdash; query</label></label>
+<div><input title="The Unix timestamp up to which to return trades." autocomplete="off" name="end" type="text" value="" placeholder="The Unix timestamp up to which to return trades." /></div>
+</div>
+<div><label><label>tradeIdFrom &mdash; query</label></label>
+<div><input title="The unique identifier of the trade starting from which to return the trades." autocomplete="off" name="tradeIdFrom" type="text" value="" placeholder="The unique identifier of the trade starting from which to return the trades." /></div>
+</div>
+<div><label><label>tradeIdTo &mdash; query</label></label>
+<div><input title="The unique identifier of the trade up to which to return the trades." autocomplete="off" name="tradeIdTo" type="text" value="" placeholder="The unique identifier of the trade up to which to return the trades." /></div>
+</div>
+<div><label><label>tradeId &mdash; query</label></label>
+<div><input title="**Deprecated**: &#96;tradeId&#96; is interpreted as &#96;tradeIdTo&#96;. If used, returns all trades up to this &#96;tradeId&#96;." autocomplete="off" name="tradeId" type="text" value="" placeholder="**Deprecated**: &#96;tradeId&#96; is interpreted as &#96;tradeIdTo&#96;. If used, returns all trades up to this &#96;tradeId&#96;." /></div>
+</div>
+</div>
+</details></div>
+</form></div>
+</div>
+</div>
+<div>
+<div><nav>
+<div>Previous</div>
+<div>Get open orders</div>
+<div>Next</div>
+<div>Get orders</div>
+</nav></div>
+</div>

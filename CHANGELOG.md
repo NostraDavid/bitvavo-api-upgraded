@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v2.0.0 - 2025-08-12
 
 **BREAKING CHANGES**: This release includes significant API updates to match the latest Bitvavo API requirements. All trading operations now require an `operatorId` parameter for MiCA compliance.
 

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import logging
+import os
 from pathlib import Path
 
 from pydantic import Field, field_validator, model_validator
@@ -17,9 +20,13 @@ class BitvavoApiUpgradedSettings(BaseSettings):
     LOG_EXTERNAL_LEVEL: str = Field("WARNING")
     LAG: ms = Field(ms(50))
     RATE_LIMITING_BUFFER: int = Field(25)
+    SSL_CERT_FILE: str | None = Field(
+        default=None,
+        description="Path to SSL certificate file for HTTPS/WSS connections",
+    )
 
     # Configuration for Pydantic Settings
-    model_config = SettingsConfigDict(
+    model_config: SettingsConfigDict = SettingsConfigDict(
         env_file=Path.cwd() / ".env",
         env_file_encoding="utf-8",
         env_prefix="BITVAVO_API_UPGRADED_",
@@ -33,6 +40,34 @@ class BitvavoApiUpgradedSettings(BaseSettings):
             msg = f"Invalid log level: {v}"
             raise ValueError(msg)
         return v
+
+    @model_validator(mode="after")
+    def configure_ssl_certificate(self) -> BitvavoApiUpgradedSettings:
+        """Configure SSL certificate file path and set environment variable if needed."""
+        if self.SSL_CERT_FILE is None and "SSL_CERT_FILE" not in os.environ:
+            # Try to auto-detect SSL certificate file only if not already set in environment
+            common_ssl_cert_paths = [
+                "/etc/ssl/certs/ca-certificates.crt",  # Debian/Ubuntu/NixOS
+                "/etc/ssl/certs/ca-bundle.crt",  # CentOS/RHEL/Fedora
+                "/etc/ssl/cert.pem",  # OpenBSD/macOS
+                "/usr/local/share/certs/ca-root-nss.crt",  # FreeBSD
+                "/etc/pki/tls/certs/ca-bundle.crt",  # Old CentOS/RHEL
+            ]
+
+            for cert_path in common_ssl_cert_paths:
+                if Path(cert_path).exists():
+                    self.SSL_CERT_FILE = cert_path
+                    break
+
+        # Set the environment variable if we have a certificate file
+        if self.SSL_CERT_FILE and Path(self.SSL_CERT_FILE).exists():
+            os.environ["SSL_CERT_FILE"] = self.SSL_CERT_FILE
+        elif self.SSL_CERT_FILE:
+            # User specified a path but it doesn't exist
+            msg = f"SSL certificate file not found: {self.SSL_CERT_FILE}"
+            raise FileNotFoundError(msg)
+
+        return self
 
 
 class BitvavoSettings(BaseSettings):
@@ -58,7 +93,7 @@ class BitvavoSettings(BaseSettings):
     )
 
     @model_validator(mode="after")
-    def set_api_rating_limit_per_second(self) -> "BitvavoSettings":
+    def set_api_rating_limit_per_second(self) -> BitvavoSettings:
         self.API_RATING_LIMIT_PER_SECOND = self.API_RATING_LIMIT_PER_SECOND // 60
         return self
 

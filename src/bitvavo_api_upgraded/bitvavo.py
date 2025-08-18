@@ -14,9 +14,10 @@ from requests import delete, get, post, put
 from structlog.stdlib import get_logger
 from websocket import WebSocketApp  # missing stubs for WebSocketApp
 
+from bitvavo_api_upgraded.dataframe_utils import convert_candles_to_dataframe, convert_to_dataframe
 from bitvavo_api_upgraded.helper_funcs import configure_loggers, time_ms, time_to_wait
 from bitvavo_api_upgraded.settings import bitvavo_upgraded_settings
-from bitvavo_api_upgraded.type_aliases import anydict, errordict, intdict, ms, s_f, strdict, strintdict
+from bitvavo_api_upgraded.type_aliases import OutputFormat, anydict, errordict, intdict, ms, s_f, strdict, strintdict
 
 configure_loggers()
 
@@ -236,13 +237,13 @@ class Bitvavo:
         _options = {k.upper(): v for k, v in options.items()}
         self.base: str = str(_options.get("RESTURL", "https://api.bitvavo.com/v2"))
         self.wsUrl: str = str(_options.get("WSURL", "wss://ws.bitvavo.com/v2/"))
-        self.ACCESSWINDOW = ms(_options.get("ACCESSWINDOW", 10000))
-        self.APIKEY = str(_options.get("APIKEY", ""))
-        self.APISECRET = str(_options.get("APISECRET", ""))
+        self.ACCESSWINDOW: int = ms(_options.get("ACCESSWINDOW", 10000))
+        self.APIKEY: str = str(_options.get("APIKEY", ""))
+        self.APISECRET: str = str(_options.get("APISECRET", ""))
         self.rateLimitRemaining: int = 1000
         self.rateLimitResetAt: ms = 0
         # TODO(NostraDavid): for v2: remove this functionality - logger.debug is a level that can be set
-        self.debugging = bool(_options.get("DEBUGGING", False))
+        self.debugging: bool = bool(_options.get("DEBUGGING", False))
 
     def calcLag(self) -> ms:
         """
@@ -457,7 +458,11 @@ class Bitvavo:
         """
         return self.publicRequest(f"{self.base}/time")  # type: ignore[return-value]
 
-    def markets(self, options: strdict | None = None) -> list[anydict] | anydict | errordict:
+    def markets(
+        self,
+        options: strdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[anydict] | anydict | errordict | Any:
         """Get all available markets with some meta-information, unless options is given a `market` key.
         Then you will get a single market, instead of a list of markets.
 
@@ -474,6 +479,23 @@ class Bitvavo:
         options={}  # returns all markets
         options={"market": "BTC-EUR"}  # returns only the BTC-EUR market
         # If you want multiple markets, but not all, make multiple calls
+
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
         ```
 
         ---
@@ -485,6 +507,7 @@ class Bitvavo:
         ---
         Returns:
         ```python
+        # When output_format=OutputFormat.DICT (default):
         [
           {
             "market": "BTC-EUR",
@@ -504,12 +527,22 @@ class Bitvavo:
             ]
           }
         ]
+
+        # When output_format is any DataFrame format (pandas, polars, cudf, etc.):
+        # Returns a DataFrame with columns: market, status, base, quote, pricePrecision,
+        # minOrderInQuoteAsset, minOrderInBaseAsset, orderTypes
+        # The specific DataFrame type depends on the selected format.
         ```
         """
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/markets{postfix}")  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/markets{postfix}")  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
-    def assets(self, options: strdict | None = None) -> list[anydict] | anydict:
+    def assets(
+        self,
+        options: strdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[anydict] | anydict | Any:
         """Get all available assets, unless `options` is given a `symbol` key.
         Then you will get a single asset, instead of a list of assets.
 
@@ -527,6 +560,23 @@ class Bitvavo:
         # pick one
         options={}  # returns all assets
         options={"symbol": "BTC"} # returns a single asset (the one of Bitcoin)
+
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
         ```
 
         ---
@@ -538,6 +588,7 @@ class Bitvavo:
         ---
         Returns:
         ```python
+        # When output_format=OutputFormat.DICT (default):
         [
           {
             "symbol": "BTC",
@@ -553,10 +604,17 @@ class Bitvavo:
             "message": ""
           }
         ]
+
+        # When output_format is any DataFrame format (pandas, polars, cudf, etc.):
+        # Returns a DataFrame with columns: symbol, name, decimals, depositFee,
+        # depositConfirmations, depositStatus, withdrawalFee, withdrawalMinAmount,
+        # withdrawalStatus, networks, message
+        # The specific DataFrame type depends on the selected format.
         ```
         """
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/assets{postfix}")  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/assets{postfix}")  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
     def book(self, market: str, options: intdict | None = None) -> dict[str, str | int | list[str]] | errordict:
         """Get a book (with two lists: asks and bids, as they're called)
@@ -603,7 +661,12 @@ class Bitvavo:
         postfix = createPostfix(options)
         return self.publicRequest(f"{self.base}/{market}/book{postfix}")  # type: ignore[return-value]
 
-    def publicTrades(self, market: str, options: strintdict | None = None) -> list[anydict] | errordict:
+    def publicTrades(
+        self,
+        market: str,
+        options: strintdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[anydict] | errordict | Any:
         """Publically available trades
 
         ---
@@ -628,6 +691,23 @@ class Bitvavo:
             "tradeIdFrom": ""  # if you get a list and want everything AFTER a certain id, put that id here
             "tradeIdTo": ""  # if you get a list and want everything BEFORE a certain id, put that id here
         }
+
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
         ```
 
         ---
@@ -639,6 +719,7 @@ class Bitvavo:
         ---
         Returns:
         ```python
+        # When output_format='dict' (default):
         [
           {
             "timestamp": 1542967486256,
@@ -648,10 +729,14 @@ class Bitvavo:
             "side": "sell"
           }
         ]
+
+        # When output_format is any DataFrame format:
+        # Returns the above data as a DataFrame in the requested format (pandas, polars, etc.)
         ```
         """
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/{market}/trades{postfix}", 5)  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/{market}/trades{postfix}", 5)  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
     def candles(
         self,
@@ -661,7 +746,8 @@ class Bitvavo:
         limit: int | None = None,
         start: dt.datetime | None = None,
         end: dt.datetime | None = None,
-    ) -> list[list[str]] | errordict:
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[list[str]] | errordict | Any:
         """Get up to 1440 candles for a market, with a specific interval (candle size)
 
         Extra reading material: https://en.wikipedia.org/wiki/Candlestick_chart
@@ -684,6 +770,23 @@ class Bitvavo:
             "start": int timestamp in ms >= 0
             "end": int timestamp in ms <= 8640000000000000
         }
+
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python list/dict
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
         ```
 
         ---
@@ -695,6 +798,7 @@ class Bitvavo:
         ---
         Returns:
         ```python
+        # When output_format='dict' (default):
         [
           # For whatever reason, you're getting a list of lists; no keys,
           # so here is the explanation of what's what.
@@ -705,6 +809,11 @@ class Bitvavo:
           [1640804400000, "41937", "41955", "41449", "41540", "23.64498292"],
           [1640800800000, "41955", "42163", "41807", "41939", "10.40093845"],
         ]
+
+        # When output_format is any DataFrame format:
+        # Returns the above data as a DataFrame in the requested format (pandas, polars, etc.)
+        # with columns: timestamp, open, high, low, close, volume
+        # timestamp is converted to datetime, numeric columns to float
         ```
         """
         options = _default(options, {})
@@ -716,9 +825,14 @@ class Bitvavo:
         if end is not None:
             options["end"] = _epoch_millis(end)
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/{market}/candles{postfix}")  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/{market}/candles{postfix}")  # type: ignore[return-value]
+        return convert_candles_to_dataframe(result, output_format)
 
-    def tickerPrice(self, options: strdict | None = None) -> list[strdict] | strdict:
+    def tickerPrice(
+        self,
+        options: strdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[strdict] | strdict | Any:
         """Get the current price for each market
 
         ---
@@ -735,6 +849,23 @@ class Bitvavo:
         ```python
         options={}
         options={"market": "BTC-EUR"}
+
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
         ```
 
         ---
@@ -746,6 +877,7 @@ class Bitvavo:
         ---
         Returns:
         ```python
+        # When output_format=OutputFormat.DICT (default):
         # Note that `price` is unconverted
         [
           {"market": "1INCH-EUR", "price": "2.1594"},
@@ -761,12 +893,20 @@ class Bitvavo:
           {"market": "ALGO-EUR", "price": "1.3942"},
           # and another 210 markets below this point
         ]
+
+        # When output_format is any DataFrame format (pandas, polars, cudf, etc.):
+        # Returns a DataFrame with columns: market, price
         ```
         """
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/ticker/price{postfix}")  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/ticker/price{postfix}")  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
-    def tickerBook(self, options: strdict | None = None) -> list[strdict] | strdict:
+    def tickerBook(
+        self,
+        options: strdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[strdict] | strdict | Any:
         """Get current bid/ask, bidsize/asksize per market
 
         ---
@@ -783,6 +923,23 @@ class Bitvavo:
         ```python
         options={}
         options={"market": "BTC-EUR"}
+
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
         ```
 
         ---
@@ -794,6 +951,7 @@ class Bitvavo:
         ---
         Returns:
         ```python
+        # When output_format=OutputFormat.DICT (default):
         [
           {"market": "1INCH-EUR", "bid": "2.1534", "ask": "2.1587", "bidSize": "194.8", "askSize": "194.8"},
           {"market": "AAVE-EUR", "bid": "213.7", "ask": "214.05", "bidSize": "212.532", "askSize": "4.77676965"},
@@ -802,12 +960,20 @@ class Bitvavo:
           {"market": "AION-EUR", "bid": "0.12531", "ask": "0.12578", "bidSize": "3345", "askSize": "10958.49228653"},
           # and another 215 markets below this point
         ]
+
+        # When output_format is any DataFrame format (pandas, polars, cudf, etc.):
+        # Returns a DataFrame with columns: market, bid, ask, bidSize, askSize
         ```
         """
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/ticker/book{postfix}")  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/ticker/book{postfix}")  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
-    def ticker24h(self, options: strdict | None = None) -> list[anydict] | anydict | errordict:
+    def ticker24h(
+        self,
+        options: strdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[anydict] | anydict | errordict | Any:
         """Get current bid/ask, bidsize/asksize per market
 
         ---
@@ -824,15 +990,30 @@ class Bitvavo:
         ```python
         options={}
         options={"market": "BTC-EUR"}
-        ```
 
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
+        ```
         ---
         Rate Limit Weight:
         ```python
         25  # if no market option is used
         1  # if a market option is used
         ```
-
         ---
         Returns:
         ```python
@@ -874,9 +1055,15 @@ class Bitvavo:
         if "market" in options:
             rateLimitingWeight = 1
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/ticker/24h{postfix}", rateLimitingWeight)  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/ticker/24h{postfix}", rateLimitingWeight)  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
-    def reportTrades(self, market: str, options: strintdict | None = None) -> list[anydict] | errordict:
+    def reportTrades(
+        self,
+        market: str,
+        options: strintdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[anydict] | errordict | Any:
         """Get MiCA-compliant trades report for a specific market
 
         Returns trades from the specified market and time period made by all Bitvavo users.
@@ -893,14 +1080,27 @@ class Bitvavo:
         ```python
         market="BTC-EUR"
         options={
-            "limit": [ 1 .. 1000 ], default 500
-            "start": int timestamp in ms >= 0
-            "end": int timestamp in ms <= 8_640_000_000_000_000  # Cannot be more than 24 hours after start
-            "tradeIdFrom": ""  # if you get a list and want everything AFTER a certain id, put that id here
-            "tradeIdTo": ""  # if you get a list and want everything BEFORE a certain id, put that id here
+          "limit": [ 1 .. 1000 ], default 500
+          "start": int timestamp in ms >= 0
+          "end": int timestamp in ms <= 8_640_000_000_000_000  # Cannot be more than 24 hours after start
+          "tradeIdFrom": ""  # if you get a list and want everything AFTER a certain id, put that id here
+          "tradeIdTo": ""  # if you get a list and want everything BEFORE a certain id, put that id here
         }
-        ```
 
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+        ```
         ---
         Rate Limit Weight:
         ```python
@@ -912,17 +1112,18 @@ class Bitvavo:
         ```python
         [
           {
-            "timestamp": 1542967486256,
-            "id": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
-            "amount": "0.1",
-            "price": "5012",
-            "side": "sell"
+          "timestamp": 1542967486256,
+          "id": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
+          "amount": "0.1",
+          "price": "5012",
+          "side": "sell"
           }
         ]
         ```
         """
         postfix = createPostfix(options)
-        return self.publicRequest(f"{self.base}/report/{market}/trades{postfix}", 5)  # type: ignore[return-value]
+        result = self.publicRequest(f"{self.base}/report/{market}/trades{postfix}", 5)  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
     def reportBook(self, market: str, options: intdict | None = None) -> dict[str, str | int | list[str]] | errordict:
         """Get MiCA-compliant order book report for a specific market
@@ -1471,7 +1672,12 @@ class Bitvavo:
         postfix = createPostfix(options)
         return self.privateRequest("/ordersOpen", postfix, {}, "GET", rateLimitingWeight)  # type: ignore[return-value]
 
-    def trades(self, market: str, options: anydict | None = None) -> list[anydict] | errordict:
+    def trades(
+        self,
+        market: str,
+        options: anydict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[anydict] | errordict | Any:
         """Get all historic trades from this account
 
         ---
@@ -1479,44 +1685,57 @@ class Bitvavo:
         ```python
         market="BTC-EUR"
         options={
-            "limit": [ 1 .. 1000 ], default 500
-            "start": int timestamp in ms >= 0
-            "end": int timestamp in ms <= 8_640_000_000_000_000 # (that's somewhere in the year 2243, or near the number 2^52)
-            "tradeIdFrom": ""  # if you get a list and want everything AFTER a certain id, put that id here
-            "tradeIdTo": ""  # if you get a list and want everything BEFORE a certain id, put that id here
+          "limit": [ 1 .. 1000 ], default 500
+          "start": int timestamp in ms >= 0
+          "end": int timestamp in ms <= 8_640_000_000_000_000 # (that's somewhere in the year 2243, or near the number 2^52)
+          "tradeIdFrom": ""  # if you get a list and want everything AFTER a certain id, put that id here
+          "tradeIdTo": ""  # if you get a list and want everything BEFORE a certain id, put that id here
         }
-        ```
 
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+        ```
         ---
         Rate Limit Weight:
         ```python
         5
         ```
-
         ---
         Returns:
         ```python
         [
           {
-            "id": "108c3633-0276-4480-a902-17a01829deae",
-            "orderId": "1d671998-3d44-4df4-965f-0d48bd129a1b",
-            "timestamp": 1542967486256,
-            "market": "BTC-EUR",
-            "side": "buy",
-            "amount": "0.005",
-            "price": "5000.1",
-            "taker": true,
-            "fee": "0.03",
-            "feeCurrency": "EUR",
-            "settled": true
+          "id": "108c3633-0276-4480-a902-17a01829deae",
+          "orderId": "1d671998-3d44-4df4-965f-0d48bd129a1b",
+          "timestamp": 1542967486256,
+          "market": "BTC-EUR",
+          "side": "buy",
+          "amount": "0.005",
+          "price": "5000.1",
+          "taker": true,
+          "fee": "0.03",
+          "feeCurrency": "EUR",
+          "settled": true
           }
         ]
         ```
-        """  # noqa: E501
+        """
         options = _default(options, {})
         options["market"] = market
         postfix = createPostfix(options)
-        return self.privateRequest("/trades", postfix, {}, "GET", 5)  # type: ignore[return-value]
+        result = self.privateRequest("/trades", postfix, {}, "GET", 5)  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
     def account(self) -> dict[str, strdict]:
         """Get all fees for this account
@@ -1579,7 +1798,11 @@ class Bitvavo:
         postfix = createPostfix(options)
         return self.privateRequest("/account/fees", postfix, {}, "GET")  # type: ignore[return-value]
 
-    def balance(self, options: strdict | None = None) -> list[strdict] | errordict:
+    def balance(
+        self,
+        options: strdict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[strdict] | errordict | Any:
         """Get the balance for this account
 
         ---
@@ -1587,6 +1810,23 @@ class Bitvavo:
         ```python
         options={}  # return all balances
         options={symbol="BTC"} # return a single balance
+
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
         ```
 
         ---
@@ -1598,6 +1838,7 @@ class Bitvavo:
         ---
         Returns:
         ```python
+        # When output_format='dict' (default):
         [
           {
             "symbol": "BTC",
@@ -1605,10 +1846,15 @@ class Bitvavo:
             "inOrder": "0.74832374"
           }
         ]
+
+        # When output_format is any DataFrame format:
+        # Returns the above data as a DataFrame in the requested format (pandas, polars, etc.)
+        # with columns: symbol, available, inOrder
         ```
         """
         postfix = createPostfix(options)
-        return self.privateRequest("/balance", postfix, {}, "GET", 5)  # type: ignore[return-value]
+        result = self.privateRequest("/balance", postfix, {}, "GET", 5)  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
     def accountHistory(self, options: strintdict | None = None) -> anydict | errordict:
         """Get all past transactions for your account
@@ -1780,7 +2026,11 @@ class Bitvavo:
         body["address"] = address
         return self.privateRequest("/withdrawal", "", body, "POST")  # type: ignore[return-value]
 
-    def withdrawalHistory(self, options: anydict | None = None) -> list[anydict] | errordict:
+    def withdrawalHistory(
+        self,
+        options: anydict | None = None,
+        output_format: OutputFormat = OutputFormat.DICT,
+    ) -> list[anydict] | errordict | Any:
         """Get the withdrawal history
 
         ---
@@ -1792,8 +2042,24 @@ class Bitvavo:
             "start": int timestamp in ms >= 0
             "end": int timestamp in ms <= 8_640_000_000_000_000 # (that's somewhere in the year 2243, or near the number 2^52)
         }
-        ```
 
+        # Output format selection:
+        output_format=OutputFormat.DICT      # Default: returns standard Python dict/list
+        output_format=OutputFormat.PANDAS    # Returns pandas DataFrame
+        output_format=OutputFormat.POLARS    # Returns polars DataFrame
+        output_format=OutputFormat.CUDF      # Returns NVIDIA cuDF (GPU-accelerated)
+        output_format=OutputFormat.MODIN     # Returns modin (distributed pandas)
+        output_format=OutputFormat.PYARROW   # Returns Apache Arrow Table
+        output_format=OutputFormat.DASK      # Returns Dask DataFrame (distributed)
+        output_format=OutputFormat.DUCKDB    # Returns DuckDB relation
+        output_format=OutputFormat.IBIS      # Returns Ibis expression
+        output_format=OutputFormat.PYSPARK   # Returns PySpark DataFrame
+        output_format=OutputFormat.PYSPARK_CONNECT  # Returns PySpark Connect DataFrame
+        output_format=OutputFormat.SQLFRAME  # Returns SQLFrame DataFrame
+
+        # Note: DataFrame formats require narwhals and the respective library to be installed.
+        # Install with: pip install 'bitvavo-api-upgraded[pandas]' or similar for other formats.
+        ```
         ---
         Rate Limit Weight:
         ```python
@@ -1814,11 +2080,12 @@ class Bitvavo:
             "fee": "0.00006",
             "status": "awaiting_processing"
           }
-        }
+        ]
         ```
         """  # noqa: E501
         postfix = createPostfix(options)
-        return self.privateRequest("/withdrawalHistory", postfix, {}, "GET", 5)  # type: ignore[return-value]
+        result = self.privateRequest("/withdrawalHistory", postfix, {}, "GET", 5)  # type: ignore[return-value]
+        return convert_to_dataframe(result, output_format)
 
     def newWebsocket(self) -> Bitvavo.WebSocketAppFacade:
         return Bitvavo.WebSocketAppFacade(self.APIKEY, self.APISECRET, self.ACCESSWINDOW, self.wsUrl, self)
@@ -1875,7 +2142,7 @@ class Bitvavo:
             self.receiveThread.join()
 
         def waitForSocket(self, ws: WebSocketApp, message: str, private: bool) -> None:  # noqa: ARG002, FBT001
-            while True:
+            while self.keepAlive:
                 if (not private and self.open) or (private and self.authenticated and self.open):
                     return
                 time.sleep(0.1)
@@ -1989,6 +2256,8 @@ class Bitvavo:
                         callbacks["subscriptionTrades"][market](msg_dict)
 
         def on_error(self, ws: Any, error: Any) -> None:  # noqa: ARG002
+            # Stop the receive thread on error to prevent hanging
+            self.receiveThread.stop()
             if "error" in self.callbacks:
                 self.callbacks["error"](error)
             else:

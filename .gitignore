@@ -21,6 +21,7 @@
 !README.pypi.md
 !uv.lock
 !tox.ini
+!DATAFRAMES.md
 
 # re-ignore recursively
 __pycache__

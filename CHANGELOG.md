@@ -1,5 +1,100 @@
 # Changelog
 
+$UNRELEASED
+
+**NEW FEATURE**: Comprehensive dataframe support across 10+ libraries using
+Narwhals! 🐻‍❄️
+
+This release introduces unified dataframe output support for multiple popular
+Python dataframe libraries, allowing you to get API responses directly as
+pandas, polars, cudf, dask, and many other dataframe formats.
+
+### Added
+
+- **🐻‍❄️ Universal DataFrame Support**: New `output_format` parameter for all
+  data-returning REST methods
+  - Supports 10+ dataframe libraries: pandas, polars, cudf, modin, pyarrow,
+    dask, duckdb, ibis, pyspark, pyspark-connect, sqlframe
+  - Powered by [Narwhals](https://github.com/narwhals-dev/narwhals) for unified
+    dataframe API
+  - Graceful fallback to dict format when libraries aren't available
+- **📊 Enhanced API Methods**: Added `output_format` parameter to:
+  - `markets()`: Get market data as dataframes
+  - `assets()`: Get asset information as dataframes
+  - `candles()`: Get candlestick data as dataframes (specialized handling for
+    OHLCV format)
+  - `tickerPrice()`: Get ticker prices as dataframes
+  - `tickerBook()`: Get ticker book data as dataframes
+  - `orders()`: Get order data as dataframes
+  - `trades()`: Get trade data as dataframes
+  - `transactionHistory()`: Get transaction history as dataframes
+  - `depositHistory()`: Get deposit history as dataframes
+  - `withdrawalHistory()`: Get withdrawal history as dataframes
+  - `accountHistory()`: Get account history as dataframes
+  - `reportTrades()`: Get trade reports as dataframes
+  - `reportBook()`: Get order book reports as dataframes
+- **📋 Enhanced Type System**:
+  - New `OutputFormat` enum with all supported formats
+  - Exported directly from main package: `from bitvavo_api_upgraded import
+    OutputFormat`
+  - Full type hints for dataframe return types
+- **📦 Optional Dependencies**: Smart dependency management via extras
+  - Install specific dataframe support: `pip install
+    'bitvavo-api-upgraded[pandas]'`
+  - Multiple formats: `pip install 'bitvavo-api-upgraded[pandas,polars,dask]'`
+
+### Changed
+
+- **📚 Enhanced Documentation**: All affected methods now include comprehensive
+  dataframe examples
+- **🔄 Backward Compatibility**: All existing code continues to work unchanged
+  (default is still dict format)
+- **⚡ Performance**: Efficient conversion using Narwhals' zero-copy operations
+  where possible
+
+### Examples
+
+```python
+from bitvavo_api_upgraded import Bitvavo, OutputFormat
+from bitvavo_api_upgraded.settings import bitvavo_settings
+
+bitvavo = Bitvavo(**bitvavo_settings.model_dump())
+
+# Get markets as pandas DataFrame
+markets_df = bitvavo.markets(output_format=OutputFormat.PANDAS)
+print(type(markets_df))  # <class 'pandas.core.frame.DataFrame'>
+
+# Get candlestick data as polars DataFrame
+candles_df = bitvavo.candles("BTC-EUR", "1h", output_format=OutputFormat.POLARS)
+print(candles_df.columns)  # ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+
+# Get order history as dask DataFrame (distributed)
+orders_df = bitvavo.orders("BTC-EUR", output_format=OutputFormat.DASK)
+distributed_result = orders_df.compute()
+
+# Traditional dict format still works (default)
+markets_dict = bitvavo.markets()  # Returns list[dict] as before
+```
+
+### Migration Guide
+
+**No breaking changes** - this is a pure feature addition:
+
+- Existing code using `bitvavo.markets()`, `bitvavo.candles()`, etc. continues
+  to work unchanged
+- Add `output_format=OutputFormat.PANDAS` (or your preferred format) to get
+  dataframes
+- Install optional dependencies as needed: `pip install
+  'bitvavo-api-upgraded[pandas]'`
+
+### Dependencies
+
+- **New required**: `narwhals>=2.0.0` (lightweight, no extra dependencies)
+- **New optional**: Multiple dataframe libraries as extras (pandas, polars,
+  cudf, etc.)
+- **Development**: Added comprehensive test dependencies for multi-library
+  testing
+
 ## v2.0.0 - 2025-08-12
 
 **BREAKING CHANGES**: This release includes significant API updates to match the latest Bitvavo API requirements. All trading operations now require an `operatorId` parameter for MiCA compliance.

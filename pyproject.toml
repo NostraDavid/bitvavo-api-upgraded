@@ -22,7 +22,8 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Framework :: Pytest",
-    "Framework :: tox",
+    "Framework :: Tox",
+    "Framework :: Ruff",
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: ISC License (ISCL)",
@@ -44,6 +45,33 @@ dependencies = [
     "websocket-client==1.*, >=1.2",  # something something websocket
 ]
 
+[[tool.uv.index]]
+# Optional name for the index.
+name = "nvidia"
+# Required URL for the index.
+url = "https://pypi.nvidia.com"
+
+[tool.uv.sources]
+cudf-cu12 = { index = "nvidia" }
+
+# versions based on https://github.com/narwhals-dev/narwhals/blob/main/pyproject.toml#L37-L47
+[project.optional-dependencies]
+cudf = ["cudf-cu12>=24.0.0", "narwhals>=2.0.0"]
+dask = ["narwhals[dask]>=2.0.0"]
+duckdb = ["narwhals[duckdb]>=2.0.0"]
+ibis = ["narwhals[ibis]>=2.0.0"]
+modin = ["narwhals[modin]>=2.0.0"]
+pandas = ["narwhals[pandas]>=2.0.0"]
+polars = ["narwhals[polars]>=2.0.0"]
+# TODO(NostraDavid): re-enable polars-gpu once we drop Python 3.9
+# polars-gpu = ["cudf-polars-cu12>=24.0.0", "polars", "narwhals>=2.0.0"]
+# this may work as well - test later
+# polars-gpu = ["polars[gpu]", "narwhals>=2.0.0"]
+pyarrow = ["narwhals[pyarrow]>=2.0.0"]
+pyspark = ["narwhals[pyspark]>=2.0.0"]
+pyspark-connect = ["narwhals[pyspark-connect]>=2.0.0"]
+sqlframe = ["narwhals[sqlframe]>=2.0.0"]
+
 [project.urls]
 homepage = "https://github.com/Thaumatorium/bitvavo-api-upgraded"
 repository = "https://github.com/Thaumatorium/bitvavo-api-upgraded"
@@ -56,6 +84,11 @@ dev-dependencies = [
     "mdformat>=0.7.11",          # for formatting markdown (.md) documents
     "mkdocs>=1.2.3",             # for markdown documentation
     "mypy>=1.13",                # amazing linter
+    "narwhals>=2.0.0",           # unified dataframe API for testing
+    "pandas>=2.0.0",             # pandas support for testing
+    "polars>=1.0.0",             # polars support for testing
+    "pyarrow>=7.0.0",            # Arrow tables for testing
+    "duckdb>=1.0.0",             # DuckDB for testing (lightweight)
     "pre-commit>=2.15.0",        # for running hooks before committing code
     "coverage[toml]>=7.6.9",     # for checking coverage; use this in tox vs pytest-cov, since pytest-cov does NOT play well with vscode
     "pytest-cov>=1",             # though this was the initial choice over coverage.py, turns out it fucks with vscode debugging, so now it only exists so we can still run tests with coverage within vscode
@@ -67,6 +100,8 @@ dev-dependencies = [
     "tox>=3.24.4",               # run `tox` to test everything
     "types-requests>=2.26.2",    # typing for mypy
     "uv>=0.8.0",                 # project manager (building, version bump, etc.)
+    "pandas-stubs>=2.2.2.0",     # pandas typing for mypy
+    "eval-type-backport>=0.2.2", # eval type for mypy
 ]
 
 [tool.bumpversion]
@@ -150,7 +185,7 @@ no_site_packages = false
 no_silence_site_packages = false
 
 # Platform configuration
-python_version = "3.11"
+python_version = "3.9"
 platform = "linux"
 
 # Disallow dynamic typing

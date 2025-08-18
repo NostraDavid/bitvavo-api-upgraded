@@ -12,19 +12,21 @@ from __future__ import annotations
 import json
 import logging
 from time import sleep
-from typing import Any
+from typing import TYPE_CHECKING, Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from bitvavo_api_upgraded.bitvavo import (
     Bitvavo,
-    anydict,
     asksCompare,
     bidsCompare,
     createPostfix,
     error_callback_example,
-    errordict,
 )
+
+if TYPE_CHECKING:
+    from bitvavo_api_upgraded.type_aliases import anydict, errordict
 
 logger = logging.getLogger("test_bitvavo")
 """
@@ -720,7 +722,7 @@ class TestBitvavo:
         if isinstance(response, list):
             for item in response:
                 item: list[anydict] | anydict
-                assert len(item) == 21
+                assert len(item) == 24
                 assert "orderId" in item
                 assert "market" in item
                 assert "created" in item
@@ -742,6 +744,9 @@ class TestBitvavo:
                 assert "visible" in item
                 assert "timeInForce" in item
                 assert "postOnly" in item
+                assert "operatorId" in item
+                assert "createdNs" in item
+                assert "updatedNs" in item
 
             for item in response:
                 assert isinstance(item["orderId"], str)
@@ -765,6 +770,9 @@ class TestBitvavo:
                 assert isinstance(item["visible"], bool)
                 assert isinstance(item["timeInForce"], str)
                 assert isinstance(item["postOnly"], bool)
+                assert isinstance(item["operatorId"], int)
+                assert isinstance(item["createdNs"], int)
+                assert isinstance(item["updatedNs"], int)
 
             for item in response:
                 assert item["status"] in ["new"]
@@ -786,7 +794,7 @@ class TestBitvavo:
         if isinstance(response, list):
             for item in response:
                 item: list[anydict] | anydict
-                assert len(item) == 21
+                assert len(item) == 24
                 assert "orderId" in item
                 assert "market" in item
                 assert "created" in item
@@ -808,6 +816,9 @@ class TestBitvavo:
                 assert "visible" in item
                 assert "timeInForce" in item
                 assert "postOnly" in item
+                assert "operatorId" in item
+                assert "createdNs" in item
+                assert "updatedNs" in item
 
             for item in response:
                 assert isinstance(item["orderId"], str)
@@ -831,6 +842,9 @@ class TestBitvavo:
                 assert isinstance(item["visible"], bool)
                 assert isinstance(item["timeInForce"], str)
                 assert isinstance(item["postOnly"], bool)
+                assert isinstance(item["operatorId"], int)
+                assert isinstance(item["createdNs"], int)
+                assert isinstance(item["updatedNs"], int)
 
             for item in response:
                 assert item["status"] in ["new"]
@@ -1295,6 +1309,94 @@ class TestWebsocket:
         # If all websocket tests fail, just up this number
         sleep(1)
 
+
+class TestWebSocketAppFacadeInit:
+    """Tests for WebSocketAppFacade initialization that are safe to run without actual WebSocket connections."""
+
+    def wait(self) -> None:
+        """
+        Helper method that you must run after making a websocket call.
+        This method waits for some time in the hopes that the websocket is done within that time.
+        If you do not have this waiting time, the logs won't print because those are created by a separate thread,
+        which would not be able to actually print the logs, because the main thread will be done running before receiving the logs.
+        """  # noqa: E501
+        # If all websocket tests fail, just up this number
+        sleep(0.5)
+
+    def test_websocket_app_facade_init(self) -> None:
+        """Test the WebSocketAppFacade.__init__ method initialization.
+
+        This test verifies that all attributes are properly set during initialization
+        and that the subscribe method is called to set up the WebSocket connection.
+        """
+        # Create a mock Bitvavo instance
+        mock_bitvavo = MagicMock(spec=Bitvavo)
+        mock_bitvavo.debugging = False
+
+        # Mock WebSocketApp and ReceiveThread to avoid actual network operations
+        with (
+            patch("bitvavo_api_upgraded.bitvavo.WebSocketApp") as mock_ws_app,
+            patch("bitvavo_api_upgraded.bitvavo.ReceiveThread") as mock_receive_thread,
+            patch("bitvavo_api_upgraded.bitvavo.ws_lib.enableTrace") as mock_enable_trace,
+        ):
+            # Configure mock objects
+            mock_ws_instance = MagicMock()
+            mock_ws_app.return_value = mock_ws_instance
+
+            mock_thread_instance = MagicMock()
+            mock_receive_thread.return_value = mock_thread_instance
+
+            # Test parameters
+            api_key = "test_api_key"
+            api_secret = "test_api_secret"  # noqa: S105 # Test data, not actual secret
+            access_window = 10000
+            ws_url = "wss://ws.bitvavo.com/v2/"
+
+            # Create WebSocketAppFacade instance
+            facade = Bitvavo.WebSocketAppFacade(
+                APIKEY=api_key, APISECRET=api_secret, ACCESSWINDOW=access_window, WSURL=ws_url, bitvavo=mock_bitvavo
+            )
+
+            # Verify instance attributes are set correctly
+            assert api_key == facade.APIKEY
+            assert api_secret == facade.APISECRET
+            assert access_window == facade.ACCESSWINDOW
+            assert ws_url == facade.WSURL
+            assert mock_bitvavo is facade.bitvavo
+
+            # Verify initial state attributes
+            assert facade.open is False
+            assert isinstance(facade.callbacks, dict)
+            assert len(facade.callbacks) == 0
+            assert facade.keepAlive is True
+            assert facade.reconnect is False
+            assert facade.reconnectTimer == 0.1
+
+            # Verify subscribe() was called and set up WebSocket correctly
+            mock_enable_trace.assert_called_once_with(False)
+            mock_ws_app.assert_called_once_with(
+                ws_url,
+                on_message=facade.on_message,
+                on_error=facade.on_error,
+                on_close=facade.on_close,
+                on_open=facade.on_open,
+            )
+
+            # Verify WebSocketApp instance is stored
+            assert mock_ws_instance is facade.ws
+
+            # Verify ReceiveThread is created and configured
+            mock_receive_thread.assert_called_once_with(mock_ws_instance, facade)
+            assert mock_thread_instance is facade.receiveThread
+            mock_thread_instance.start.assert_called_once()
+            assert mock_thread_instance.daemon is True
+
+            # Verify WebSocket state attributes from subscribe()
+            assert facade.authenticated is False
+            assert facade.keepBookCopy is False
+            assert isinstance(facade.localBook, dict)
+            assert len(facade.localBook) == 0
+
     def test_set_error_callback(self, websocket: Bitvavo.WebSocketAppFacade) -> None:
         websocket.setErrorCallback(error_callback_example)
 
@@ -1444,6 +1546,7 @@ class TestWebsocket:
             callback=generic_callback,
         )
 
+    @pytest.mark.skipif(True, reason="This test is very sensitive to the data on the account, so I'm skipping it")
     def test_get_order(
         self,
         caplog: pytest.LogCaptureFixture,

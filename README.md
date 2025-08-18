@@ -8,6 +8,46 @@ A **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency 
 pip install bitvavo_api_upgraded
 ```
 
+### Optional Dataframe Support
+
+This package supports multiple dataframe libraries via [Narwhals](https://narwhals-dev.github.io/narwhals/), providing a unified interface across:
+
+- **pandas** - The most popular Python data analysis library
+- **polars** - Fast, memory-efficient DataFrames in Rust
+- **cuDF** - GPU-accelerated DataFrames (NVIDIA RAPIDS)
+- **modin** - Distributed pandas on Ray/Dask
+- **PyArrow** - In-memory columnar data format
+- **Dask** - Parallel computing with task scheduling
+- **DuckDB** - In-process analytical database
+- **Ibis** - Portable analytics across backends
+- **PySpark** - Distributed data processing
+- **PySpark Connect** - Client for remote Spark clusters
+- **SQLFrame** - SQL-like operations on DataFrames
+
+Install with your preferred dataframe library:
+
+```bash
+# Basic installation (dict output only)
+pip install bitvavo_api_upgraded
+
+# With pandas support
+pip install bitvavo_api_upgraded[pandas]
+
+# With polars support
+pip install bitvavo_api_upgraded[polars]
+
+# With multiple libraries
+pip install bitvavo_api_upgraded[pandas,polars,pyarrow]
+
+# With GPU acceleration (cuDF)
+pip install bitvavo_api_upgraded[cudf]
+
+# With distributed computing (Dask)
+pip install bitvavo_api_upgraded[dask]
+
+# Note: polars-gpu support will be available in a future release
+```
+
 Scroll down for detailed usage examples and configuration instructions.
 
 ## What Makes This "Upgraded"?
@@ -22,12 +62,14 @@ This wrapper improves upon the official Bitvavo SDK with:
 - 🐍 **Modern Python support** (3.9+, dropped EOL versions)
 - ⚡ **Better error handling** and rate limiting
 - 🔧 **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
+- 📊 **Unified dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, SQLFrame)
 
 ## Features
 
 ### Full API Coverage
 
 - ✅ All REST endpoints (public and private)
+- ✅ **Comprehensive dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, and more)
 - ✅ WebSocket support with reconnection logic
 - ✅ Rate limiting with automatic throttling
 - ✅ MiCA compliance reporting endpoints
@@ -177,6 +219,74 @@ book_report = bitvavo.reportBook(
 history = bitvavo.accountHistory(options={})
 ```
 
+### Dataframe Usage
+
+The library supports multiple dataframe formats for tabular data like market data, asset information, and candlestick data:
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+
+# Get markets as different dataframe types
+markets_dict = bitvavo.markets({}, output_format='dict')         # Default dict format
+markets_pandas = bitvavo.markets({}, output_format='pandas')     # Pandas DataFrame
+markets_polars = bitvavo.markets({}, output_format='polars')     # Polars DataFrame
+markets_pyarrow = bitvavo.markets({}, output_format='pyarrow')   # PyArrow Table
+
+# Get assets information as dataframes
+assets_cudf = bitvavo.assets(
+    {},
+    output_format='cudf'  # GPU-accelerated with cuDF
+)
+
+# Get candlestick data with distributed processing
+candles_dask = bitvavo.candles(
+    'BTC-EUR',
+    '1h',
+    {'limit': 100},
+    output_format='dask'  # Distributed with Dask
+)
+
+# Get public trades with analytical databases
+trades_duckdb = bitvavo.publicTrades(
+    'BTC-EUR',
+    {'limit': 1000},
+    output_format='duckdb'  # DuckDB relation
+)
+
+# Account balance with PySpark for big data processing
+balance_spark = bitvavo.balance(
+    {},
+    output_format='pyspark'  # PySpark DataFrame
+)
+```
+
+### Working with Different Libraries
+
+```python
+# Pandas example - most common
+import pandas as pd
+df = bitvavo.markets({}, output_format='pandas')
+print(df.describe())
+df.to_csv('markets.csv')
+
+# Polars example - faster for large datasets
+import polars as pl
+df = bitvavo.candles('BTC-EUR', '1h', {'limit': 1000}, output_format='polars')
+result = df.filter(pl.col('close') > 50000).select(['timestamp', 'close'])
+
+# DuckDB example - analytical queries
+import duckdb
+rel = bitvavo.publicTrades('BTC-EUR', {'limit': 10000}, output_format='duckdb')
+high_volume_trades = duckdb.query("SELECT * FROM rel WHERE amount > 1.0")
+
+# PyArrow example - columnar data
+import pyarrow as pa
+table = bitvavo.assets({}, output_format='pyarrow')
+df = table.to_pandas()  # Convert to pandas when needed
+```
+
 ## Error Handling
 
 ```python
@@ -215,7 +325,7 @@ if remaining > 10:
 
 ## Development & Contributing
 
-```shell
+````shell
 echo "install development requirements"
 uv sync
 echo "run tox, a program that creates separate environments for different python versions, for testing purposes (among other things)"
@@ -247,7 +357,7 @@ uv run mypy src/
 # Linting and formatting
 uv run ruff check
 uv run ruff format
-```
+````
 
 ### Project Structure
 
@@ -352,105 +462,105 @@ Want to quickly make a trading app? Here you go:
 
 1. **Install Bitvavo SDK for Python**
 
-    In your Python app, add [Bitvavo SDK for
-    Python](https://github.com/bitvavo/python-bitvavo-api) from
-    [pypi.org](https://pypi.org/project/python-bitvavo-api/):
+   In your Python app, add [Bitvavo SDK for
+   Python](https://github.com/bitvavo/python-bitvavo-api) from
+   [pypi.org](https://pypi.org/project/python-bitvavo-api/):
 
-    ```shell
-    python -m pip install python_bitvavo_api
-    ```
+   ```shell
+   python -m pip install python_bitvavo_api
+   ```
 
-    If you installed from `test.pypi.com`, update the requests library: `pip
-    install --upgrade  requests`.
+   If you installed from `test.pypi.com`, update the requests library: `pip
+install --upgrade  requests`.
 
 1. **Create a simple Bitvavo implementation**
 
-    Add the following code to a new file in your app:
+   Add the following code to a new file in your app:
 
-    ```python
-    from python_bitvavo_api.bitvavo import Bitvavo
-    import json
-    import time
+   ```python
+   from python_bitvavo_api.bitvavo import Bitvavo
+   import json
+   import time
 
-    # Use this class to connect to Bitvavo and make your first calls.
-    # Add trading strategies to implement your business logic.
-    class BitvavoImplementation:
-        api_key = "<Replace with your your API key from Bitvavo Dashboard>"
-        api_secret = "<Replace with your API secret from Bitvavo Dashboard>"
-        bitvavo_engine = None
-        bitvavo_socket = None
+   # Use this class to connect to Bitvavo and make your first calls.
+   # Add trading strategies to implement your business logic.
+   class BitvavoImplementation:
+       api_key = "<Replace with your your API key from Bitvavo Dashboard>"
+       api_secret = "<Replace with your API secret from Bitvavo Dashboard>"
+       bitvavo_engine = None
+       bitvavo_socket = None
 
-        # Connect securely to Bitvavo, create the WebSocket and error callbacks.
-        def __init__(self):
-            self.bitvavo_engine = Bitvavo({
-                'APIKEY': self.api_key,
-                'APISECRET': self.api_secret
-            })
-            self.bitvavo_socket = self.bitvavo_engine.newWebsocket()
-            self.bitvavo_socket.setErrorCallback(self.error_callback)
+       # Connect securely to Bitvavo, create the WebSocket and error callbacks.
+       def __init__(self):
+           self.bitvavo_engine = Bitvavo({
+               'APIKEY': self.api_key,
+               'APISECRET': self.api_secret
+           })
+           self.bitvavo_socket = self.bitvavo_engine.newWebsocket()
+           self.bitvavo_socket.setErrorCallback(self.error_callback)
 
-        # Handle errors.
-        def error_callback(self, error):
-            print("Add your error message.")
-            #print("Errors:", json.dumps(error, indent=2))
+       # Handle errors.
+       def error_callback(self, error):
+           print("Add your error message.")
+           #print("Errors:", json.dumps(error, indent=2))
 
-        # Retrieve the data you need from Bitvavo in order to implement your
-        # trading logic. Use multiple workflows to return data to your
-        # callbacks.
-        def a_trading_strategy(self):
-            self.bitvavo_socket.ticker24h({}, self.a_trading_strategy_callback)
+       # Retrieve the data you need from Bitvavo in order to implement your
+       # trading logic. Use multiple workflows to return data to your
+       # callbacks.
+       def a_trading_strategy(self):
+           self.bitvavo_socket.ticker24h({}, self.a_trading_strategy_callback)
 
-        # In your app you analyse data returned by the trading strategy, then make
-        # calls to Bitvavo to respond to market conditions.
-        def a_trading_strategy_callback(self, response):
-            # Iterate through the markets
-            for market in response:
+       # In your app you analyse data returned by the trading strategy, then make
+       # calls to Bitvavo to respond to market conditions.
+       def a_trading_strategy_callback(self, response):
+           # Iterate through the markets
+           for market in response:
 
-                match market["market"]:
-                   case "ZRX-EUR":
-                        print("Eureka, the latest bid for ZRX-EUR is: ", market["bid"] )
-                        # Implement calculations for your trading logic.
-                        # If they are positive, place an order: For example:
-                        # self.bitvavo_socket.placeOrder("ZRX-EUR",
-                        #                               'buy',
-                        #                               'limit',
-                        #                               { 'amount': '1', 'price': '00001' },
-                        #                               self.order_placed_callback)
-                   case "a different market":
-                        print("do something else")
-                   case _:
-                        print("Not this one: ", market["market"])
-
-
-
-        def order_placed_callback(self, response):
-            # The order return parameters explain the quote and the fees for this trade.
-            print("Order placed:", json.dumps(response, indent=2))
-            # Add your business logic.
+               match market["market"]:
+                  case "ZRX-EUR":
+                       print("Eureka, the latest bid for ZRX-EUR is: ", market["bid"] )
+                       # Implement calculations for your trading logic.
+                       # If they are positive, place an order: For example:
+                       # self.bitvavo_socket.placeOrder("ZRX-EUR",
+                       #                               'buy',
+                       #                               'limit',
+                       #                               { 'amount': '1', 'price': '00001' },
+                       #                               self.order_placed_callback)
+                  case "a different market":
+                       print("do something else")
+                  case _:
+                       print("Not this one: ", market["market"])
 
 
-        # Sockets are fast, but asynchronous. Keep the socket open while you are
-        # trading.
-        def wait_and_close(self):
-            # Bitvavo uses a weight based rate limiting system. Your app is limited to 1000 weight points per IP or
-            # API key per minute. The rate weighting for each endpoint is supplied in Bitvavo API documentation.
-            # This call returns the amount of points left. If you make more requests than permitted by the weight limit,
-            # your IP or API key is banned.
-            limit = self.bitvavo_engine.getRemainingLimit()
-            try:
-                while (limit > 0):
-                    time.sleep(0.5)
-                    limit = self.bitvavo_engine.getRemainingLimit()
-            except KeyboardInterrupt:
-                self.bitvavo_socket.closeSocket()
+
+       def order_placed_callback(self, response):
+           # The order return parameters explain the quote and the fees for this trade.
+           print("Order placed:", json.dumps(response, indent=2))
+           # Add your business logic.
 
 
-    # Shall I re-explain main? Naaaaaaaaaa.
-    if __name__ == '__main__':
-        bvavo = BitvavoImplementation()
-        bvavo.a_trading_strategy()
-        bvavo.wait_and_close()
-    ```
+       # Sockets are fast, but asynchronous. Keep the socket open while you are
+       # trading.
+       def wait_and_close(self):
+           # Bitvavo uses a weight based rate limiting system. Your app is limited to 1000 weight points per IP or
+           # API key per minute. The rate weighting for each endpoint is supplied in Bitvavo API documentation.
+           # This call returns the amount of points left. If you make more requests than permitted by the weight limit,
+           # your IP or API key is banned.
+           limit = self.bitvavo_engine.getRemainingLimit()
+           try:
+               while (limit > 0):
+                   time.sleep(0.5)
+                   limit = self.bitvavo_engine.getRemainingLimit()
+           except KeyboardInterrupt:
+               self.bitvavo_socket.closeSocket()
+
+
+   # Shall I re-explain main? Naaaaaaaaaa.
+   if __name__ == '__main__':
+       bvavo = BitvavoImplementation()
+       bvavo.a_trading_strategy()
+       bvavo.wait_and_close()
+   ```
 
 1. **Add security information**
 
@@ -466,8 +576,8 @@ Want to quickly make a trading app? Here you go:
 
 1. **Run your app**
 
-    - Command line warriors: `python3 <filename>`.
-    - IDE heroes: press the big green button.
+   - Command line warriors: `python3 <filename>`.
+   - IDE heroes: press the big green button.
 
 Your app connects to Bitvavo and returns a list the latest trade price for each
 market. You use this data to implement your trading logic.

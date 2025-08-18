@@ -1,6 +1,6 @@
 # Changelog
 
-v2.1.0 - 2025-08-18
+## v2.1.0 - 2025-08-18
 
 **NEW FEATURE**: Comprehensive dataframe support across 10+ libraries using
 Narwhals! 🐻‍❄️

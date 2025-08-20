@@ -1,5 +1,82 @@
 # Changelog
 
+## $UNRELEASED
+
+**NEW FEATURE**: Multi-key support and keyless API access! 🔑
+
+This release introduces comprehensive support for multiple API keys and keyless
+(public endpoint) API access, making it easier to manage rate limits and access
+public data without authentication.
+
+### Added
+
+- **🔑 Multiple API Key Support**: Enhanced authentication system
+  - `APIKEYS` configuration option for multiple key/secret pairs
+  - Automatic load balancing across multiple API keys for rate limit management
+  - Graceful fallback between keys when rate limits are reached
+  - Enhanced `BitvavoSettings` class with multi-key validation
+- **🌐 Keyless API Access**: Public endpoint support without authentication
+  - `PREFER_KEYLESS` setting to prioritize public endpoints over authenticated
+    ones
+  - Automatic detection of endpoints that don't require authentication
+  - Improved rate limit handling for public vs. authenticated requests
+- **⚙️ Enhanced Settings System**:
+  - More strict type validation with better error messages
+  - Default values for all settings with comprehensive type hints
+  - `DEFAULT_RATE_LIMIT` configuration for new API keys
+  - Improved SSL certificate auto-detection and configuration
+- **🧪 Comprehensive Testing Infrastructure**:
+  - `pytest-dotenv` integration for environment variable testing
+  - New `tests/vars.env` for isolated test configuration
+  - Multiple test scenarios for clean environment overrides
+  - Extensive integration tests for settings validation
+  - Tests for multi-key scenarios and keyless operations
+
+### Changed
+
+- **🔧 Settings Architecture**: Restructured for better maintainability
+  - Enhanced field validation with descriptive error messages
+  - Improved model validators for API key processing
+  - Better separation between core and upgraded settings
+- **📦 Development Dependencies**: Added `pytest-dotenv>=0.5.2` for enhanced testing
+- **🎯 Rate Limiting Logic**: Improved handling for multiple keys and keyless requests
+
+### Examples
+
+**Multiple API Keys Setup**:
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+from bitvavo_api_upgraded.settings import bitvavo_settings
+
+# Via environment variables
+# BITVAVO_APIKEYS='[{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]'
+
+# Or programmatically
+bitvavo_settings.APIKEYS = [
+    {"key": "your_api_key_1", "secret": "your_api_secret_1"},
+    {"key": "your_api_key_2", "secret": "your_api_secret_2"}
+]
+
+bitvavo = Bitvavo(**bitvavo_settings.model_dump())
+```
+
+**Enhanced Settings Configuration**:
+
+```env
+# .env file
+BITVAVO_PREFER_KEYLESS=true
+BITVAVO_API_UPGRADED_DEFAULT_RATE_LIMIT=750
+BITVAVO_API_UPGRADED_PREFER_KEYLESS=false
+```
+
+### Performance & Benefits
+
+- **Rate Limit Optimization**: Distribute requests across multiple API keys automatically
+- **Public Endpoint Efficiency**: Reduce unnecessary authentication overhead
+- **Failover Support**: Automatic switching between API keys when limits are reached
+- **Enhanced Reliability**: Better handling of rate limit scenarios
+
 ## v2.1.0 - 2025-08-18
 
 **NEW FEATURE**: Comprehensive dataframe support across 10+ libraries using

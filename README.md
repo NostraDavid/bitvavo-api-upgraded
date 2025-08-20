@@ -60,6 +60,7 @@ This wrapper improves upon the official Bitvavo SDK with:
 - 🔄 **Up-to-date API compliance** including MiCA regulatory requirements
 - 📚 **Enhanced documentation** with examples and clear usage patterns
 - 🐍 **Modern Python support** (3.9+, dropped EOL versions)
+- 🔑 **Multi-key & keyless support** for enhanced rate limiting and public access
 - ⚡ **Better error handling** and rate limiting
 - 🔧 **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
 - 📊 **Unified dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, SQLFrame)
@@ -69,6 +70,8 @@ This wrapper improves upon the official Bitvavo SDK with:
 ### Full API Coverage
 
 - ✅ All REST endpoints (public and private)
+- ✅ **Multiple API key support** with automatic load balancing
+- ✅ **Keyless access** for public endpoints without authentication
 - ✅ **Comprehensive dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, and more)
 - ✅ WebSocket support with reconnection logic
 - ✅ Rate limiting with automatic throttling
@@ -85,6 +88,7 @@ This wrapper improves upon the official Bitvavo SDK with:
 ### Production Ready
 
 - ✅ Automatic rate limit management
+- ✅ Multi-key failover support
 - ✅ Connection retry logic
 - ✅ Proper error responses
 - ✅ Memory efficient WebSocket handling
@@ -94,8 +98,19 @@ This wrapper improves upon the official Bitvavo SDK with:
 Create a `.env` file in your project root:
 
 ```env
+# Single API key (traditional)
 BITVAVO_APIKEY=your-api-key-here
 BITVAVO_APISECRET=your-api-secret-here
+
+# Multiple API keys (for rate limiting)
+# BITVAVO_APIKEYS='[{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]'
+
+# Keyless access (public endpoints only)
+BITVAVO_PREFER_KEYLESS=true
+
+# Enhanced settings
+BITVAVO_API_UPGRADED_DEFAULT_RATE_LIMIT=750
+BITVAVO_API_UPGRADED_PREFER_KEYLESS=false
 ```
 
 Then use the settings:
@@ -112,6 +127,17 @@ bitvavo = Bitvavo({
 # Option 2: Auto-load from .env
 settings = BitvavoSettings()
 bitvavo = Bitvavo(settings.model_dump())
+
+# Option 3: Multiple API keys
+bitvavo = Bitvavo({
+    'APIKEYS': [
+        {'key': 'key1', 'secret': 'secret1'},
+        {'key': 'key2', 'secret': 'secret2'}
+    ]
+})
+
+# Option 4: Keyless (public endpoints only)
+bitvavo = Bitvavo({'PREFER_KEYLESS': True})
 ```
 
 ## WebSocket Usage
@@ -139,6 +165,66 @@ try:
         time.sleep(1)
 except KeyboardInterrupt:
     ws.closeSocket()
+```
+
+## Multi-Key & Keyless Examples
+
+### Multiple API Keys for Rate Limiting
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+# Configure multiple API keys
+bitvavo = Bitvavo({
+    'APIKEYS': [
+        {'key': 'key1', 'secret': 'secret1'},
+        {'key': 'key2', 'secret': 'secret2'},
+        {'key': 'key3', 'secret': 'secret3'}
+    ]
+})
+
+# API automatically balances load across keys
+balance = bitvavo.balance({})  # Uses least-used key
+orders = bitvavo.getOrders('BTC-EUR', {})  # May use different key
+trades = bitvavo.getTrades('BTC-EUR', {})  # Automatic failover if rate limit reached
+```
+
+### Keyless Access (Public Endpoints)
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+# No API keys needed for public data
+bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+
+# These work without authentication and don't count against your rate limits
+markets = bitvavo.markets({})
+ticker = bitvavo.ticker24h({'market': 'BTC-EUR'})
+trades = bitvavo.publicTrades('BTC-EUR', {})
+book = bitvavo.book('BTC-EUR', {})
+candles = bitvavo.candles('BTC-EUR', '1h', {})
+
+# Private endpoints will still require authentication
+# account = bitvavo.account()  # This would fail without API keys
+```
+
+### Hybrid Configuration
+
+```python
+# Combine keyless preference with API keys for optimal performance
+bitvavo = Bitvavo({
+    'APIKEYS': [
+        {'key': 'key1', 'secret': 'secret1'},
+        {'key': 'key2', 'secret': 'secret2'}
+    ],
+    'PREFER_KEYLESS': True  # Use keyless for public endpoints, API keys for private
+})
+
+# Public calls use keyless (no rate limit impact)
+markets = bitvavo.markets({})
+
+# Private calls use API keys with load balancing
+balance = bitvavo.balance({})
 ```
 
 ## API Examples
@@ -321,6 +407,23 @@ print(f"Remaining API calls: {remaining}")
 if remaining > 10:
     # Safe to make API calls
     response = bitvavo.balance({})
+
+# With multiple API keys, rate limits are distributed
+bitvavo_multi = Bitvavo({
+    'APIKEYS': [
+        {'key': 'key1', 'secret': 'secret1'},
+        {'key': 'key2', 'secret': 'secret2'}
+    ]
+})
+
+# Each key gets its own rate limit pool
+# Automatic failover when one key hits limits
+for i in range(2000):  # Would exceed single key limit
+    markets = bitvavo_multi.markets({})  # Automatically switches keys
+
+# Keyless calls don't count against authenticated rate limits
+bitvavo_keyless = Bitvavo({'PREFER_KEYLESS': True})
+markets = bitvavo_keyless.markets({})  # Uses public rate limit pool
 ```
 
 ## Development & Contributing
@@ -391,6 +494,9 @@ This package includes a `py.typed` file to enable type checking. Reference: [Don
 
 - Import: `from bitvavo_api_upgraded import Bitvavo` (instead of `from python_bitvavo_api.bitvavo import Bitvavo`)
 - **Breaking Change**: Trading operations require `operatorId` parameter
+- **New**: Multiple API key support for better rate limiting
+- **New**: Keyless access for public endpoints
+- **New**: Comprehensive dataframe support
 - Enhanced error handling and type safety
 - Better configuration management with `.env` support
 
@@ -399,7 +505,30 @@ This package includes a `py.typed` file to enable type checking. Reference: [Don
 1. Update import statements
 2. Add `operatorId` to trading method calls
 3. Optional: Migrate to `.env` configuration
-4. Enjoy improved type hints and error handling!
+4. Optional: Configure multiple API keys for better rate limits
+5. Optional: Enable keyless mode for public endpoint efficiency
+6. Enjoy improved type hints and error handling!
+
+### Enhanced Features (Optional)
+
+```python
+# Traditional single key (works as before)
+bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+
+# New: Multiple keys for rate limiting
+bitvavo = Bitvavo({
+    'APIKEYS': [
+        {'key': 'key1', 'secret': 'secret1'},
+        {'key': 'key2', 'secret': 'secret2'}
+    ]
+})
+
+# New: Keyless for public endpoints
+bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+
+# New: Dataframe support
+markets_df = bitvavo.markets({}, output_format='pandas')
+```
 
 ---
 

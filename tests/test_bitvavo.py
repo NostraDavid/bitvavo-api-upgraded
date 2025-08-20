@@ -1017,8 +1017,8 @@ class TestBitvavo:
         assert isinstance(response["address"], str)
         assert response["address"].startswith("0x")  # only counts for SHIB (?)
 
-    @pytest.mark.skip(
-        reason='errorCode=400, error: "Unknown error. Please contact support with a copy of your request"'
+    @pytest.mark.skipif(
+        True, reason="{'errorCode': 400, 'error': 'Unknown error. Please contact support with a copy of your request.'}"
     )
     def test_deposit_assets_fiat(self, bitvavo: Bitvavo) -> None:
         """

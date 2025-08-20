@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import hashlib
 import hmac
@@ -16,7 +17,7 @@ from websocket import WebSocketApp  # missing stubs for WebSocketApp
 
 from bitvavo_api_upgraded.dataframe_utils import convert_candles_to_dataframe, convert_to_dataframe
 from bitvavo_api_upgraded.helper_funcs import configure_loggers, time_ms, time_to_wait
-from bitvavo_api_upgraded.settings import bitvavo_upgraded_settings
+from bitvavo_api_upgraded.settings import bitvavo_settings, bitvavo_upgraded_settings
 from bitvavo_api_upgraded.type_aliases import OutputFormat, anydict, errordict, intdict, ms, s_f, strdict, strintdict
 
 configure_loggers()
@@ -217,6 +218,7 @@ class Bitvavo:
     Example code to get your started:
 
     ```python
+    # Single API key (backward compatible)
     bitvavo = Bitvavo(
         {
             "APIKEY": "$YOUR_API_KEY",
@@ -228,22 +230,198 @@ class Bitvavo:
         },
     )
     time_dict = bitvavo.time()
+
+    # Multiple API keys with keyless preference
+    bitvavo = Bitvavo(
+        {
+            "APIKEYS": [
+                {"key": "$YOUR_API_KEY_1", "secret": "$YOUR_API_SECRET_1"},
+                {"key": "$YOUR_API_KEY_2", "secret": "$YOUR_API_SECRET_2"},
+                {"key": "$YOUR_API_KEY_3", "secret": "$YOUR_API_SECRET_3"},
+            ],
+            "PREFER_KEYLESS": True,  # Use keyless requests first, then API keys
+            "RESTURL": "https://api.bitvavo.com/v2",
+            "WSURL": "wss://ws.bitvavo.com/v2/",
+            "ACCESSWINDOW": 10000,
+            "DEBUGGING": True,
+        },
+    )
+    time_dict = bitvavo.time()
+
+    # Keyless only (no API keys)
+    bitvavo = Bitvavo(
+        {
+            "PREFER_KEYLESS": True,
+            "RESTURL": "https://api.bitvavo.com/v2",
+            "WSURL": "wss://ws.bitvavo.com/v2/",
+            "ACCESSWINDOW": 10000,
+            "DEBUGGING": True,
+        },
+    )
+    markets = bitvavo.markets()  # Only public endpoints will work
     ```
     """
 
-    def __init__(self, options: dict[str, str | int] | None = None) -> None:
+    def __init__(self, options: dict[str, str | int | list[dict[str, str]]] | None = None) -> None:
         if options is None:
             options = {}
         _options = {k.upper(): v for k, v in options.items()}
-        self.base: str = str(_options.get("RESTURL", "https://api.bitvavo.com/v2"))
-        self.wsUrl: str = str(_options.get("WSURL", "wss://ws.bitvavo.com/v2/"))
-        self.ACCESSWINDOW: int = ms(_options.get("ACCESSWINDOW", 10000))
-        self.APIKEY: str = str(_options.get("APIKEY", ""))
-        self.APISECRET: str = str(_options.get("APISECRET", ""))
-        self.rateLimitRemaining: int = 1000
+
+        # Options take precedence over settings
+        self.base: str = str(_options.get("RESTURL", bitvavo_settings.RESTURL))
+        self.wsUrl: str = str(_options.get("WSURL", bitvavo_settings.WSURL))
+        self.ACCESSWINDOW: int = int(_options.get("ACCESSWINDOW", bitvavo_settings.ACCESSWINDOW))
+
+        # Support for multiple API keys - options take absolute precedence
+        if "APIKEY" in _options and "APISECRET" in _options:
+            # Single API key explicitly provided in options - takes precedence
+            single_key = str(_options["APIKEY"])
+            single_secret = str(_options["APISECRET"])
+            self.api_keys: list[dict[str, str]] = [{"key": single_key, "secret": single_secret}]
+        elif "APIKEYS" in _options:
+            # Multiple API keys provided in options - takes precedence
+            api_keys = _options["APIKEYS"]
+            if isinstance(api_keys, list) and api_keys:
+                self.api_keys = api_keys
+            else:
+                self.api_keys = []
+        else:
+            # Fall back to settings only if no API key options provided
+            api_keys = bitvavo_settings.APIKEYS
+            if isinstance(api_keys, list) and api_keys:
+                self.api_keys = api_keys
+            else:
+                # Single API key from settings (backward compatibility)
+                single_key = str(bitvavo_settings.APIKEY)
+                single_secret = str(bitvavo_settings.APISECRET)
+                if single_key and single_secret:
+                    self.api_keys = [{"key": single_key, "secret": single_secret}]
+                else:
+                    self.api_keys = []
+
+        # Current API key index and keyless preference - options take precedence
+        self.current_api_key_index: int = 0
+        self.prefer_keyless: bool = bool(_options.get("PREFER_KEYLESS", bitvavo_upgraded_settings.PREFER_KEYLESS))
+
+        # Rate limiting per API key (keyless has index -1)
+        self.rate_limits: dict[int, dict[str, int | ms]] = {}
+        # Get default rate limit from options or settings
+        default_rate_limit_option = _options.get("DEFAULT_RATE_LIMIT", bitvavo_upgraded_settings.DEFAULT_RATE_LIMIT)
+        default_rate_limit = (
+            int(default_rate_limit_option)
+            if isinstance(default_rate_limit_option, (int, str))
+            else bitvavo_upgraded_settings.DEFAULT_RATE_LIMIT
+        )
+
+        self.rate_limits[-1] = {"remaining": default_rate_limit, "resetAt": ms(0)}  # keyless
+        for i in range(len(self.api_keys)):
+            self.rate_limits[i] = {"remaining": default_rate_limit, "resetAt": ms(0)}
+
+        # Legacy properties for backward compatibility
+        self.APIKEY: str = self.api_keys[0]["key"] if self.api_keys else ""
+        self.APISECRET: str = self.api_keys[0]["secret"] if self.api_keys else ""
+        self._current_api_key: str = self.APIKEY
+        self._current_api_secret: str = self.APISECRET
+        self.rateLimitRemaining: int = default_rate_limit
         self.rateLimitResetAt: ms = 0
-        # TODO(NostraDavid): for v2: remove this functionality - logger.debug is a level that can be set
-        self.debugging: bool = bool(_options.get("DEBUGGING", False))
+
+        # Options take precedence over settings for debugging
+        self.debugging: bool = bool(_options.get("DEBUGGING", bitvavo_settings.DEBUGGING))
+
+    def get_best_api_key_config(self, rateLimitingWeight: int = 1) -> tuple[str, str, int]:
+        """
+        Get the best API key configuration to use for a request.
+
+        Returns:
+            tuple: (api_key, api_secret, key_index) where key_index is -1 for keyless
+        """
+        # If prefer keyless and keyless has enough rate limit, use keyless
+        if self.prefer_keyless and self._has_rate_limit_available(-1, rateLimitingWeight):
+            return "", "", -1
+
+        # Try to find an API key with enough rate limit
+        for i in range(len(self.api_keys)):
+            if self._has_rate_limit_available(i, rateLimitingWeight):
+                return self.api_keys[i]["key"], self.api_keys[i]["secret"], i
+
+        # If keyless is available, use it as fallback
+        if self._has_rate_limit_available(-1, rateLimitingWeight):
+            return "", "", -1
+
+        # No keys available, use current key and let rate limiting handle the wait
+        if self.api_keys:
+            return (
+                self.api_keys[self.current_api_key_index]["key"],
+                self.api_keys[self.current_api_key_index]["secret"],
+                self.current_api_key_index,
+            )
+        return "", "", -1
+
+    def _has_rate_limit_available(self, key_index: int, weight: int) -> bool:
+        """Check if a specific API key (or keyless) has enough rate limit."""
+        if key_index not in self.rate_limits:
+            return False
+        remaining = self.rate_limits[key_index]["remaining"]
+        return (remaining - weight) > bitvavo_upgraded_settings.RATE_LIMITING_BUFFER
+
+    def _update_rate_limit_for_key(self, key_index: int, response: anydict | errordict) -> None:
+        """Update rate limit for a specific API key index."""
+        if key_index not in self.rate_limits:
+            self.rate_limits[key_index] = {"remaining": 1000, "resetAt": ms(0)}
+
+        if "errorCode" in response and response["errorCode"] == 105:  # noqa: PLR2004
+            self.rate_limits[key_index]["remaining"] = 0
+            # rateLimitResetAt is a value that's stripped from a string.
+            reset_time_str = str(response.get("error", "")).split(" at ")
+            if len(reset_time_str) > 1:
+                try:
+                    reset_time = ms(int(reset_time_str[1].split(".")[0]))
+                    self.rate_limits[key_index]["resetAt"] = reset_time
+                except (ValueError, IndexError):
+                    # Fallback to current time + 60 seconds if parsing fails
+                    self.rate_limits[key_index]["resetAt"] = ms(time_ms() + 60000)
+            else:
+                self.rate_limits[key_index]["resetAt"] = ms(time_ms() + 60000)
+
+            timeToWait = time_to_wait(ms(self.rate_limits[key_index]["resetAt"]))
+            key_name = f"API_KEY_{key_index}" if key_index >= 0 else "KEYLESS"
+            logger.warning(
+                "api-key-banned",
+                info={
+                    "key_name": key_name,
+                    "wait_time_seconds": timeToWait + 1,
+                    "until": (dt.datetime.now(tz=dt.timezone.utc) + dt.timedelta(seconds=timeToWait + 1)).isoformat(),
+                },
+            )
+
+        if "bitvavo-ratelimit-remaining" in response:
+            with contextlib.suppress(ValueError, TypeError):
+                self.rate_limits[key_index]["remaining"] = int(response["bitvavo-ratelimit-remaining"])
+
+        if "bitvavo-ratelimit-resetat" in response:
+            with contextlib.suppress(ValueError, TypeError):
+                self.rate_limits[key_index]["resetAt"] = ms(int(response["bitvavo-ratelimit-resetat"]))
+
+    def _sleep_for_key(self, key_index: int) -> None:
+        """Sleep until the specified API key's rate limit resets."""
+        if key_index not in self.rate_limits:
+            return
+
+        reset_at = ms(self.rate_limits[key_index]["resetAt"])
+        napTime = time_to_wait(reset_at)
+        key_name = f"API_KEY_{key_index}" if key_index >= 0 else "KEYLESS"
+
+        logger.warning(
+            "rate-limit-reached", key_name=key_name, rateLimitRemaining=self.rate_limits[key_index]["remaining"]
+        )
+        logger.info(
+            "napping-until-reset",
+            key_name=key_name,
+            napTime=napTime,
+            currentTime=dt.datetime.now(tz=dt.timezone.utc).isoformat(),
+            targetDatetime=dt.datetime.fromtimestamp(reset_at / 1000.0, tz=dt.timezone.utc).isoformat(),
+        )
+        time.sleep(napTime + 1)  # +1 to add a tiny bit of buffer time
 
     def calcLag(self) -> ms:
         """
@@ -285,14 +463,20 @@ class Bitvavo:
         If you're banned, use the errordict to sleep until you're not banned
 
         If you're not banned, then use the received headers to update the variables.
+
+        This method maintains backward compatibility by updating the legacy properties.
         """
+        # Update rate limit for the current API key being used
+        current_key = self.current_api_key_index if self.APIKEY else -1
+        self._update_rate_limit_for_key(current_key, response)
+
+        # Update legacy properties for backward compatibility
+        if current_key in self.rate_limits:
+            self.rateLimitRemaining = int(self.rate_limits[current_key]["remaining"])
+            self.rateLimitResetAt = ms(self.rate_limits[current_key]["resetAt"])
+
+        # Handle ban with sleep (legacy behavior)
         if "errorCode" in response and response["errorCode"] == 105:  # noqa: PLR2004
-            self.rateLimitRemaining = 0
-            # rateLimitResetAt is a value that's stripped from a string.
-            # Kind of a terrible way to pass that information, but eh, whatever, I guess...
-            # Anyway, here is the string that's being pulled apart:
-            # "Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}""
-            self.rateLimitResetAt = ms(response["error"].split(" at ")[1].split(".")[0])
             timeToWait = time_to_wait(self.rateLimitResetAt)
             logger.warning(
                 "banned",
@@ -303,10 +487,6 @@ class Bitvavo:
             )
             logger.info("napping-until-ban-lifted")
             time.sleep(timeToWait + 1)  # plus one second to ENSURE we're able to run again.
-        if "bitvavo-ratelimit-remaining" in response:
-            self.rateLimitRemaining = int(response["bitvavo-ratelimit-remaining"])
-        if "bitvavo-ratelimit-resetat" in response:
-            self.rateLimitResetAt = int(response["bitvavo-ratelimit-resetat"])
 
     def publicRequest(
         self,
@@ -331,22 +511,39 @@ class Bitvavo:
         list[list[str]]
         ```
         """
-        if (self.rateLimitRemaining - rateLimitingWeight) <= bitvavo_upgraded_settings.RATE_LIMITING_BUFFER:
-            self.sleep_until_can_continue()
+        # Get the best API key configuration (keyless preferred, then available keys)
+        api_key, api_secret, key_index = self.get_best_api_key_config(rateLimitingWeight)
+
+        # Check if we need to wait for rate limit
+        if not self._has_rate_limit_available(key_index, rateLimitingWeight):
+            self._sleep_for_key(key_index)
+
+        # Update current API key for legacy compatibility
+        if api_key:
+            self._current_api_key = api_key
+            self._current_api_secret = api_secret
+            self.current_api_key_index = key_index
+        else:
+            # Using keyless
+            self._current_api_key = ""
+            self._current_api_secret = ""
+
         if self.debugging:
             logger.debug(
                 "api-request",
                 info={
                     "url": url,
-                    "with_api_key": bool(self.APIKEY != ""),
+                    "with_api_key": bool(api_key != ""),
                     "public_or_private": "public",
+                    "key_index": key_index,
                 },
             )
-        if self.APIKEY != "":
+
+        if api_key:
             now = time_ms() + bitvavo_upgraded_settings.LAG
-            sig = createSignature(now, "GET", url.replace(self.base, ""), None, self.APISECRET)
+            sig = createSignature(now, "GET", url.replace(self.base, ""), None, api_secret)
             headers = {
-                "bitvavo-access-key": self.APIKEY,
+                "bitvavo-access-key": api_key,
                 "bitvavo-access-signature": sig,
                 "bitvavo-access-timestamp": str(now),
                 "bitvavo-access-window": str(self.ACCESSWINDOW),
@@ -354,10 +551,16 @@ class Bitvavo:
             r = get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000))
         else:
             r = get(url, timeout=(self.ACCESSWINDOW / 1000))
+
+        # Update rate limit for the specific key used
         if "error" in r.json():
-            self.updateRateLimit(r.json())
+            self._update_rate_limit_for_key(key_index, r.json())
         else:
-            self.updateRateLimit(dict(r.headers))
+            self._update_rate_limit_for_key(key_index, dict(r.headers))
+
+        # Also update legacy rate limit tracking
+        self.updateRateLimit(r.json() if "error" in r.json() else dict(r.headers))
+
         return r.json()  # type:ignore[no-any-return]
 
     def privateRequest(
@@ -367,7 +570,7 @@ class Bitvavo:
         body: anydict | None = None,
         method: str = "GET",
         rateLimitingWeight: int = 1,
-    ) -> list[anydict] | list[list[str]] | intdict | strdict | anydict | Any | errordict:
+    ) -> list[anydict] | list[list[str]] | intdict | strdict | anydict | errordict:
         """Execute a request to the private  part of the API. API key and SECRET are required.
         Will return the reponse as one of three types.
 
@@ -390,14 +593,33 @@ class Bitvavo:
         list[list[str]]
         ```
         """
-        if (self.rateLimitRemaining - rateLimitingWeight) <= bitvavo_upgraded_settings.RATE_LIMITING_BUFFER:
-            self.sleep_until_can_continue()
-        # if this method breaks: add `= {}` after `body: dict`
+        # Private requests require an API key, so get the best available one
+        api_key, api_secret, key_index = self.get_best_api_key_config(rateLimitingWeight)
+
+        # If no API keys available, use the configured one (may fail)
+        if not api_key and self.api_keys:
+            api_key = self.api_keys[self.current_api_key_index]["key"]
+            api_secret = self.api_keys[self.current_api_key_index]["secret"]
+            key_index = self.current_api_key_index
+        elif not api_key:
+            # No API keys configured at all
+            api_key = self.APIKEY
+            api_secret = self.APISECRET
+            key_index = 0 if api_key else -1
+
+        # Check if we need to wait for rate limit
+        if not self._has_rate_limit_available(key_index, rateLimitingWeight):
+            self._sleep_for_key(key_index)
+
+        # Update current API key for legacy compatibility
+        self._current_api_key = api_key
+        self._current_api_secret = api_secret
+
         now = time_ms() + bitvavo_upgraded_settings.LAG
-        sig = createSignature(now, method, (endpoint + postfix), body, self.APISECRET)
+        sig = createSignature(now, method, (endpoint + postfix), body, api_secret)
         url = self.base + endpoint + postfix
         headers = {
-            "bitvavo-access-key": self.APIKEY,
+            "bitvavo-access-key": api_key,
             "bitvavo-access-signature": sig,
             "bitvavo-access-timestamp": str(now),
             "bitvavo-access-window": str(self.ACCESSWINDOW),
@@ -407,9 +629,10 @@ class Bitvavo:
                 "api-request",
                 info={
                     "url": url,
-                    "with_api_key": bool(self.APIKEY != ""),
+                    "with_api_key": bool(api_key != ""),
                     "public_or_private": "private",
                     "method": method,
+                    "key_index": key_index,
                 },
             )
         if method == "DELETE":
@@ -420,10 +643,16 @@ class Bitvavo:
             r = put(url, headers=headers, json=body, timeout=(self.ACCESSWINDOW / 1000))
         else:  # method == "GET"
             r = get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000))
+
+        # Update rate limit for the specific key used
         if "error" in r.json():
-            self.updateRateLimit(r.json())
+            self._update_rate_limit_for_key(key_index, r.json())
         else:
-            self.updateRateLimit(dict(r.headers))
+            self._update_rate_limit_for_key(key_index, dict(r.headers))
+
+        # Also update legacy rate limit tracking
+        self.updateRateLimit(r.json() if "error" in r.json() else dict(r.headers))
+
         return r.json()
 
     def sleep_until_can_continue(self) -> None:
@@ -1730,7 +1959,7 @@ class Bitvavo:
           }
         ]
         ```
-        """
+        """  # noqa: E501
         options = _default(options, {})
         options["market"] = market
         postfix = createPostfix(options)
@@ -2086,6 +2315,118 @@ class Bitvavo:
         postfix = createPostfix(options)
         result = self.privateRequest("/withdrawalHistory", postfix, {}, "GET", 5)  # type: ignore[return-value]
         return convert_to_dataframe(result, output_format)
+
+    # API Key Management Helper Methods
+
+    def add_api_key(self, api_key: str, api_secret: str) -> None:
+        """Add a new API key to the available keys.
+
+        Args:
+            api_key: The API key to add
+            api_secret: The corresponding API secret
+        """
+        new_key = {"key": api_key, "secret": api_secret}
+        self.api_keys.append(new_key)
+
+        # Initialize rate limit tracking for this key using settings default
+        key_index = len(self.api_keys) - 1
+        default_rate_limit = bitvavo_upgraded_settings.DEFAULT_RATE_LIMIT
+        self.rate_limits[key_index] = {"remaining": default_rate_limit, "resetAt": ms(0)}
+
+        logger.info("api-key-added", key_index=key_index)
+
+    def remove_api_key(self, api_key: str) -> bool:
+        """Remove an API key from the available keys.
+
+        Args:
+            api_key: The API key to remove
+
+        Returns:
+            bool: True if the key was found and removed, False otherwise
+        """
+        for i, key_data in enumerate(self.api_keys):
+            if key_data["key"] == api_key:
+                _ = self.api_keys.pop(i)
+                # Remove rate limit tracking for this key
+                if i in self.rate_limits:
+                    del self.rate_limits[i]
+                # Update rate limit tracking indices (shift them down)
+                new_rate_limits = {}
+                for key_idx, limits in self.rate_limits.items():
+                    if key_idx == -1 or key_idx < i:  # keyless
+                        new_rate_limits[key_idx] = limits
+                    elif key_idx > i:
+                        new_rate_limits[key_idx - 1] = limits
+                self.rate_limits = new_rate_limits
+
+                # Update current index if needed
+                if self.current_api_key_index >= i:
+                    self.current_api_key_index = max(0, self.current_api_key_index - 1)
+
+                logger.info("api-key-removed", key_index=i)
+                return True
+        return False
+
+    def get_api_key_status(self) -> dict[str, dict[str, int | str | bool]]:
+        """Get the current status of all API keys including rate limits.
+
+        Returns:
+            dict: Status information for keyless and all API keys
+        """
+        status = {}
+
+        # Keyless status
+        keyless_limits = self.rate_limits.get(-1, {"remaining": 0, "resetAt": ms(0)})
+        status["keyless"] = {
+            "remaining": int(keyless_limits["remaining"]),
+            "resetAt": int(keyless_limits["resetAt"]),
+            "available": self._has_rate_limit_available(-1, 1),
+        }
+
+        # API key status
+        for i, key_data in enumerate(self.api_keys):
+            key_limits = self.rate_limits.get(i, {"remaining": 0, "resetAt": ms(0)})
+            KEY_LENGTH = 12
+            key_masked = (
+                key_data["key"][:8] + "..." + key_data["key"][-4:]
+                if len(key_data["key"]) > KEY_LENGTH
+                else key_data["key"]
+            )
+            status[f"api_key_{i}"] = {
+                "key": key_masked,
+                "remaining": int(key_limits["remaining"]),
+                "resetAt": int(key_limits["resetAt"]),
+                "available": self._has_rate_limit_available(i, 1),
+            }
+
+        return status
+
+    def set_keyless_preference(self, prefer_keyless: bool) -> None:  # noqa: FBT001 (Boolean-typed positional argument in function definition)
+        """Set whether to prefer keyless requests.
+
+        Args:
+            prefer_keyless: If True, use keyless requests first when available
+        """
+        self.prefer_keyless = prefer_keyless
+        logger.info("keyless-preference-changed", prefer_keyless=prefer_keyless)
+
+    def get_current_config(self) -> dict[str, str | bool | int]:
+        """Get the current configuration.
+
+        Returns:
+            dict: Current configuration including key count and preferences
+        """
+        KEY_LENGTH = 12
+        return {
+            "api_key_count": len(self.api_keys),
+            "prefer_keyless": self.prefer_keyless,
+            "current_api_key_index": self.current_api_key_index,
+            "current_api_key": self._current_api_key[:8] + "..." + self._current_api_key[-4:]
+            if len(self._current_api_key) > KEY_LENGTH
+            else self._current_api_key,
+            "rate_limit_remaining": self.rateLimitRemaining,
+            "rate_limit_reset_at": int(self.rateLimitResetAt),
+        }
 
     def newWebsocket(self) -> Bitvavo.WebSocketAppFacade:
         return Bitvavo.WebSocketAppFacade(self.APIKEY, self.APISECRET, self.ACCESSWINDOW, self.wsUrl, self)

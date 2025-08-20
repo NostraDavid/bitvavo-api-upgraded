@@ -81,17 +81,20 @@ changelog = "https://github.com/Thaumatorium/bitvavo-api-upgraded/blob/master/CH
 [tool.uv]
 dev-dependencies = [
     "bump-my-version>=0.28.1",   # for version management of the lib
+    "coverage[toml]>=7.6.9",     # for checking coverage; use this in tox vs pytest-cov, since pytest-cov does NOT play well with vscode
+    "duckdb>=1.0.0",             # DuckDB for testing (lightweight)
+    "eval-type-backport>=0.2.2", # eval type for mypy
     "mdformat>=0.7.11",          # for formatting markdown (.md) documents
     "mkdocs>=1.2.3",             # for markdown documentation
     "mypy>=1.13",                # amazing linter
     "narwhals>=2.0.0",           # unified dataframe API for testing
+    "pandas-stubs>=2.2.2.0",     # pandas typing for mypy
     "pandas>=2.0.0",             # pandas support for testing
     "polars>=1.0.0",             # polars support for testing
-    "pyarrow>=7.0.0",            # Arrow tables for testing
-    "duckdb>=1.0.0",             # DuckDB for testing (lightweight)
     "pre-commit>=2.15.0",        # for running hooks before committing code
-    "coverage[toml]>=7.6.9",     # for checking coverage; use this in tox vs pytest-cov, since pytest-cov does NOT play well with vscode
+    "pyarrow>=7.0.0",            # Arrow tables for testing
     "pytest-cov>=1",             # though this was the initial choice over coverage.py, turns out it fucks with vscode debugging, so now it only exists so we can still run tests with coverage within vscode
+    "pytest-dotenv>=0.5.2",      # for loading environment variables from .env files in tests
     "pytest-integration>=0.2.2", # for @mark additions
     "pytest-mock>=3.6.1",        # for the `mocker` MockerFixture fixture
     "pytest>=6.2.4",             # you can run `pytest` to run the unit tests; will also be run by `tox` :)
@@ -100,8 +103,6 @@ dev-dependencies = [
     "tox>=3.24.4",               # run `tox` to test everything
     "types-requests>=2.26.2",    # typing for mypy
     "uv>=0.8.0",                 # project manager (building, version bump, etc.)
-    "pandas-stubs>=2.2.2.0",     # pandas typing for mypy
-    "eval-type-backport>=0.2.2", # eval type for mypy
 ]
 
 [tool.bumpversion]

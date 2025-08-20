@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import logging
 import os
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,10 +16,21 @@ class BitvavoApiUpgradedSettings(BaseSettings):
     then, but I figured that would be a bad idea.
     """
 
-    LOG_LEVEL: str = Field("INFO")
-    LOG_EXTERNAL_LEVEL: str = Field("WARNING")
-    LAG: ms = Field(ms(50))
-    RATE_LIMITING_BUFFER: int = Field(25)
+    LOG_LEVEL: Literal["CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG", "NOTSET"] = Field(
+        default="INFO",
+        description="Logging level for the application",
+    )
+    LOG_EXTERNAL_LEVEL: Literal["CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG", "NOTSET"] = Field(
+        default="WARNING",
+        description="Logging level for external libraries",
+    )
+    LAG: ms = Field(default=ms(50))
+    RATE_LIMITING_BUFFER: int = Field(default=25)
+
+    # Multi-API key settings
+    PREFER_KEYLESS: bool = Field(default=True, description="Prefer keyless requests over API key requests")
+    DEFAULT_RATE_LIMIT: int = Field(default=1000, description="Default rate limit for new API keys")
+
     SSL_CERT_FILE: str | None = Field(
         default=None,
         description="Path to SSL certificate file for HTTPS/WSS connections",
@@ -33,13 +44,14 @@ class BitvavoApiUpgradedSettings(BaseSettings):
         extra="ignore",
     )
 
-    @classmethod
     @field_validator("LOG_LEVEL", "LOG_EXTERNAL_LEVEL", mode="before")
+    @classmethod
     def validate_log_level(cls, v: str) -> str:
-        if v not in logging._nameToLevel:  # noqa: SLF001
-            msg = f"Invalid log level: {v}"
+        valid_levels = {"CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG", "NOTSET"}
+        if v.upper() not in valid_levels:
+            msg = f"Invalid log level: {v}. Must be one of: {', '.join(valid_levels)}"
             raise ValueError(msg)
-        return v
+        return v.upper()
 
     @model_validator(mode="after")
     def configure_ssl_certificate(self) -> BitvavoApiUpgradedSettings:
@@ -73,19 +85,27 @@ class BitvavoApiUpgradedSettings(BaseSettings):
 class BitvavoSettings(BaseSettings):
     """
     These are the base settings from the original library.
+    Enhanced to support multiple API keys.
     """
 
-    ACCESSWINDOW: int = Field(10_000)
+    ACCESSWINDOW: int = Field(default=10_000)
     API_RATING_LIMIT_PER_MINUTE: int = Field(default=1000)
     API_RATING_LIMIT_PER_SECOND: int = Field(default=1000)
-    APIKEY: str = Field(default="BITVAVO_APIKEY is missing")
-    APISECRET: str = Field(default="BITVAVO_APISECRET is missing")
+    APIKEY: str = Field(default="")
+    APISECRET: str = Field(default="")
+
+    # Multiple API key support
+    APIKEYS: list[dict[str, str]] = Field(default_factory=list, description="List of API key/secret pairs")
+
     DEBUGGING: bool = Field(default=False)
     RESTURL: str = Field(default="https://api.bitvavo.com/v2")
     WSURL: str = Field(default="wss://ws.bitvavo.com/v2/")
 
+    # Multi-key specific settings
+    PREFER_KEYLESS: bool = Field(default=True)
+
     # Configuration for Pydantic Settings
-    model_config = SettingsConfigDict(
+    model_config: SettingsConfigDict = SettingsConfigDict(
         env_file=Path.cwd() / ".env",
         env_file_encoding="utf-8",
         env_prefix="BITVAVO_",
@@ -94,7 +114,17 @@ class BitvavoSettings(BaseSettings):
 
     @model_validator(mode="after")
     def set_api_rating_limit_per_second(self) -> BitvavoSettings:
-        self.API_RATING_LIMIT_PER_SECOND = self.API_RATING_LIMIT_PER_SECOND // 60
+        # Create a new value instead of modifying the Field directly
+        object.__setattr__(self, "API_RATING_LIMIT_PER_SECOND", self.API_RATING_LIMIT_PER_SECOND // 60)
+        return self
+
+    @model_validator(mode="after")
+    def process_api_keys(self) -> BitvavoSettings:
+        """Process API keys from environment variables."""
+        # If single APIKEY/APISECRET provided and APIKEYS is empty, create APIKEYS list
+        if self.APIKEY and self.APISECRET and not self.APIKEYS:
+            object.__setattr__(self, "APIKEYS", [{"key": self.APIKEY, "secret": self.APISECRET}])
+
         return self
 
 

@@ -216,7 +216,7 @@ class TestVarsEnvFileSupport:
         """Test that settings are loaded from vars.env file."""
         # Get the path to the vars.env file in the project root
         project_root = Path(__file__).parent.parent
-        vars_env_file = project_root / "vars.env"
+        vars_env_file = project_root / "tests" / "vars.env"
 
         # Ensure the vars.env file exists
         assert vars_env_file.exists(), "vars.env file should exist in project root"

@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v2.2.0 - 2025-08-20
 
 **NEW FEATURE**: Multi-key support and keyless API access! 🔑
 

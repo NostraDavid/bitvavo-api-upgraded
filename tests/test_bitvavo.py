@@ -9,6 +9,7 @@ If you see `pytest.mark.skipif`, you can flip the Bool to enable the test.
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import logging
 from time import sleep
@@ -19,11 +20,12 @@ import pytest
 
 from bitvavo_api_upgraded.bitvavo import (
     Bitvavo,
-    asksCompare,
-    bidsCompare,
-    createPostfix,
+    asks_compare,
+    bids_compare,
+    create_postfix,
     error_callback_example,
 )
+from bitvavo_api_upgraded.settings import bitvavo_settings
 
 if TYPE_CHECKING:
     from bitvavo_api_upgraded.type_aliases import anydict, errordict
@@ -47,7 +49,7 @@ def test_createPostfix_happy_path() -> None:
         "option4": ["yeet", "yote"],
     }
 
-    output = createPostfix(postfix_input)
+    output = create_postfix(postfix_input)
 
     assert output == "?option1=value1&option2=value2&option3=3&option4=['yeet', 'yote']"
 
@@ -55,42 +57,42 @@ def test_createPostfix_happy_path() -> None:
 def test_createPostfix_empty_input() -> None:
     postfix_input: anydict = {}
 
-    output = createPostfix(postfix_input)
+    output = create_postfix(postfix_input)
 
     assert output == ""
 
 
 def test_asksCompare() -> None:
     """asksCompare() returns a bool, so I'm asserting directly"""
-    assert asksCompare(-1, -1) is False
-    assert asksCompare(-1, 0)
-    assert asksCompare(-1, 1)
-    assert asksCompare(0, -1) is False
-    assert asksCompare(0, 0) is False
-    assert asksCompare(0, 1)
-    assert asksCompare(1, -1) is False
-    assert asksCompare(1, 0) is False
-    assert asksCompare(1, 1) is False
+    assert asks_compare(-1, -1) is False
+    assert asks_compare(-1, 0)
+    assert asks_compare(-1, 1)
+    assert asks_compare(0, -1) is False
+    assert asks_compare(0, 0) is False
+    assert asks_compare(0, 1)
+    assert asks_compare(1, -1) is False
+    assert asks_compare(1, 0) is False
+    assert asks_compare(1, 1) is False
 
 
 def test_bidsCompare() -> None:
     """asksCompare() returns a bool, so I'm asserting directly"""
-    assert bidsCompare(-1, -1) is False
-    assert bidsCompare(-1, 0) is False
-    assert bidsCompare(-1, 1) is False
-    assert bidsCompare(0, -1)
-    assert bidsCompare(0, 0) is False
-    assert bidsCompare(0, 1) is False
-    assert bidsCompare(1, -1)
-    assert bidsCompare(1, 0)
-    assert bidsCompare(1, 1) is False
+    assert bids_compare(-1, -1) is False
+    assert bids_compare(-1, 0) is False
+    assert bids_compare(-1, 1) is False
+    assert bids_compare(0, -1)
+    assert bids_compare(0, 0) is False
+    assert bids_compare(0, 1) is False
+    assert bids_compare(1, -1)
+    assert bids_compare(1, 0)
+    assert bids_compare(1, 1) is False
 
 
 class TestBitvavo:
     """this class functions as a grouping of tests, as the code is"""
 
     def test_remaining_limit(self, bitvavo: Bitvavo) -> None:
-        limit = bitvavo.getRemainingLimit()
+        limit = bitvavo.get_remaining_limit()
         assert 0 < limit <= 1000, "default remaining limit should be between 1000 and 0"
 
     def test_no_error(self, bitvavo: Bitvavo) -> None:
@@ -315,7 +317,7 @@ class TestBitvavo:
             assert float(bid[1]) >= 0, "oneth item should be a float"
 
     def test_public_trades(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.publicTrades(market="BTC-EUR", options={})
+        response = bitvavo.public_trades(market="BTC-EUR", options={})
 
         assert isinstance(response, list)
 
@@ -383,7 +385,7 @@ class TestBitvavo:
         """
         This is another one of those tests where the output is a bit of a mess.
         """
-        response = bitvavo.tickerPrice(options={})
+        response = bitvavo.ticker_price(options={})
 
         assert isinstance(response, list)
 
@@ -401,7 +403,7 @@ class TestBitvavo:
                 assert isinstance(ticker_price["price"], str)
 
     def test_ticker_price_single(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.tickerPrice(options={"market": "BTC-EUR"})
+        response = bitvavo.ticker_price(options={"market": "BTC-EUR"})
 
         assert isinstance(response, dict)
 
@@ -421,7 +423,7 @@ class TestBitvavo:
         """
         Don't worry too much about the *-BTC markets, as they are not used (and thus not visible on the website)
         """
-        response = bitvavo.tickerBook(options={})
+        response = bitvavo.ticker_book(options={})
 
         assert isinstance(response, list)
 
@@ -470,7 +472,7 @@ class TestBitvavo:
         """
         Don't worry too much about the *-BTC markets, as they are not used (and thus not visible on the website)
         """
-        response = bitvavo.tickerBook(options={"market": "BTC-EUR"})
+        response = bitvavo.ticker_book(options={"market": "BTC-EUR"})
 
         assert isinstance(response, dict)
 
@@ -638,7 +640,7 @@ class TestBitvavo:
 
     @pytest.mark.skipif(True, reason="I'm not touching methods where I can accidentally sell all my shit")
     def test_place_order_buy(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.placeOrder(
+        response = bitvavo.place_order(
             market="BTC-EUR",
             side="buy",
             orderType="limit",
@@ -649,7 +651,7 @@ class TestBitvavo:
 
     @pytest.mark.skipif(True, reason="I'm not touching methods where I can accidentally sell all my shit")
     def test_place_order_sell(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.placeOrder(
+        response = bitvavo.place_order(
             market="BTC-EUR",
             side="sell",
             orderType="stopLoss",
@@ -665,7 +667,7 @@ class TestBitvavo:
 
     @pytest.mark.skipif(True, reason="This test is very sensitive to the data on the account, so I'm skipping it")
     def test_get_order(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.getOrder(market="BTC-EUR", orderId="dd055772-0f02-493c-a049-f4356fa0d221")
+        response = bitvavo.get_order(market="BTC-EUR", orderId="dd055772-0f02-493c-a049-f4356fa0d221")
 
         assert isinstance(response, dict)  # errordict
 
@@ -678,7 +680,7 @@ class TestBitvavo:
 
     @pytest.mark.skipif(True, reason="This test is very sensitive to the data on the account, so I'm skipping it")
     def test_update_order(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.updateOrder(
+        response = bitvavo.update_order(
             market="BTC-EUR",
             orderId="dd055772-0f02-493c-a049-f4356fa0d221",
             body={"amount": "0.2"},
@@ -695,7 +697,7 @@ class TestBitvavo:
 
     @pytest.mark.skipif(True, reason="This test is very sensitive to the data on the account, so I'm skipping it")
     def test_cancel_order(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.cancelOrder(
+        response = bitvavo.cancel_order(
             market="BTC-EUR",
             orderId="dd055772-0f02-493c-a049-f4356fa0d221",
             operatorId=12345,
@@ -710,12 +712,12 @@ class TestBitvavo:
         )
 
     def test_get_orders(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.getOrders(market="BTC-EUR", options={})
+        response = bitvavo.get_orders(market="BTC-EUR", options={})
         assert response == []  # at least it's not an error or something
 
     @pytest.mark.skipif(True, reason="I'm not touching methods where I can accidentally cancel all my orders")
     def test_cancel_orders_all(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.cancelOrders(options={})
+        response = bitvavo.cancel_orders(options={})
 
         assert isinstance(response, dict)  # errordict
 
@@ -726,7 +728,7 @@ class TestBitvavo:
 
     @pytest.mark.skipif(True, reason="I'm not touching methods where I can accidentally cancel all my orders")
     def test_cancel_orders_one_market(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.cancelOrders(options={"market": "BTC-EUR"})
+        response = bitvavo.cancel_orders(options={"market": "BTC-EUR"})
 
         assert isinstance(response, dict)  # errordict
 
@@ -736,7 +738,7 @@ class TestBitvavo:
         assert response["error"] == "This key does not allowing showing account information."
 
     def test_orders_open_list_all(self, bitvavo: Bitvavo) -> None:  # noqa: PLR0915
-        response = bitvavo.ordersOpen(options={})
+        response = bitvavo.orders_open(options={})
 
         if isinstance(response, list):
             for item in response:
@@ -808,7 +810,7 @@ class TestBitvavo:
                 assert item["timeInForce"] in ["GTC"]
 
     def test_orders_open_list_single(self, bitvavo: Bitvavo) -> None:  # noqa: PLR0915
-        response = bitvavo.ordersOpen(options={"market": "DIA-EUR"})
+        response = bitvavo.orders_open(options={"market": "DIA-EUR"})
 
         if isinstance(response, list):
             for item in response:
@@ -1020,7 +1022,7 @@ class TestBitvavo:
         assert float(item["inOrder"]) >= 0
 
     def test_deposit_assets_coin(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.depositAssets("BTC")
+        response = bitvavo.deposit_assets("BTC")
 
         assert isinstance(response, dict)
 
@@ -1028,7 +1030,7 @@ class TestBitvavo:
         assert isinstance(response["address"], str)
 
     def test_deposit_assets_token(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.depositAssets("SHIB")
+        response = bitvavo.deposit_assets("SHIB")
 
         assert isinstance(response, dict)
 
@@ -1044,7 +1046,7 @@ class TestBitvavo:
         2024-11-11: This functionality seems to have changed completely?
         """
         # This should be Bitvavo's EUR address, not a personal one
-        response = bitvavo.depositAssets("EUR")
+        response = bitvavo.deposit_assets("EUR")
 
         assert isinstance(response, dict)
 
@@ -1067,7 +1069,7 @@ class TestBitvavo:
         # Keep `bitcoin_address` fake or non-existant, otherwise you're passing
         # money around when testing...
         bitcoin_address = "SomeBitcoinAddress"
-        response = bitvavo.withdrawAssets("BTC", "1", bitcoin_address, {})
+        response = bitvavo.withdraw_assets("BTC", "1", bitcoin_address, {})
 
         assert "errorCode" in response
         assert "error" in response
@@ -1076,7 +1078,7 @@ class TestBitvavo:
         assert response["error"] == "This key does not allowing withdrawal of funds."
 
     def test_deposit_history_all(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.depositHistory(options={})
+        response = bitvavo.deposit_history(options={})
 
         assert isinstance(response, list)
 
@@ -1110,7 +1112,7 @@ class TestBitvavo:
         # if this test fails, make sure you have EUR in your deposit history.
         # Debug the _all variant, with a breakpoint or `raise
         # ValueError(response)`, to see what you do have EUR (if any).
-        response = bitvavo.depositHistory(options={"symbol": "EUR"})
+        response = bitvavo.deposit_history(options={"symbol": "EUR"})
 
         assert isinstance(response, list)
 
@@ -1142,7 +1144,7 @@ class TestBitvavo:
             assert float(item["fee"]) >= 0
 
     def test_withdrawal_history_all(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.withdrawalHistory(options={})
+        response = bitvavo.withdrawal_history(options={})
         assert isinstance(response, list)
         for item in response:
             if len(item) >= 6:
@@ -1182,7 +1184,7 @@ class TestBitvavo:
             ]  # from docs.bitvavo.com (hidden under "200 successful operation")
 
     def test_withdrawal_history_single(self, bitvavo: Bitvavo) -> None:
-        response = bitvavo.withdrawalHistory(options={"symbol": "SHIB"})
+        response = bitvavo.withdrawal_history(options={"symbol": "SHIB"})
         assert isinstance(response, list)
         for item in response:
             assert "timestamp" in item
@@ -1212,7 +1214,7 @@ class TestBitvavo:
 
     def test_account_history(self, bitvavo: Bitvavo) -> None:
         """Test the new accountHistory method for MiCA compliance."""
-        response = bitvavo.accountHistory(options={})
+        response = bitvavo.account_history(options={})
 
         # Should return a list or an error dict
         assert isinstance(response, (list, dict))
@@ -1232,7 +1234,7 @@ class TestBitvavo:
     def test_report_trades(self, bitvavo: Bitvavo) -> None:
         """Test the new reportTrades method for MiCA compliance."""
         # Using a date range that shouldn't have any trades
-        response = bitvavo.reportTrades(
+        response = bitvavo.report_trades(
             market="BTC-EUR",
             options={
                 "startDate": "2020-01-01T00:00:00.000Z",
@@ -1256,7 +1258,7 @@ class TestBitvavo:
     def test_report_book(self, bitvavo: Bitvavo) -> None:
         """Test the new reportBook method for MiCA compliance."""
         # Using a date range that shouldn't have any book changes
-        response = bitvavo.reportBook(
+        response = bitvavo.report_book(
             market="BTC-EUR",
             options={
                 "startDate": "2020-01-01T00:00:00.000Z",
@@ -1417,7 +1419,7 @@ class TestWebSocketAppFacadeInit:
             assert len(facade.localBook) == 0
 
     def test_set_error_callback(self, websocket: Bitvavo.WebSocketAppFacade) -> None:
-        websocket.setErrorCallback(error_callback_example)
+        websocket.set_error_callback(error_callback_example)
 
         assert "error" in websocket.callbacks
         assert websocket.callbacks["error"] == error_callback_example
@@ -1527,7 +1529,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.tickerPrice(options={}, callback=generic_callback)
+        websocket.ticker_price(options={}, callback=generic_callback)
         self.wait()
 
         assert caplog.text == ""
@@ -1541,7 +1543,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.tickerBook(options={}, callback=generic_callback)
+        websocket.ticker_book(options={}, callback=generic_callback)
         self.wait()
 
         assert caplog.text == ""
@@ -1556,7 +1558,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.placeOrder(
+        websocket.place_order(
             market="BTC-EUR",
             side="buy",
             orderType="limit",
@@ -1575,7 +1577,7 @@ class TestWebSocketAppFacadeInit:
         """
         TODO: check if it's the orderId or something else
         """
-        websocket.getOrder(
+        websocket.get_order(
             market="BTC-EUR",
             orderId="6d0dffa7-07fe-448e-9928-233821e7cdb5",
             callback=generic_callback,
@@ -1598,7 +1600,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.updateOrder(
+        websocket.update_order(
             market="BTC-EUR",
             orderId="6d0dffa7-07fe-448e-9928-233821e7cdb5",
             body={"amount": "1.1"},
@@ -1613,7 +1615,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.cancelOrder(
+        websocket.cancel_order(
             market="BTC-EUR",
             orderId="6d0dffa7-07fe-448e-9928-233821e7cdb5",
             operatorId=12345,
@@ -1626,7 +1628,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.getOrders(market="BTC-EUR", options={}, callback=generic_callback)
+        websocket.get_orders(market="BTC-EUR", options={}, callback=generic_callback)
         self.wait()
 
         assert caplog.text == ""
@@ -1641,7 +1643,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.cancelOrders(options={"market": "BTC-EUR"}, callback=generic_callback)
+        websocket.cancel_orders(options={"market": "BTC-EUR"}, callback=generic_callback)
 
     def test_orders_open(
         self,
@@ -1649,7 +1651,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.ordersOpen(options={}, callback=generic_callback)
+        websocket.orders_open(options={}, callback=generic_callback)
         self.wait()
 
         assert caplog.text == ""
@@ -1706,7 +1708,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.depositAssets("BTC", callback=generic_callback)
+        websocket.deposit_assets("BTC", callback=generic_callback)
 
     @pytest.mark.skipif(True, reason="I'm not touching methods where I can accidentally sell all my shit")
     def test_withdraw_assets(
@@ -1715,7 +1717,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.withdrawAssets(
+        websocket.withdraw_assets(
             symbol="BTC",
             amount="1",
             address="BitcoinAddress",
@@ -1729,7 +1731,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.depositHistory(options={}, callback=generic_callback)
+        websocket.deposit_history(options={}, callback=generic_callback)
         self.wait()
 
         assert caplog.text == ""
@@ -1743,7 +1745,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.withdrawalHistory(options={}, callback=generic_callback)
+        websocket.withdrawal_history(options={}, callback=generic_callback)
         self.wait()
 
         assert caplog.text == ""
@@ -1758,7 +1760,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.subscriptionTicker(market="BTC-EUR", callback=generic_callback)
+        websocket.subscription_ticker(market="BTC-EUR", callback=generic_callback)
         self.wait()
         self.wait()
         self.wait()
@@ -1775,7 +1777,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.subscriptionTicker24h(market="BTC-EUR", callback=generic_callback)
+        websocket.subscription_ticker24h(market="BTC-EUR", callback=generic_callback)
         self.wait()
         self.wait()
         self.wait()
@@ -1792,7 +1794,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.subscriptionAccount(market="BTC-EUR", callback=generic_callback)
+        websocket.subscription_account(market="BTC-EUR", callback=generic_callback)
         self.wait()
         self.wait()
         self.wait()
@@ -1809,7 +1811,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.subscriptionCandles(market="BTC-EUR", interval="1h", callback=generic_callback)
+        websocket.subscription_candles(market="BTC-EUR", interval="1h", callback=generic_callback)
         self.wait()
         self.wait()
         self.wait()
@@ -1829,7 +1831,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.subscriptionTrades(market="BTC-EUR", callback=generic_callback)
+        websocket.subscription_trades(market="BTC-EUR", callback=generic_callback)
         self.wait()
         self.wait()
         self.wait()
@@ -1846,7 +1848,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.subscriptionBookUpdate(market="BTC-EUR", callback=generic_callback)
+        websocket.subscription_book_update(market="BTC-EUR", callback=generic_callback)
         self.wait()
         self.wait()
         self.wait()
@@ -1863,7 +1865,7 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        websocket.subscriptionBook(market="BTC-EUR", callback=generic_callback)
+        websocket.subscription_book(market="BTC-EUR", callback=generic_callback)
         self.wait()
         self.wait()
         self.wait()

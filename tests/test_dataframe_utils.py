@@ -25,7 +25,7 @@ try:
 except ImportError:
     pd = None
 
-from bitvavo_api_upgraded.bitvavo import asksCompare, bidsCompare, processLocalBook, sortAndInsert
+from bitvavo_api_upgraded.bitvavo import asks_compare, bids_compare, process_local_book, sort_and_insert
 from bitvavo_api_upgraded.dataframe_utils import (
     _create_special_dataframe,
     convert_candles_to_dataframe,
@@ -234,7 +234,7 @@ class TestSortAndInsert:
 
         # Insert a new ask at price 101 (should go between 100 and 102)
         update = [["101", "1.5"]]
-        result = sortAndInsert(asks, update, asksCompare)
+        result = sort_and_insert(asks, update, asks_compare)
 
         expected = [["100", "1.0"], ["101", "1.5"], ["102", "2.0"], ["105", "3.0"]]
         assert result == expected
@@ -246,7 +246,7 @@ class TestSortAndInsert:
 
         # Insert a new bid at price 103 (should go between 105 and 102)
         update = [["103", "1.5"]]
-        result = sortAndInsert(bids, update, bidsCompare)
+        result = sort_and_insert(bids, update, bids_compare)
 
         expected = [["105", "3.0"], ["103", "1.5"], ["102", "2.0"], ["100", "1.0"]]
         assert result == expected
@@ -257,7 +257,7 @@ class TestSortAndInsert:
 
         # Update existing price 102 with new volume
         update = [["102", "5.0"]]
-        result = sortAndInsert(asks, update, asksCompare)
+        result = sort_and_insert(asks, update, asks_compare)
 
         expected = [["100", "1.0"], ["102", "5.0"], ["105", "3.0"]]
         assert result == expected
@@ -268,7 +268,7 @@ class TestSortAndInsert:
 
         # Remove price level 102 (volume = 0)
         update = [["102", "0"]]
-        result = sortAndInsert(asks, update, asksCompare)
+        result = sort_and_insert(asks, update, asks_compare)
 
         expected = [["100", "1.0"], ["105", "3.0"]]
         assert result == expected
@@ -279,7 +279,7 @@ class TestSortAndInsert:
 
         # Add price higher than all existing (should append to end)
         update = [["110", "1.0"]]
-        result = sortAndInsert(asks, update, asksCompare)
+        result = sort_and_insert(asks, update, asks_compare)
 
         expected = [["100", "1.0"], ["102", "2.0"], ["105", "3.0"], ["110", "1.0"]]
         assert result == expected
@@ -290,7 +290,7 @@ class TestSortAndInsert:
 
         # Multiple updates: insert 101, 103, update 105
         update = [["101", "1.5"], ["103", "2.5"], ["105", "4.0"]]
-        result = sortAndInsert(asks, update, asksCompare)
+        result = sort_and_insert(asks, update, asks_compare)
 
         expected = [["100", "1.0"], ["101", "1.5"], ["103", "2.5"], ["105", "4.0"]]
         assert result == expected
@@ -300,7 +300,7 @@ class TestSortAndInsert:
         asks = []
 
         update = [["100", "1.0"], ["102", "2.0"]]
-        result = sortAndInsert(asks, update, asksCompare)
+        result = sort_and_insert(asks, update, asks_compare)
 
         expected = [["100", "1.0"], ["102", "2.0"]]
         assert result == expected
@@ -428,7 +428,7 @@ class TestProcessLocalBook:
         }
 
         # Call the function
-        processLocalBook(ws, message)
+        process_local_book(ws, message)
 
         # Verify local book was updated
         assert ws.localBook["BTC-EUR"]["bids"] == [["50000", "1.0"], ["49999", "2.0"]]
@@ -468,7 +468,7 @@ class TestProcessLocalBook:
         }
 
         # Call the function
-        processLocalBook(ws, message)
+        process_local_book(ws, message)
 
         # Verify nonce was updated
         assert ws.localBook["BTC-EUR"]["nonce"] == 12346
@@ -503,10 +503,10 @@ class TestProcessLocalBook:
         }
 
         # Call the function
-        processLocalBook(ws, message)
+        process_local_book(ws, message)
 
-        # Verify subscriptionBook was called for resubscription
-        ws.subscriptionBook.assert_called_once_with("BTC-EUR", ws.callbacks["BTC-EUR"])
+        # Verify subscription_book was called for resubscription
+        ws.subscription_book.assert_called_once_with("BTC-EUR", ws.callbacks["BTC-EUR"])
 
         # Verify callback was NOT called since we returned early
         mock_callback.assert_not_called()
@@ -527,7 +527,7 @@ class TestProcessLocalBook:
         message = {"someOtherField": "value"}
 
         # Call the function
-        processLocalBook(ws, message)
+        process_local_book(ws, message)
 
         # Verify callback was not called (no market was set)
         mock_callback.assert_not_called()
@@ -559,7 +559,7 @@ class TestProcessLocalBook:
         }
 
         # Call the function
-        processLocalBook(ws, message)
+        process_local_book(ws, message)
 
         # Verify local book was updated for correct market
         assert ws.localBook["ETH-EUR"]["bids"] == [["3000", "5.0"], ["2999", "10.0"]]
@@ -588,7 +588,7 @@ class TestProcessLocalBook:
         message = {"event": "book", "market": "BTC-EUR", "nonce": 12346, "bids": [], "asks": []}
 
         # Call the function
-        processLocalBook(ws, message)
+        process_local_book(ws, message)
 
         # Verify nonce was updated
         assert ws.localBook["BTC-EUR"]["nonce"] == 12346

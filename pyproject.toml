@@ -37,6 +37,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "deprecated>=1.2.18",            # for deprecating functions
     "pydantic-settings==2.*, >=2.6", # to handle settings
     "requests==2.*, >=2.26",         # to make http requests
     "structlog==25.*, >=21.5",       # for logging

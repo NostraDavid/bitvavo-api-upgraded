@@ -20,14 +20,14 @@ def bitvavo() -> Bitvavo:
 
 @pytest.fixture(scope="session")
 def websocket(bitvavo: Bitvavo) -> Bitvavo.WebSocketAppFacade:
-    def errorCallback(error: Any) -> None:
+    def error_callback(error: Any) -> None:
         msg = f"Error callback: {error}"
         logger.error(msg)
 
     bitvavo = Bitvavo(bitvavo_settings.model_dump())
 
-    websocket: Bitvavo.WebSocketAppFacade = bitvavo.newWebsocket()
-    websocket.setErrorCallback(errorCallback)
+    websocket: Bitvavo.WebSocketAppFacade = bitvavo.new_websocket()
+    websocket.set_error_callback(error_callback)
     return websocket
 
 
@@ -46,7 +46,7 @@ def wrap_public_request(monkeypatch: pytest.MonkeyPatch, bitvavo: Bitvavo) -> No
     market_exceptions = [
         "BABYDOGE-EUR",  # left as example
     ]
-    original_public_request = bitvavo.publicRequest
+    original_public_request = bitvavo.public_request
 
     def wrapped_public_request(*args: Any, **kwargs: Any) -> Any:
         # Call the original method

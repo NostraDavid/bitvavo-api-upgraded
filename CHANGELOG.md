@@ -1,5 +1,13 @@
 # Changelog
 
+## $UNRELEASED
+
+Alright, pay attention - we're deprecating ALL camelCase functions and methods in favour of snake_case.
+
+That means you can use this version to fix your code. Every camelCase function and method will throw a warning, with the new name in snake_case suggested, but the code will still work just fine.
+
+We're removing the camelCase functions in the next major release.
+
 ## v2.2.0 - 2025-08-20
 
 **NEW FEATURE**: Multi-key support and keyless API access! 🔑

@@ -423,27 +423,110 @@ class Bitvavo:
         )
         time.sleep(napTime + 1)  # +1 to add a tiny bit of buffer time
 
-    def calc_lag(self) -> ms:
+    def calc_lag(self, samples: int = 5, timeout_seconds: float = 5.0) -> ms:
         """
-        Calculate the time difference between the client and server; use this value with BITVAVO_API_UPGRADED_LAG,
-        when you make an api call, to precent 304 errors.
+        Calculate the time difference between the client and server using statistical analysis.
 
-        Raises KeyError if time() returns an error dict.
+        Uses multiple samples with outlier detection to get a more accurate lag measurement.
+
+        Args:
+            samples: Number of time samples to collect (default: 5)
+            timeout_seconds: Maximum time to spend collecting samples (default: 5.0)
+
+        Returns:
+            Average lag in milliseconds
+
+        Raises:
+            ValueError: If unable to collect sufficient valid samples
+            RuntimeError: If all API calls fail
         """
-        lag_list = [
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-            self.time()["time"] - time_ms(),
-        ]
+        ARBITRARY = 3
+        if samples < ARBITRARY:
+            msg = f"Need at least {ARBITRARY} samples for statistical analysis"
+            raise ValueError(msg)
 
-        return ms(sum(lag_list) / len(lag_list))
+        def measure_single_lag() -> ms | None:
+            """Measure lag for a single request with error handling."""
+            try:
+                client_time_before = time_ms()
+                server_response = self.time()
+                client_time_after = time_ms()
+
+                match server_response:
+                    case Success(data):
+                        if isinstance(data, dict) and "time" in data:
+                            # Use midpoint of request duration for better accuracy
+                            client_time_avg = (client_time_before + client_time_after) // 2
+                            server_time = data["time"]
+                            if isinstance(server_time, int):
+                                return ms(server_time - client_time_avg)
+                        return None
+                    case Failure(_):
+                        return None
+                    case _:
+                        return None
+
+            except Exception:
+                return None
+
+        lag_measurements: list[ms] = []
+
+        # Collect samples concurrently for better performance
+        with ThreadPoolExecutor(max_workers=min(samples, 5)) as executor:
+            try:
+                # Submit all measurement tasks
+                future_to_sample = {executor.submit(measure_single_lag): i for i in range(samples)}
+
+                # Collect results with timeout
+                for future in as_completed(future_to_sample, timeout=timeout_seconds):
+                    lag = future.result()
+                    if lag is not None:
+                        lag_measurements.append(lag)
+
+            except TimeoutError:
+                if self.debugging:
+                    logger.warning(
+                        "lag-calculation-timeout", collected_samples=len(lag_measurements), requested_samples=samples
+                    )
+
+        if len(lag_measurements) < max(2, samples // 2):
+            msg = f"Insufficient valid samples: got {len(lag_measurements)}, need at least {max(2, samples // 2)}"
+            raise RuntimeError(msg)
+
+        # Remove outliers using interquartile range method
+        QUARTILES = 4
+        if len(lag_measurements) >= QUARTILES:
+            try:
+                q1 = statistics.quantiles(lag_measurements, n=QUARTILES)[0]
+                q3 = statistics.quantiles(lag_measurements, n=QUARTILES)[2]
+                iqr = q3 - q1
+                lower_bound = q1 - 1.5 * iqr
+                upper_bound = q3 + 1.5 * iqr
+
+                filtered_measurements = [lag for lag in lag_measurements if lower_bound <= lag <= upper_bound]
+
+                # Use filtered data if we still have enough samples
+                if len(filtered_measurements) >= 2:
+                    lag_measurements = filtered_measurements
+
+            except statistics.StatisticsError:
+                # Fall back to original measurements if filtering fails
+                pass
+
+        # Calculate final lag using median for robustness
+        final_lag = ms(statistics.median(lag_measurements))
+
+        if self.debugging:
+            logger.debug(
+                "lag-calculated",
+                samples_collected=len(lag_measurements),
+                lag_ms=final_lag,
+                min_lag=min(lag_measurements),
+                max_lag=max(lag_measurements),
+                std_dev=statistics.stdev(lag_measurements) if len(lag_measurements) > 1 else 0,
+            )
+
+        return final_lag
 
     def get_remaining_limit(self) -> int:
         """Get the remaining rate limit

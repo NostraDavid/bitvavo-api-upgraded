@@ -1,5 +1,12 @@
 # Changelog
 
+## $UNRELEASED
+
+### Removed
+
+- Python 3.9 support ends in 2 months. I'm doing it a little early, as I'm going to do a rewrite using the `returns`
+  lib, and I'll *need* the `match` statement, which was added by Python 3.10.
+
 ## v3.0.0 - 2025-08-22
 
 ### Removed
@@ -12,7 +19,8 @@
 
 Alright, pay attention - we're deprecating ALL camelCase functions and methods in favour of snake_case.
 
-That means you can use this version to fix your code. Every camelCase function and method will throw a warning, with the new name in snake_case suggested, but the code will still work just fine.
+That means you can use this version to fix your code. Every camelCase function and method will throw a warning, with the
+new name in snake_case suggested, but the code will still work just fine.
 
 We're removing the camelCase functions in the next major release.
 

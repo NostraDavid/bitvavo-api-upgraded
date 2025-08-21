@@ -9,7 +9,7 @@ name = "bitvavo-api-upgraded"
 version = "3.0.0"
 description = "A unit-tested fork of the Bitvavo API"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "ISC License" }
 authors = [
     { name = "Bitvavo BV (original code)" },

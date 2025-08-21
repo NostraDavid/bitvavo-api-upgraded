@@ -165,7 +165,9 @@ def convert_candles_to_dataframe(data: Any, output_format: str | OutputFormat) -
     # Convert list of lists to list of dicts first
     columns = ["timestamp", "open", "high", "low", "close", "volume"]
     dict_data = [
-        dict(zip(columns, candle)) for candle in data if isinstance(candle, list) and len(candle) >= len(columns)
+        dict(zip(columns, candle, strict=True))
+        for candle in data
+        if isinstance(candle, list) and len(candle) >= len(columns)
     ]
 
     if not dict_data:

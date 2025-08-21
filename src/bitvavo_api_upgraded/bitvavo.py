@@ -11,7 +11,6 @@ from threading import Thread
 from typing import Any, Callable
 
 import websocket as ws_lib
-from deprecated import deprecated
 from requests import delete, get, post, put
 from structlog.stdlib import get_logger
 from websocket import WebSocketApp  # missing stubs for WebSocketApp
@@ -26,22 +25,12 @@ configure_loggers()
 logger = get_logger(__name__)
 
 
-@deprecated(version="2.2.0", reason="Use create_signature instead")
-def createSignature(timestamp: ms, method: str, url: str, body: anydict | None, api_secret: str) -> str:
-    return create_signature(timestamp, method, url, body, api_secret)
-
-
 def create_signature(timestamp: ms, method: str, url: str, body: anydict | None, api_secret: str) -> str:
     string = f"{timestamp}{method}/v2{url}"
     if body is not None and len(body.keys()) > 0:
         string += json.dumps(body, separators=(",", ":"))
     signature = hmac.new(api_secret.encode("utf-8"), string.encode("utf-8"), hashlib.sha256).hexdigest()
     return signature
-
-
-@deprecated(version="2.2.0", reason="Use create_postfix instead")
-def createPostfix(options: anydict | None) -> str:
-    return create_postfix(options)
 
 
 def create_postfix(options: anydict | None) -> str:
@@ -78,31 +67,12 @@ def _epoch_millis(dt: dt.datetime) -> int:
     return int(dt.timestamp() * 1000)
 
 
-@deprecated(version="2.2.0", reason="Use asks_compare instead")
-def asksCompare(a: float, b: float) -> bool:
-    return asks_compare(a, b)
-
-
 def asks_compare(a: float, b: float) -> bool:
     return a < b
 
 
-@deprecated(version="2.2.0", reason="Use bids_compare instead")
-def bidsCompare(a: float, b: float) -> bool:
-    return bids_compare(a, b)
-
-
 def bids_compare(a: float, b: float) -> bool:
     return a > b
-
-
-@deprecated(version="2.2.0", reason="Use sort_and_insert instead")
-def sortAndInsert(
-    asks_or_bids: list[list[str]],
-    update: list[list[str]],
-    compareFunc: Callable[[float, float], bool],
-) -> list[list[str]] | errordict:
-    return sort_and_insert(asks_or_bids, update, compareFunc)
 
 
 def sort_and_insert(
@@ -129,11 +99,6 @@ def sort_and_insert(
         if not entrySet:
             asks_or_bids.append(updateEntry)
     return asks_or_bids
-
-
-@deprecated(version="2.2.0", reason="Use process_local_book instead")
-def processLocalBook(ws: Bitvavo.WebSocketAppFacade, message: anydict) -> None:
-    return process_local_book(ws, message)
 
 
 def process_local_book(ws: Bitvavo.WebSocketAppFacade, message: anydict) -> None:
@@ -458,10 +423,6 @@ class Bitvavo:
         )
         time.sleep(napTime + 1)  # +1 to add a tiny bit of buffer time
 
-    @deprecated(version="2.2.0", reason="Use calc_lag instead")
-    def calcLag(self) -> ms:
-        return self.calc_lag()
-
     def calc_lag(self) -> ms:
         """
         Calculate the time difference between the client and server; use this value with BITVAVO_API_UPGRADED_LAG,
@@ -484,10 +445,6 @@ class Bitvavo:
 
         return ms(sum(lag_list) / len(lag_list))
 
-    @deprecated(version="2.2.0", reason="Use get_remaining_limit instead")
-    def getRemainingLimit(self) -> int:
-        return self.get_remaining_limit()
-
     def get_remaining_limit(self) -> int:
         """Get the remaining rate limit
 
@@ -498,10 +455,6 @@ class Bitvavo:
         ```
         """
         return self.rateLimitRemaining
-
-    @deprecated(version="2.2.0", reason="Use get_remaining_limit instead")
-    def updateRateLimit(self, response: anydict | errordict) -> None:
-        return self.update_rate_limit(response)
 
     def update_rate_limit(self, response: anydict | errordict) -> None:
         """
@@ -534,14 +487,6 @@ class Bitvavo:
             )
             logger.info("napping-until-ban-lifted")
             time.sleep(timeToWait + 1)  # plus one second to ENSURE we're able to run again.
-
-    @deprecated(version="2.2.0", reason="Use public_request instead")
-    def publicRequest(
-        self,
-        url: str,
-        rateLimitingWeight: int = 1,
-    ) -> list[anydict] | list[list[str]] | intdict | strdict | anydict | errordict:
-        return self.public_request(url, rateLimitingWeight)
 
     def public_request(
         self,
@@ -617,17 +562,6 @@ class Bitvavo:
         self.update_rate_limit(r.json() if "error" in r.json() else dict(r.headers))
 
         return r.json()  # type:ignore[no-any-return]
-
-    @deprecated(version="2.2.0", reason="Use private_request instead")
-    def privateRequest(
-        self,
-        endpoint: str,
-        postfix: str,
-        body: anydict | None = None,
-        method: str = "GET",
-        rateLimitingWeight: int = 1,
-    ) -> list[anydict] | list[list[str]] | intdict | strdict | anydict | errordict:
-        return self.private_request(endpoint, postfix, body, method, rateLimitingWeight)
 
     def private_request(
         self,
@@ -956,15 +890,6 @@ class Bitvavo:
         postfix = create_postfix(options)
         return self.public_request(f"{self.base}/{market}/book{postfix}")  # type: ignore[return-value]
 
-    @deprecated(version="2.2.0", reason="Use public_trades instead")
-    def publicTrades(
-        self,
-        market: str,
-        options: strintdict | None = None,
-        output_format: OutputFormat = OutputFormat.DICT,
-    ) -> list[anydict] | errordict | Any:
-        return self.public_trades(market, options, output_format)
-
     def public_trades(
         self,
         market: str,
@@ -1132,14 +1057,6 @@ class Bitvavo:
         result = self.public_request(f"{self.base}/{market}/candles{postfix}")  # type: ignore[return-value]
         return convert_candles_to_dataframe(result, output_format)
 
-    @deprecated(version="2.2.0", reason="Use ticker_price instead")
-    def tickerPrice(
-        self,
-        options: strdict | None = None,
-        output_format: OutputFormat = OutputFormat.DICT,
-    ) -> list[strdict] | strdict | Any:
-        return self.ticker_price(options, output_format)
-
     def ticker_price(
         self,
         options: strdict | None = None,
@@ -1213,14 +1130,6 @@ class Bitvavo:
         postfix = create_postfix(options)
         result = self.public_request(f"{self.base}/ticker/price{postfix}")  # type: ignore[return-value]
         return convert_to_dataframe(result, output_format)
-
-    @deprecated(version="2.2.0", reason="Use ticker_book instead")
-    def tickerBook(
-        self,
-        options: strdict | None = None,
-        output_format: OutputFormat = OutputFormat.DICT,
-    ) -> list[strdict] | strdict | Any:
-        return self.ticker_book(options, output_format)
 
     def ticker_book(
         self,
@@ -1378,15 +1287,6 @@ class Bitvavo:
         result = self.public_request(f"{self.base}/ticker/24h{postfix}", rateLimitingWeight)  # type: ignore[return-value]
         return convert_to_dataframe(result, output_format)
 
-    @deprecated(version="2.2.0", reason="Use report_trades instead")
-    def reportTrades(
-        self,
-        market: str,
-        options: strintdict | None = None,
-        output_format: OutputFormat = OutputFormat.DICT,
-    ) -> list[anydict] | errordict | Any:
-        return self.report_trades(market, options, output_format)
-
     def report_trades(
         self,
         market: str,
@@ -1454,10 +1354,6 @@ class Bitvavo:
         result = self.public_request(f"{self.base}/report/{market}/trades{postfix}", 5)  # type: ignore[return-value]
         return convert_to_dataframe(result, output_format)
 
-    @deprecated(version="2.2.0", reason="Use report_book instead")
-    def reportBook(self, market: str, options: intdict | None = None) -> dict[str, str | int | list[str]] | errordict:
-        return self.report_book(market, options)
-
     def report_book(self, market: str, options: intdict | None = None) -> dict[str, str | int | list[str]] | errordict:
         """Get MiCA-compliant order book report for a specific market
 
@@ -1497,10 +1393,6 @@ class Bitvavo:
         """
         postfix = create_postfix(options)
         return self.public_request(f"{self.base}/report/{market}/book{postfix}")  # type: ignore[return-value]
-
-    @deprecated(version="2.2.0", reason="Use place_order instead")
-    def placeOrder(self, market: str, side: str, orderType: str, operatorId: int, body: anydict) -> anydict:
-        return self.place_order(market, side, orderType, operatorId, body)
 
     def place_order(self, market: str, side: str, orderType: str, operatorId: int, body: anydict) -> anydict:
         """Place a new order on the exchange
@@ -1633,10 +1525,6 @@ class Bitvavo:
         body["operatorId"] = operatorId
         return self.private_request("/order", "", body, "POST")  # type: ignore[return-value]
 
-    @deprecated(version="2.2.0", reason="Use update_order instead")
-    def updateOrder(self, market: str, orderId: str, operatorId: int, body: anydict) -> anydict:
-        return self.update_order(market, orderId, operatorId, body)
-
     def update_order(self, market: str, orderId: str, operatorId: int, body: anydict) -> anydict:
         """Update an existing order for a specific market. Make sure that at least one of the optional parameters is set, otherwise nothing will be updated.
 
@@ -1723,16 +1611,6 @@ class Bitvavo:
         body["operatorId"] = operatorId
         return self.private_request("/order", "", body, "PUT")  # type: ignore[return-value]
 
-    @deprecated(version="2.2.0", reason="Use cancel_order instead")
-    def cancelOrder(
-        self,
-        market: str,
-        operatorId: int,
-        orderId: str | None = None,
-        clientOrderId: str | None = None,
-    ) -> strdict:
-        return self.cancel_order(market, operatorId, orderId, clientOrderId)
-
     def cancel_order(
         self,
         market: str,
@@ -1781,10 +1659,6 @@ class Bitvavo:
 
         postfix = create_postfix(params)
         return self.private_request("/order", postfix, {}, "DELETE")  # type: ignore[return-value]
-
-    @deprecated(version="2.2.0", reason="Use get_order instead")
-    def getOrder(self, market: str, orderId: str) -> list[anydict] | errordict:
-        return self.get_order(market, orderId)
 
     def get_order(self, market: str, orderId: str) -> list[anydict] | errordict:
         """Get an existing order for a specific market
@@ -1850,10 +1724,6 @@ class Bitvavo:
         """
         postfix = create_postfix({"market": market, "orderId": orderId})
         return self.private_request("/order", postfix, {}, "GET")  # type: ignore[return-value]
-
-    @deprecated(version="2.2.0", reason="Use get_orders instead")
-    def getOrders(self, market: str, options: anydict | None = None) -> list[anydict] | errordict:
-        return self.get_orders(market, options)
 
     def get_orders(self, market: str, options: anydict | None = None) -> list[anydict] | errordict:
         """Get multiple existing orders for a specific market
@@ -1931,10 +1801,6 @@ class Bitvavo:
         postfix = create_postfix(options)
         return self.private_request("/orders", postfix, {}, "GET", 5)  # type: ignore[return-value]
 
-    @deprecated(version="2.2.0", reason="Use cancel_orders instead")
-    def cancelOrders(self, options: anydict | None = None) -> list[strdict] | errordict:
-        return self.cancel_orders(options)
-
     def cancel_orders(self, options: anydict | None = None) -> list[strdict] | errordict:
         """Cancel all existing orders for a specific market (or account)
 
@@ -1962,10 +1828,6 @@ class Bitvavo:
         """
         postfix = create_postfix(options)
         return self.private_request("/orders", postfix, {}, "DELETE")  # type: ignore[return-value]
-
-    @deprecated(version="2.2.0", reason="Use orders_open instead")
-    def ordersOpen(self, options: anydict | None = None) -> list[anydict] | errordict:
-        return self.orders_open(options)
 
     def orders_open(self, options: anydict | None = None) -> list[anydict] | errordict:
         """Get all open orders, either for all markets, or a single market
@@ -2223,10 +2085,6 @@ class Bitvavo:
         result = self.private_request("/balance", postfix, {}, "GET", 5)  # type: ignore[return-value]
         return convert_to_dataframe(result, output_format)
 
-    @deprecated(version="2.2.0", reason="Use account_history instead")
-    def accountHistory(self, options: strintdict | None = None) -> anydict | errordict:
-        return self.account_history(options)
-
     def account_history(self, options: strintdict | None = None) -> anydict | errordict:
         """Get all past transactions for your account
 
@@ -2274,10 +2132,6 @@ class Bitvavo:
         postfix = create_postfix(options)
         return self.private_request("/account/history", postfix, {}, "GET")  # type: ignore[return-value]
 
-    @deprecated(version="2.2.0", reason="Use deposit_assets instead")
-    def depositAssets(self, symbol: str) -> strdict:
-        return self.deposit_assets(symbol)
-
     def deposit_assets(self, symbol: str) -> strdict:
         """Get the deposit address (with paymentId for some assets) or bank account information to increase your balance
 
@@ -2312,10 +2166,6 @@ class Bitvavo:
         """
         postfix = create_postfix({"symbol": symbol})
         return self.private_request("/deposit", postfix, {}, "GET")  # type: ignore[return-value]
-
-    @deprecated(version="2.2.0", reason="Use deposit_history instead")
-    def depositHistory(self, options: anydict | None = None) -> list[anydict] | errordict:
-        return self.deposit_history(options)
 
     def deposit_history(self, options: anydict | None = None) -> list[anydict] | errordict:
         """Get the deposit history of the account
@@ -2368,10 +2218,6 @@ class Bitvavo:
         postfix = create_postfix(options)
         return self.private_request("/depositHistory", postfix, {}, "GET", 5)  # type: ignore[return-value]
 
-    @deprecated(version="2.2.0", reason="Use withdraw_assets instead")
-    def withdrawAssets(self, symbol: str, amount: str, address: str, body: anydict) -> anydict:
-        return self.withdraw_assets(symbol, amount, address, body)
-
     def withdraw_assets(self, symbol: str, amount: str, address: str, body: anydict) -> anydict:
         """Withdraw a coin/token to an external crypto address or bank account.
 
@@ -2408,14 +2254,6 @@ class Bitvavo:
         body["amount"] = amount
         body["address"] = address
         return self.private_request("/withdrawal", "", body, "POST")  # type: ignore[return-value]
-
-    @deprecated(version="2.2.0", reason="Use withdrawal_history instead")
-    def withdrawalHistory(
-        self,
-        options: anydict | None = None,
-        output_format: OutputFormat = OutputFormat.DICT,
-    ) -> list[anydict] | errordict | Any:
-        return self.withdrawal_history(options, output_format)
 
     def withdrawal_history(
         self,
@@ -2590,10 +2428,6 @@ class Bitvavo:
             "rate_limit_reset_at": int(self.rateLimitResetAt),
         }
 
-    @deprecated(version="2.2.0", reason="Use new_websocket instead")
-    def newWebsocket(self) -> Bitvavo.WebSocketAppFacade:
-        return self.new_websocket()
-
     def new_websocket(self) -> Bitvavo.WebSocketAppFacade:
         return Bitvavo.WebSocketAppFacade(self.APIKEY, self.APISECRET, self.ACCESSWINDOW, self.wsUrl, self)
 
@@ -2643,28 +2477,16 @@ class Bitvavo:
             self.keepBookCopy = False
             self.localBook: anydict = {}
 
-        @deprecated(version="2.2.0", reason="Use close_socket instead")
-        def closeSocket(self) -> None:
-            return self.close_socket()
-
         def close_socket(self) -> None:
             self.ws.close()
             self.keepAlive = False
             self.receiveThread.join()
-
-        @deprecated(version="2.2.0", reason="Use wait_for_socket instead")
-        def waitForSocket(self, ws: WebSocketApp, message: str, private: bool) -> None:  # noqa: FBT001
-            return self.wait_for_socket(ws, message, private)
 
         def wait_for_socket(self, ws: WebSocketApp, message: str, private: bool) -> None:  # noqa: ARG002, FBT001
             while self.keepAlive:
                 if (not private and self.open) or (private and self.authenticated and self.open):
                     return
                 time.sleep(0.1)
-
-        @deprecated(version="2.2.0", reason="Use do_send instead")
-        def doSend(self, ws: WebSocketApp, message: str, private: bool = False) -> None:  # noqa: FBT001, FBT002
-            return self.do_send(ws, message, private)
 
         def do_send(self, ws: WebSocketApp, message: str, private: bool = False) -> None:  # noqa: FBT001, FBT002
             # TODO(NostraDavid): add nap-time to the websocket, or do it here; I don't know yet.
@@ -2787,10 +2609,6 @@ class Bitvavo:
             if self.bitvavo.debugging:
                 logger.debug("websocket-closed")
 
-        @deprecated(version="2.2.0", reason="Use check_reconnect instead")
-        def checkReconnect(self) -> None:
-            return self.check_reconnect()
-
         def check_reconnect(self) -> None:  # noqa: C901, PLR0912 (too-complex)
             if "subscriptionTicker" in self.callbacks:
                 for market in self.callbacks["subscriptionTicker"]:
@@ -2841,10 +2659,6 @@ class Bitvavo:
                     logger.debug("reconnecting")
                 thread = Thread(target=self.check_reconnect)
                 thread.start()
-
-        @deprecated(version="2.2.0", reason="Use set_error_callback instead")
-        def setErrorCallback(self, callback: Callable[[Any], None]) -> None:
-            return self.set_error_callback(callback)
 
         def set_error_callback(self, callback: Callable[[Any], None]) -> None:
             self.callbacks["error"] = callback
@@ -3139,10 +2953,6 @@ class Bitvavo:
             options["action"] = "getCandles"
             self.do_send(self.ws, json.dumps(options))
 
-        @deprecated(version="2.2.0", reason="Use ticker_price instead")
-        def tickerPrice(self, options: anydict, callback: Callable[[Any], None]) -> None:
-            return self.ticker_price(options, callback)
-
         def ticker_price(self, options: anydict, callback: Callable[[Any], None]) -> None:
             """Get the current price for each market
 
@@ -3192,10 +3002,6 @@ class Bitvavo:
             self.callbacks["tickerPrice"] = callback
             options["action"] = "getTickerPrice"
             self.do_send(self.ws, json.dumps(options))
-
-        @deprecated(version="2.2.0", reason="Use ticker_book instead")
-        def tickerBook(self, options: anydict, callback: Callable[[Any], None]) -> None:
-            return self.ticker_book(options, callback)
 
         def ticker_book(self, options: anydict, callback: Callable[[Any], None]) -> None:
             """Get current bid/ask, bidsize/asksize per market
@@ -3306,18 +3112,6 @@ class Bitvavo:
             self.callbacks["ticker24h"] = callback
             options["action"] = "getTicker24h"
             self.do_send(self.ws, json.dumps(options))
-
-        @deprecated(version="2.2.0", reason="Use place_order instead")
-        def placeOrder(
-            self,
-            market: str,
-            side: str,
-            orderType: str,
-            operatorId: int,
-            body: anydict,
-            callback: Callable[[Any], None],
-        ) -> None:
-            return self.place_order(market, side, orderType, operatorId, body, callback)
 
         def place_order(
             self,
@@ -3461,17 +3255,6 @@ class Bitvavo:
             body["action"] = "privateCreateOrder"
             self.do_send(self.ws, json.dumps(body), True)
 
-        @deprecated(version="2.2.0", reason="Use update_order instead")
-        def updateOrder(
-            self,
-            market: str,
-            orderId: str,
-            operatorId: int,
-            body: anydict,
-            callback: Callable[[Any], None],
-        ) -> None:
-            return self.update_order(market, orderId, operatorId, body, callback)
-
         def update_order(
             self,
             market: str,
@@ -3570,17 +3353,6 @@ class Bitvavo:
             body["action"] = "privateUpdateOrder"
             self.do_send(self.ws, json.dumps(body), True)
 
-        @deprecated(version="2.2.0", reason="Use cancel_order instead")
-        def cancelOrder(
-            self,
-            market: str,
-            operatorId: int,
-            callback: Callable[[Any], None],
-            orderId: str | None = None,
-            clientOrderId: str | None = None,
-        ) -> None:
-            return self.cancel_order(market, operatorId, callback, orderId, clientOrderId)
-
         def cancel_order(
             self,
             market: str,
@@ -3632,10 +3404,6 @@ class Bitvavo:
                 options["orderId"] = orderId
 
             self.do_send(self.ws, json.dumps(options), True)
-
-        @deprecated(version="2.2.0", reason="Use get_order instead")
-        def getOrder(self, market: str, orderId: str, callback: Callable[[Any], None]) -> None:
-            return self.get_order(market, orderId, callback)
 
         def get_order(self, market: str, orderId: str, callback: Callable[[Any], None]) -> None:
             """Get an existing order for a specific market
@@ -3707,10 +3475,6 @@ class Bitvavo:
                 "orderId": orderId,
             }
             self.do_send(self.ws, json.dumps(options), True)
-
-        @deprecated(version="2.2.0", reason="Use get_orders instead")
-        def getOrders(self, market: str, options: anydict, callback: Callable[[Any], None]) -> None:
-            return self.get_orders(market, options, callback)
 
         def get_orders(self, market: str, options: anydict, callback: Callable[[Any], None]) -> None:
             """Get multiple existing orders for a specific market
@@ -3792,10 +3556,6 @@ class Bitvavo:
             options["market"] = market
             self.do_send(self.ws, json.dumps(options), True)
 
-        @deprecated(version="2.2.0", reason="Use cancel_orders instead")
-        def cancelOrders(self, options: anydict, callback: Callable[[Any], None]) -> None:
-            return self.cancel_orders(options, callback)
-
         def cancel_orders(self, options: anydict, callback: Callable[[Any], None]) -> None:
             """Cancel all existing orders for a specific market (or account)
 
@@ -3825,10 +3585,6 @@ class Bitvavo:
             self.callbacks["cancelOrders"] = callback
             options["action"] = "privateCancelOrders"
             self.do_send(self.ws, json.dumps(options), True)
-
-        @deprecated(version="2.2.0", reason="Use orders_open instead")
-        def ordersOpen(self, options: anydict, callback: Callable[[Any], None]) -> None:
-            return self.orders_open(options, callback)
 
         def orders_open(self, options: anydict, callback: Callable[[Any], None]) -> None:
             """Get all open orders, either for all markets, or a single market
@@ -4012,10 +3768,6 @@ class Bitvavo:
             self.callbacks["balance"] = callback
             self.do_send(self.ws, json.dumps(options), True)
 
-        @deprecated(version="2.2.0", reason="Use deposit_assets instead")
-        def depositAssets(self, symbol: str, callback: Callable[[Any], None]) -> None:
-            return self.deposit_assets(symbol, callback)
-
         def deposit_assets(self, symbol: str, callback: Callable[[Any], None]) -> None:
             """
             Get the deposit address (with paymentId for some assets) or bank account information to increase your
@@ -4057,10 +3809,6 @@ class Bitvavo:
                 json.dumps({"action": "privateDepositAssets", "symbol": symbol}),
                 True,
             )
-
-        @deprecated(version="2.2.0", reason="Use deposit_history instead")
-        def depositHistory(self, options: anydict, callback: Callable[[Any], None]) -> None:
-            return self.deposit_history(options, callback)
 
         def deposit_history(self, options: anydict, callback: Callable[[Any], None]) -> None:
             """Get the deposit history of the account
@@ -4116,17 +3864,6 @@ class Bitvavo:
             options["action"] = "privateGetDepositHistory"
             self.do_send(self.ws, json.dumps(options), True)
 
-        @deprecated(version="2.2.0", reason="Use withdraw_assets instead")
-        def withdrawAssets(
-            self,
-            symbol: str,
-            amount: str,
-            address: str,
-            body: anydict,
-            callback: Callable[[Any], None],
-        ) -> None:
-            return self.withdraw_assets(symbol, amount, address, body, callback)
-
         def withdraw_assets(
             self,
             symbol: str,
@@ -4180,10 +3917,6 @@ class Bitvavo:
             body["address"] = address
             self.do_send(self.ws, json.dumps(body), True)
 
-        @deprecated(version="2.2.0", reason="Use withdrawal_history instead")
-        def withdrawalHistory(self, options: anydict, callback: Callable[[Any], None]) -> None:
-            return self.withdrawal_history(options, callback)
-
         def withdrawal_history(self, options: anydict, callback: Callable[[Any], None]) -> None:
             """Get the withdrawal history
 
@@ -4226,10 +3959,6 @@ class Bitvavo:
             self.callbacks["withdrawalHistory"] = callback
             options["action"] = "privateGetWithdrawalHistory"
             self.do_send(self.ws, json.dumps(options), True)
-
-        @deprecated(version="2.2.0", reason="Use subscription_ticker instead")
-        def subscriptionTicker(self, market: str, callback: Callable[[Any], None]) -> None:
-            return self.subscription_ticker(market, callback)
 
         def subscription_ticker(self, market: str, callback: Callable[[Any], None]) -> None:
             # TODO(NostraDavid): one possible improvement here is to turn `market` into a list of markets, so we can sub
@@ -4282,10 +4011,6 @@ class Bitvavo:
                     },
                 ),
             )
-
-        @deprecated(version="2.2.0", reason="Use subscription_ticker24h instead")
-        def subscriptionTicker24h(self, market: str, callback: Callable[[Any], None]) -> None:
-            return self.subscription_ticker24h(market, callback)
 
         def subscription_ticker24h(self, market: str, callback: Callable[[Any], None]) -> None:
             """
@@ -4343,10 +4068,6 @@ class Bitvavo:
                     },
                 ),
             )
-
-        @deprecated(version="2.2.0", reason="Use subscription_account instead")
-        def subscriptionAccount(self, market: str, callback: Callable[[Any], None]) -> None:
-            return self.subscription_account(market, callback)
 
         def subscription_account(self, market: str, callback: Callable[[Any], None]) -> None:
             """
@@ -4426,10 +4147,6 @@ class Bitvavo:
                 True,
             )
 
-        @deprecated(version="2.2.0", reason="Use subscription_candles instead")
-        def subscriptionCandles(self, market: str, interval: str, callback: Callable[[Any], None]) -> None:
-            return self.subscription_candles(market, interval, callback)
-
         def subscription_candles(self, market: str, interval: str, callback: Callable[[Any], None]) -> None:
             """Subscribes to candles and returns a candle each time a new one is formed, depending on the interval
 
@@ -4494,10 +4211,6 @@ class Bitvavo:
                 ),
             )
 
-        @deprecated(version="2.2.0", reason="Use subscription_trades instead")
-        def subscriptionTrades(self, market: str, callback: Callable[[Any], None]) -> None:
-            return self.subscription_trades(market, callback)
-
         def subscription_trades(self, market: str, callback: Callable[[Any], None]) -> None:
             """Subscribes to trades, which sends an object whenever a trade has occurred.
 
@@ -4544,10 +4257,6 @@ class Bitvavo:
                     },
                 ),
             )
-
-        @deprecated(version="2.2.0", reason="Use subscription_book_update instead")
-        def subscriptionBookUpdate(self, market: str, callback: Callable[[Any], None]) -> None:
-            return self.subscription_book_update(market, callback)
 
         def subscription_book_update(self, market: str, callback: Callable[[Any], None]) -> None:
             """Subscribes to the book and returns a delta on every change to the book.
@@ -4615,10 +4324,6 @@ class Bitvavo:
                     },
                 ),
             )
-
-        @deprecated(version="2.2.0", reason="Use subscription_book instead")
-        def subscriptionBook(self, market: str, callback: Callable[[Any], None]) -> None:
-            return self.subscription_book(market, callback)
 
         def subscription_book(self, market: str, callback: Callable[[Any], None]) -> None:
             """Subscribes to the book and returns a delta on every change to the book.

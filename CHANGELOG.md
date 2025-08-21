@@ -1,6 +1,14 @@
 # Changelog
 
+## $UNRELEASED
+
+### Removed
+
+- all camelCase functions and methods are gone-gone. Use `v2.3.0` to fix your code.
+
 ## v2.3.0 - 2025-08-22
+
+### Changed
 
 Alright, pay attention - we're deprecating ALL camelCase functions and methods in favour of snake_case.
 

@@ -39,6 +39,7 @@ classifiers = [
 dependencies = [
     "pydantic-settings==2.*, >=2.6", # to handle settings
     "requests==2.*, >=2.26",         # to make http requests
+    "returns>=0.23.0",               # for functional programming
     "structlog==25.*, >=21.5",       # for logging
     "websocket-client==1.*, >=1.2",  # something something websocket
 ]

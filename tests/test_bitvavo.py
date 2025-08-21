@@ -360,6 +360,25 @@ class TestBitvavo:
             assert int(candle[4]) >= 0  # close
             assert float(candle[5]) >= 0  # volume
 
+    @pytest.mark.skipif(True, reason="This test is not working as expected, needs to be fixed")
+    def test_candle_with_options(self) -> None:
+        """
+        https://api.bitvavo.com/v2/AAVE-EUR/candles?interval=1m&limit=1440&start=1755759103631&end=1755759112502
+        """
+        bitvavo_settings.PREFER_KEYLESS = False
+        bitvavo = Bitvavo(bitvavo_settings.model_dump())
+        response = bitvavo.candles(
+            market="AAVE-EUR",
+            interval="1m",
+            start=dt.datetime(2025, 8, 21, 6, 51, 43, 631544, tzinfo=dt.timezone.utc),
+            end=dt.datetime(2025, 8, 21, 6, 51, 52, 502166, tzinfo=dt.timezone.utc),
+            limit=1440,  # Max per request
+        )
+        if "errorCode" in response:
+            assert response["errorCode"] == 203
+            assert response["error"] == "symbol parameter is required."
+            return
+
     def test_ticker_price_all(self, bitvavo: Bitvavo) -> None:
         """
         This is another one of those tests where the output is a bit of a mess.

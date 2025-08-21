@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v2.3.0 - 2025-08-22
 
 Alright, pay attention - we're deprecating ALL camelCase functions and methods in favour of snake_case.
 

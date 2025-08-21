@@ -62,4 +62,4 @@ def wrap_public_request(monkeypatch: pytest.MonkeyPatch, bitvavo: Bitvavo) -> No
         return response
 
     # Monkeypatch the `publicRequest` method of the Bitvavo instance
-    monkeypatch.setattr(bitvavo, "publicRequest", wrapped_public_request)
+    monkeypatch.setattr(bitvavo, "public_request", wrapped_public_request)

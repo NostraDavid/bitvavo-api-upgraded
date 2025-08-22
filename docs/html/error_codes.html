@@ -1,0 +1,500 @@
+<article>
+<header>
+<h1>Handle errors</h1>
+</header>
+<p>
+If there is an error with your API request, Bitvavo sends a response with an
+error message and a corresponding HTTP status code. The response body
+contains the description of the error along with a possible cause and how to
+proceed.
+</p>
+<ul>
+<li><a href="#http-400">HTTP 400</a>: Bad Request</li>
+<li><a href="#http-403">HTTP 403</a>: Forbidden</li>
+<li><a href="#http-404">HTTP 404</a>: Not Found</li>
+<li><a href="#http-429">HTTP 429</a>: Too Many Requests</li>
+<li><a href="#http-500">HTTP 500</a>: Internal Server Error</li>
+<li><a href="#http-503">HTTP 503</a>: Service Unavailable</li>
+</ul>
+<h2>HTTP 400: Bad Request</h2>
+<p>
+The following table explains the reason for each
+<code>errorCode</code> returned by Bitvavo with a HTTP 400 status code:
+</p>
+<table>
+<thead>
+<tr>
+<th><code>errorCode</code></th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>102</td>
+<td>The JSON object you sent is invalid.</td>
+</tr>
+<tr>
+<td>200</td>
+<td>Path parameters are not accepted for this endpoint.</td>
+</tr>
+<tr>
+<td>201</td>
+<td>Body parameters are not accepted for this endpoint.</td>
+</tr>
+<tr>
+<td>202</td>
+<td>
+A parameter is not supported for this
+<code>orderType</code>.
+</td>
+</tr>
+<tr>
+<td>203</td>
+<td>Missing or incompatible parameters in your request.</td>
+</tr>
+<tr>
+<td>204</td>
+<td>You used a parameter that is not valid for this endpoint.</td>
+</tr>
+<tr>
+<td>205</td>
+<td>Invalid parameter value.</td>
+</tr>
+<tr>
+<td>206</td>
+<td>Incompatible parameters in your call.</td>
+</tr>
+<tr>
+<td>210</td>
+<td><code>amount</code> exceeds the maximum allowed for the market.</td>
+</tr>
+<tr>
+<td>211</td>
+<td><code>price</code> exceeds the maximum allowed.</td>
+</tr>
+<tr>
+<td>212</td>
+<td>
+<code>amount</code> is lower than the minimum allowed for the market.
+</td>
+</tr>
+<tr>
+<td>213</td>
+<td><code>price</code> is too low.</td>
+</tr>
+<tr>
+<td>214</td>
+<td><code>price</code> has too many significant digits.</td>
+</tr>
+<tr>
+<td>215</td>
+<td><code>price</code> has more than 15 decimal places.</td>
+</tr>
+<tr>
+<td>216</td>
+<td>Insufficient balance to perform this operation.</td>
+</tr>
+<tr>
+<td>217</td>
+<td>
+<code>amountQuote</code> is lower than the minimum allowed for the
+market.
+</td>
+</tr>
+<tr>
+<td>218</td>
+<td><code>triggerAmount</code> has too many significant digits.</td>
+</tr>
+<tr>
+<td>219</td>
+<td>The <code>market</code> is no longer listed on Bitvavo.</td>
+</tr>
+<tr>
+<td>220</td>
+<td><code>clientOrderId</code> conflict within the market.</td>
+</tr>
+<tr>
+<td>231</td>
+<td>
+<code>timeInForce</code> must be set to <code>GTC</code> when markets
+are paused.
+</td>
+</tr>
+<tr>
+<td>232</td>
+<td>Changes required for a successful update to your order.</td>
+</tr>
+<tr>
+<td>234</td>
+<td>Cannot update a <code>market</code> order type.</td>
+</tr>
+<tr>
+<td>235</td>
+<td>Maximum of 100 open orders per market exceeded.</td>
+</tr>
+<tr>
+<td>236</td>
+<td>
+Only one of <code>amount</code>, <code>amountRemaining</code>, or
+<code>amountQuote</code> is allowed.
+</td>
+</tr>
+<tr>
+<td>237</td>
+<td>
+Required parameters missing for
+<code>stopLoss</code> order type.
+</td>
+</tr>
+<tr>
+<td>238</td>
+<td>
+Required parameters missing for
+<code>stopLossLimit</code> order type.
+</td>
+</tr>
+<tr>
+<td>239</td>
+<td>
+Cannot switch between <code>amount</code> and
+<code>amountQuote</code> during an update.
+</td>
+</tr>
+<tr>
+<td>401</td>
+<td>Deposits for this asset are not available.</td>
+</tr>
+<tr>
+<td>402</td>
+<td>Verify your identity to deposit or withdraw assets.</td>
+</tr>
+<tr>
+<td>403</td>
+<td>Verify your phone number to deposit or withdraw assets.</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Could not complete the operation due to an internal error.</td>
+</tr>
+<tr>
+<td>405</td>
+<td>Withdrawal not allowed during the cooldown period.</td>
+</tr>
+<tr>
+<td>406</td>
+<td><code>amount</code> is below the minimum allowed value.</td>
+</tr>
+<tr>
+<td>407</td>
+<td>Internal transfer is not possible.</td>
+</tr>
+<tr>
+<td>408</td>
+<td>Insufficient balance to perform this operation.</td>
+</tr>
+<tr>
+<td>409</td>
+<td>Verify your bank account and try again.</td>
+</tr>
+<tr>
+<td>410</td>
+<td>Withdrawals for this asset are not available.</td>
+</tr>
+<tr>
+<td>411</td>
+<td>You cannot transfer assets to yourself.</td>
+</tr>
+<tr>
+<td>412</td>
+<td>Error during deposit or withdrawal.</td>
+</tr>
+<tr>
+<td>413</td>
+<td>IP address not in your whitelist.</td>
+</tr>
+<tr>
+<td>414</td>
+<td>Cannot withdraw assets within 2 minutes of logging in.</td>
+</tr>
+<tr>
+<td>422</td>
+<td>
+Invalid price tick size. The entered price does not align with the
+allowed price increments.
+</td>
+</tr>
+<tr>
+<td>423</td>
+<td>
+The market is halted due to maintenance, technical issues, or other
+operational reasons.
+</td>
+</tr>
+<tr>
+<td>424</td>
+<td>
+The market is in the <code>cancelOnly</code
+><a href="/docs/order-lifecycle/#market-status">status</a>.
+</td>
+</tr>
+<tr>
+<td>425</td>
+<td>
+The market is in an auction phase. Trading is temporarily restricted.
+</td>
+</tr>
+<tr>
+<td>426</td>
+<td>
+The market is in the <code>auctionMatching</code
+><a href="/docs/order-lifecycle/#market-status">status</a>.
+</td>
+</tr>
+<tr>
+<td>429</td>
+<td>
+Too many decimal places in a parameter value. Differs per market.
+</td>
+</tr>
+</tbody>
+</table>
+<h2>HTTP 403: Forbidden</h2>
+<p>
+The following table explains the reason for each
+<code>errorCode</code> returned by Bitvavo with a HTTP 403 status code:
+</p>
+<table>
+<thead>
+<tr>
+<th><code>errorCode</code></th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>300</td>
+<td>Authentication required to call this endpoint.</td>
+</tr>
+<tr>
+<td>301</td>
+<td>Invalid API key length.</td>
+</tr>
+<tr>
+<td>302</td>
+<td>Timestamp for authentication must be in milliseconds.</td>
+</tr>
+<tr>
+<td>303</td>
+<td>Access window must be between 100 and 60000 milliseconds.</td>
+</tr>
+<tr>
+<td>304</td>
+<td>Request not received within the access window.</td>
+</tr>
+<tr>
+<td>305</td>
+<td>API key is not active.</td>
+</tr>
+<tr>
+<td>306</td>
+<td>API key activation not confirmed.</td>
+</tr>
+<tr>
+<td>307</td>
+<td>IP not whitelisted for this API key.</td>
+</tr>
+<tr>
+<td>308</td>
+<td>Invalid signature format.</td>
+</tr>
+<tr>
+<td>309</td>
+<td>Invalid signature.</td>
+</tr>
+<tr>
+<td>310</td>
+<td>API key lacks trading endpoint permissions.</td>
+</tr>
+<tr>
+<td>311</td>
+<td>API key lacks account endpoint permissions.</td>
+</tr>
+<tr>
+<td>312</td>
+<td>API key lacks withdrawal permissions.</td>
+</tr>
+<tr>
+<td>313</td>
+<td>Invalid Bitvavo session.</td>
+</tr>
+<tr>
+<td>316</td>
+<td>Public asset information only via this WebSocket.</td>
+</tr>
+<tr>
+<td>317</td>
+<td>Account locked. Contact support.</td>
+</tr>
+<tr>
+<td>318</td>
+<td>Account verification required for API use.</td>
+</tr>
+<tr>
+<td>319</td>
+<td>Feature unavailable in your region.</td>
+</tr>
+<tr>
+<td>320</td>
+<td>Operation forbidden. Please contact support.</td>
+</tr>
+</tbody>
+</table>
+<h2>HTTP 404: Not Found</h2>
+<p>
+The following table explains the reason for each
+<code>errorCode</code> returned by Bitvavo with a HTTP 404 status code:
+</p>
+<table>
+<thead>
+<tr>
+<th><code>errorCode</code></th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>240</td>
+<td>
+Order not found or is no longer active. Ensure no conflicting calls
+are made.
+</td>
+</tr>
+<tr>
+<td>415</td>
+<td>Unknown WebSocket action. Verify against the API reference.</td>
+</tr>
+</tbody>
+</table>
+<h2>HTTP 409: Conflict</h2>
+<p>
+The following table explains the reason for each
+<code>errorCode</code> returned by Bitvavo with a HTTP 409 status code:
+</p>
+<table>
+<thead>
+<tr>
+<th><code>errorCode</code></th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>431</td>
+<td>
+Cannot get market data because the market is in a
+<code>halted</code>, <code>auction</code>, or
+<code>auctionMatching</code> status.
+</td>
+</tr>
+</tbody>
+</table>
+<h2>HTTP 429: Too Many Requests</h2>
+<p>
+The following table explains the reason for each
+<code>errorCode</code> returned by Bitvavo with a HTTP 429 status code:
+</p>
+<table>
+<thead>
+<tr>
+<th><code>errorCode</code></th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>105</td>
+<td>
+<a href="/docs/rate-limits/">Rate limit</a>
+exceeded. Account or IP address blocked temporarily.
+</td>
+</tr>
+<tr>
+<td>112</td>
+<td>
+<a href="/docs/rate-limits/">Rate limit</a>
+exceeded for WebSocket requests per second.
+</td>
+</tr>
+</tbody>
+</table>
+<h2>HTTP 500: Internal Server Error</h2>
+<p>
+The following table explains the reason for each
+<code>errorCode</code> returned by Bitvavo with a HTTP 500 status code:
+</p>
+<table>
+<thead>
+<tr>
+<th><code>errorCode</code></th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>101</td>
+<td>Unknown server error. Operation success uncertain.</td>
+</tr>
+<tr>
+<td>400</td>
+<td>Unknown server error. Contact support.</td>
+</tr>
+</tbody>
+</table>
+<h2>HTTP 503: Service Unavailable</h2>
+<p>
+The following table explains the reason for each
+<code>errorCode</code> returned by Bitvavo with a HTTP 503 status code:
+</p>
+<table>
+<thead>
+<tr>
+<th>errorCode</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>107</td>
+<td>Bitvavo is overloaded. Retry after 500ms.</td>
+</tr>
+<tr>
+<td>108</td>
+<td>
+Processing issue. Increase execution window or retry after 500ms.
+</td>
+</tr>
+<tr>
+<td>109</td>
+<td>Timeout. Operation success uncertain.</td>
+</tr>
+<tr>
+<td>111</td>
+<td>
+The matching engine is temporarily unavailable, please try again.
+</td>
+</tr>
+<tr>
+<td>419</td>
+<td>The server is unavailable.</td>
+</tr>
+<tr>
+<td>430</td>
+<td>
+The connection timed out because no new market data events have been
+received. For example, trying to retrieve the order book data for a
+market that is not in a <strong>trading</strong><code>status</code>.
+</td>
+</tr>
+</tbody>
+</table>
+</article>

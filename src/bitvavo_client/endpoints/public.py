@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
+from typing_extensions import Any
+
+from bitvavo_client.core import models
 from bitvavo_client.endpoints.common import create_postfix
 
 if TYPE_CHECKING:
+    import httpx
+    from returns.result import Result
+
+    from bitvavo_client.adapters.returns_adapter import BitvavoError
     from bitvavo_client.core.types import AnyDict
     from bitvavo_client.transport.http import HTTPClient
+
+T = TypeVar("T")
 
 
 class PublicAPI:
@@ -22,115 +31,176 @@ class PublicAPI:
         """
         self.http: HTTPClient = http_client
 
-    def time(self) -> dict[str, object]:
+    def time(self, *, model: type[T] = models.ServerTime) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get server time.
 
-        Returns:
-            Server time information
-        """
-        return self.http.request("GET", "/time", weight=1)
+        Args:
+            model: Optional Pydantic model to validate response
 
-    def markets(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+        Returns:
+            Result containing server time or error
+        """
+        return self.http.request("GET", "/time", weight=1, model=model)
+
+    def markets(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Markets,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get market information.
 
         Args:
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            Market information as list or single market dict
+            Result containing market information or error
         """
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/markets{postfix}", weight=1)
+        return self.http.request("GET", f"/markets{postfix}", weight=1, model=model, schema=schema)
 
-    def assets(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def assets(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Assets,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get asset information.
 
         Args:
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            Asset information as list or single asset dict
+            Result containing asset information or error
         """
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/assets{postfix}", weight=1)
+        return self.http.request("GET", f"/assets{postfix}", weight=1, model=model, schema=schema)
 
-    def book(self, market: str, options: AnyDict | None = None) -> dict[str, object]:
+    def book(
+        self,
+        market: str,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.OrderBook,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get order book for a market.
 
         Args:
             market: Market symbol (e.g., 'BTC-EUR')
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            Order book data
+            Result containing order book data or error
         """
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/{market}/book{postfix}", weight=1)
+        return self.http.request("GET", f"/{market}/book{postfix}", weight=1, model=model, schema=schema)
 
-    def public_trades(self, market: str, options: AnyDict | None = None) -> dict[str, object]:
+    def public_trades(
+        self,
+        market: str,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Trades,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get public trades for a market.
 
         Args:
             market: Market symbol
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            Public trades data
+            Result containing public trades data or error
         """
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/{market}/trades{postfix}", weight=5)
+        return self.http.request("GET", f"/{market}/trades{postfix}", weight=5, model=model, schema=schema)
 
-    def candles(self, market: str, interval: str, options: AnyDict | None = None) -> dict[str, object]:
+    def candles(
+        self,
+        market: str,
+        interval: str,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Candles,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get candlestick data for a market.
 
         Args:
             market: Market symbol
-            interval: Time interval (1m, 5m, 1h, 1d, etc.)
+            interval: Time interval (e.g., '1h', '1d')
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            Candlestick data
+            Result containing candlestick data or error
         """
-        # Add interval to options
         if options is None:
             options = {}
         options["interval"] = interval
-
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/{market}/candles{postfix}", weight=1)
+        return self.http.request("GET", f"/{market}/candles{postfix}", weight=1, model=model, schema=schema)
 
-    def ticker_price(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
-        """Get ticker prices.
+    def ticker_price(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.TickerPrices,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+        """Get ticker price.
 
         Args:
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            Ticker price information
+            Result containing ticker price data or error
         """
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/ticker/price{postfix}", weight=1)
+        return self.http.request("GET", f"/ticker/price{postfix}", weight=1, model=model, schema=schema)
 
-    def ticker_book(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
-        """Get ticker book information.
+    def ticker_book(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.TickerBooks,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+        """Get ticker book.
 
         Args:
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            Ticker book information
+            Result containing ticker book data or error
         """
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/ticker/book{postfix}", weight=1)
+        return self.http.request("GET", f"/ticker/book{postfix}", weight=1, model=model, schema=schema)
 
-    def ticker_24h(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def ticker_24h(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Ticker24hs,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get 24h ticker statistics.
 
         Args:
             options: Optional query parameters
+            model: Optional Pydantic model to validate response
 
         Returns:
-            24h ticker statistics
+            Result containing 24h ticker statistics or error
         """
         postfix = create_postfix(options)
-        return self.http.request("GET", f"/ticker/24h{postfix}", weight=1)
+        return self.http.request("GET", f"/ticker/24h{postfix}", weight=1, model=model, schema=schema)

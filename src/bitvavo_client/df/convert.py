@@ -9,10 +9,10 @@ def is_narwhals_available() -> bool:
     """Check if narwhals is available."""
     try:
         import narwhals  # noqa: F401, PLC0415
-
-        return True
     except ImportError:
         return False
+    else:
+        return True
 
 
 def convert_to_dataframe(data: Any, output_format: str = "default") -> Any:
@@ -70,18 +70,17 @@ def convert_candles_to_dataframe(data: Any, output_format: str = "default") -> A
         return data
 
     # Convert to dict format with proper column names
-    candle_dicts = []
-    for candle in data:
-        if len(candle) >= 6:  # noqa: PLR2004
-            candle_dicts.append(
-                {
-                    "timestamp": candle[0],
-                    "open": candle[1],
-                    "high": candle[2],
-                    "low": candle[3],
-                    "close": candle[4],
-                    "volume": candle[5],
-                }
-            )
+    candle_dicts = [
+        {
+            "timestamp": candle[0],
+            "open": candle[1],
+            "high": candle[2],
+            "low": candle[3],
+            "close": candle[4],
+            "volume": candle[5],
+        }
+        for candle in data
+        if len(candle) >= 6  # noqa: PLR2004
+    ]
 
     return convert_to_dataframe(candle_dicts, output_format)

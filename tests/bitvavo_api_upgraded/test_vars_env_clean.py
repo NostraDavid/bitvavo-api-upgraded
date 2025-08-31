@@ -100,7 +100,7 @@ def test_settings_with_vars_env() -> None:
                     "PREFER_KEYLESS": upgraded_settings.PREFER_KEYLESS,
                     "APIKEY": base_settings.APIKEY,
                     "APISECRET": base_settings.APISECRET,
-                }
+                },
             )
 
             print(f"   APIKEY: {bitvavo.APIKEY}")

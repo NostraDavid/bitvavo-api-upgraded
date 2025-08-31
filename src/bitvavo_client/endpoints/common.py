@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import datetime as dt
+    from collections.abc import Callable
 
     from bitvavo_client.core.types import AnyDict
 
@@ -66,7 +66,7 @@ def sort_and_insert(
     asks_or_bids: list[list[str]],
     update: list[list[str]],
     compareFunc: Callable[[float, float], bool],
-) -> list[list[str]] | errordict:
+) -> list[list[str]] | dict[str, Any]:
     for updateEntry in update:
         entrySet: bool = False
         for j in range(len(asks_or_bids)):

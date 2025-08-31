@@ -1,7 +1,6 @@
 """Test settings integration with the Bitvavo API wrapper."""
 
 import os
-from pathlib import Path
 from unittest.mock import patch
 
 from bitvavo_api_upgraded import Bitvavo
@@ -92,7 +91,7 @@ class TestBitvavoWithSettings:
                 "RESTURL": "https://custom.api.com/v2",
                 "DEBUGGING": True,
                 "PREFER_KEYLESS": False,
-            }
+            },
         )
 
         assert bitvavo.base == "https://custom.api.com/v2"
@@ -123,7 +122,7 @@ class TestBitvavoWithSettings:
                 "ACCESSWINDOW": base_settings.ACCESSWINDOW,
                 "DEBUGGING": base_settings.DEBUGGING,
                 "PREFER_KEYLESS": upgraded_settings.PREFER_KEYLESS,
-            }
+            },
         )
 
         # Verify it's a Bitvavo instance with basic properties
@@ -140,7 +139,7 @@ class TestBitvavoWithSettings:
                 "ACCESSWINDOW": base_settings.ACCESSWINDOW,
                 "DEBUGGING": True,  # Override
                 "PREFER_KEYLESS": upgraded_settings.PREFER_KEYLESS,
-            }
+            },
         )
         assert bitvavo_with_override.debugging is True
 
@@ -159,7 +158,7 @@ class TestBitvavoWithSettings:
                     "ACCESSWINDOW": base_settings.ACCESSWINDOW,
                     "DEBUGGING": True,  # Override environment setting
                     "PREFER_KEYLESS": False,
-                }
+                },
             )
             assert bitvavo.debugging is True  # Override wins
 
@@ -178,7 +177,7 @@ class TestBitvavoWithSettings:
                 "ACCESSWINDOW": base_settings.ACCESSWINDOW,
                 "DEBUGGING": base_settings.DEBUGGING,
                 "PREFER_KEYLESS": upgraded_settings.PREFER_KEYLESS,
-            }
+            },
         )
 
         assert len(bitvavo.api_keys) == 1
@@ -200,77 +199,13 @@ class TestBitvavoWithSettings:
                 "PREFER_KEYLESS": upgraded_settings.PREFER_KEYLESS,
                 "APIKEYS": [{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}],
                 "DEFAULT_RATE_LIMIT": "800",
-            }
+            },
         )
 
         assert bitvavo.prefer_keyless is True
         assert bitvavo.rate_limits[-1]["remaining"] == 800  # keyless
         assert bitvavo.rate_limits[0]["remaining"] == 800  # key1
         assert bitvavo.rate_limits[1]["remaining"] == 800  # key2
-
-
-class TestVarsEnvFileSupport:
-    """Test settings loading from vars.env file."""
-
-    def test_vars_env_file_loading(self) -> None:
-        """Test that settings are loaded from vars.env file."""
-        # Get the path to the vars.env file in the project root
-        project_root = Path(__file__).parent.parent
-        vars_env_file = project_root / "tests" / "vars.env"
-
-        # Ensure the vars.env file exists
-        assert vars_env_file.exists(), "vars.env file should exist in project root"
-
-        original_cwd = Path.cwd()
-        try:
-            # Change to project root where vars.env is located
-            os.chdir(project_root)
-
-            # Clear environment variables to ensure we're loading from file
-            env_vars_to_clear = [
-                "BITVAVO_APIKEY",
-                "BITVAVO_APISECRET",
-                "BITVAVO_DEBUGGING",
-                "BITVAVO_RESTURL",
-                "BITVAVO_API_UPGRADED_PREFER_KEYLESS",
-                "BITVAVO_API_UPGRADED_DEFAULT_RATE_LIMIT",
-                "BITVAVO_API_UPGRADED_LOG_LEVEL",
-            ]
-            with patch.dict(os.environ, {}, clear=False):
-                for var in env_vars_to_clear:
-                    _ = os.environ.pop(var, None)
-
-                # Rename .env to .env.backup temporarily to avoid conflicts
-                env_backup = None
-                env_file = project_root / ".env"
-                if env_file.exists():
-                    env_backup = project_root / ".env.backup"
-                    _ = env_file.rename(env_backup)
-
-                # Rename vars.env to .env temporarily for testing
-                _ = vars_env_file.rename(project_root / ".env")
-
-                try:
-                    base_settings = BitvavoSettings()
-                    upgraded_settings = BitvavoApiUpgradedSettings()
-
-                    # Test that values were loaded from vars.env
-                    assert base_settings.APIKEY == "test_key_from_vars_env"
-                    assert base_settings.APISECRET == "test_secret_from_vars_env"
-                    assert base_settings.DEBUGGING is True
-                    assert base_settings.RESTURL == "https://test-api.bitvavo.com/v2"
-                    assert upgraded_settings.PREFER_KEYLESS is False
-                    assert upgraded_settings.DEFAULT_RATE_LIMIT == 750
-                    assert upgraded_settings.LOG_LEVEL == "DEBUG"
-
-                finally:
-                    # Restore original files
-                    _ = (project_root / ".env").rename(vars_env_file)
-                    if env_backup and env_backup.exists():
-                        _ = env_backup.rename(env_file)
-
-        finally:
-            os.chdir(original_cwd)
 
 
 class TestBackwardCompatibility:
@@ -285,7 +220,7 @@ class TestBackwardCompatibility:
                     "APIKEY": "old_key",
                     "APISECRET": "old_secret",
                     "DEBUGGING": True,
-                }
+                },
             )
 
             assert bitvavo.APIKEY == "old_key"

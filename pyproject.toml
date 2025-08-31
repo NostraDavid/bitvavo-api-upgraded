@@ -37,11 +37,12 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "pydantic-settings==2.*, >=2.6", # to handle settings
-    "requests==2.*, >=2.26",         # to make http requests
-    "returns>=0.23.0",               # for functional programming
-    "structlog==25.*, >=21.5",       # for logging
-    "websocket-client==1.*, >=1.2",  # something something websocket
+    "httpx>=0.28.1",           # for making http requests
+    "pydantic-settings >=2.6", # to handle settings
+    "requests >=2.26",         # to make http requests
+    "returns>=0.23.0",         # for functional programming
+    "structlog>=21.5",         # for logging
+    "websocket-client >=1.2",  # something something websocket
 ]
 
 [[tool.uv.index]]
@@ -62,8 +63,7 @@ ibis = ["narwhals[ibis]>=2.0.0"]
 modin = ["narwhals[modin]>=2.0.0"]
 pandas = ["narwhals[pandas]>=2.0.0"]
 polars = ["narwhals[polars]>=2.0.0"]
-# TODO(NostraDavid): re-enable polars-gpu once we drop Python 3.9
-# polars-gpu = ["cudf-polars-cu12>=24.0.0", "polars", "narwhals>=2.0.0"]
+polars-gpu = ["cudf-polars-cu12>=24.0.0", "polars", "narwhals>=2.0.0"]
 # this may work as well - test later
 # polars-gpu = ["polars[gpu]", "narwhals>=2.0.0"]
 pyarrow = ["narwhals[pyarrow]>=2.0.0"]

@@ -2,19 +2,26 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from bitvavo_client.auth.rate_limit import RateLimitManager
+from bitvavo_client.core import models
 from bitvavo_client.core.settings import BitvavoSettings
 from bitvavo_client.endpoints.private import PrivateAPI
 from bitvavo_client.endpoints.public import PublicAPI
 from bitvavo_client.transport.http import HTTPClient
 
 if TYPE_CHECKING:
+    import httpx
+    from returns.result import Result
+
+    from bitvavo_client.adapters.returns_adapter import BitvavoError
     from bitvavo_client.core.types import AnyDict
 
+T = TypeVar("T")
 
-class Bitvavo:
+
+class BitvavoClient:
     """Main Bitvavo API client facade providing backward-compatible interface."""
 
     def __init__(self, settings: BitvavoSettings | None = None) -> None:
@@ -51,48 +58,104 @@ class Bitvavo:
                 self.rate_limiter.ensure_key(0)
 
     # Backward-compatible public methods
-    def time(self) -> dict[str, object]:
+    def time(self, model: type[T] = models.ServerTime) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get server time."""
-        return self.public.time()
+        return self.public.time(model=model)
 
-    def markets(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def markets(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Markets,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get market information."""
-        return self.public.markets(options)
+        return self.public.markets(options, model=model, schema=schema)
 
-    def assets(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def assets(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Assets,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get asset information."""
-        return self.public.assets(options)
+        return self.public.assets(options, model=model, schema=schema)
 
-    def book(self, market: str, options: AnyDict | None = None) -> dict[str, object]:
+    def book(
+        self,
+        market: str,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.OrderBook,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get order book for a market."""
-        return self.public.book(market, options)
+        return self.public.book(market, options, model=model, schema=schema)
 
-    def public_trades(self, market: str, options: AnyDict | None = None) -> dict[str, object]:
+    def public_trades(
+        self,
+        market: str,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Trades,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get public trades for a market."""
-        return self.public.public_trades(market, options)
+        return self.public.public_trades(market, options, model=model, schema=schema)
 
-    def candles(self, market: str, interval: str, options: AnyDict | None = None) -> dict[str, object]:
+    def candles(
+        self,
+        market: str,
+        interval: str,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Candles,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get candlestick data for a market."""
-        return self.public.candles(market, interval, options)
+        return self.public.candles(market, interval, options, model=model, schema=schema)
 
-    def ticker_price(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def ticker_price(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.TickerPrices,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get ticker prices."""
-        return self.public.ticker_price(options)
+        return self.public.ticker_price(options, model=model, schema=schema)
 
-    def ticker_book(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def ticker_book(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.TickerBooks,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get ticker book information."""
-        return self.public.ticker_book(options)
+        return self.public.ticker_book(options, model=model, schema=schema)
 
-    def ticker_24h(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def ticker_24h(
+        self,
+        options: AnyDict | None = None,
+        *,
+        model: type[T] | Any | None = models.Ticker24hs,
+        schema: dict | None = None,
+    ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Get 24h ticker statistics."""
-        return self.public.ticker_24h(options)
+        return self.public.ticker_24h(options, model=model, schema=schema)
 
+    # TODO(NostraDavid): fix the private part of the API.
     # Backward-compatible private methods
-    def account(self) -> dict[str, object]:
+    def account(self) -> Result[dict[str, object], BitvavoError]:
         """Get account information."""
         return self.private.account()
 
-    def balance(self, options: AnyDict | None = None) -> list[dict[str, object]] | dict[str, object]:
+    def balance(
+        self,
+        options: AnyDict | None = None,
+    ) -> Result[list[dict[str, object]] | dict[str, object], BitvavoError]:
         """Get account balance."""
         return self.private.balance(options)
 
@@ -102,11 +165,11 @@ class Bitvavo:
         side: str,
         order_type: str,
         body: AnyDict,
-    ) -> dict[str, object]:
+    ) -> Result[dict[str, object], BitvavoError]:
         """Place a new order."""
         return self.private.place_order(market, side, order_type, body)
 
-    def get_order(self, market: str, order_id: str) -> dict[str, object]:
+    def get_order(self, market: str, order_id: str) -> Result[dict[str, object], BitvavoError]:
         """Get order by ID."""
         return self.private.get_order(market, order_id)
 
@@ -115,42 +178,48 @@ class Bitvavo:
         market: str,
         order_id: str,
         body: AnyDict,
-    ) -> dict[str, object]:
+    ) -> Result[dict[str, object], BitvavoError]:
         """Update an existing order."""
         return self.private.update_order(market, order_id, body)
 
-    def cancel_order(self, market: str, order_id: str) -> dict[str, object]:
+    def cancel_order(self, market: str, order_id: str) -> Result[dict[str, object], BitvavoError]:
         """Cancel an order."""
         return self.private.cancel_order(market, order_id)
 
-    def get_orders(self, market: str, options: AnyDict | None = None) -> dict[str, object]:
+    def get_orders(self, market: str, options: AnyDict | None = None) -> Result[dict[str, object], BitvavoError]:
         """Get orders for a market."""
         return self.private.get_orders(market, options)
 
-    def cancel_orders(self, market: str) -> dict[str, object]:
+    def cancel_orders(self, market: str) -> Result[dict[str, object], BitvavoError]:
         """Cancel all orders for a market."""
         return self.private.cancel_orders(market)
 
-    def orders_open(self, options: AnyDict | None = None) -> dict[str, object]:
+    def orders_open(self, options: AnyDict | None = None) -> Result[dict[str, object], BitvavoError]:
         """Get all open orders."""
         return self.private.orders_open(options)
 
-    def trades(self, market: str, options: AnyDict | None = None) -> dict[str, object]:
+    def trades(self, market: str, options: AnyDict | None = None) -> Result[dict[str, object], BitvavoError]:
         """Get trades for a market."""
         return self.private.trades(market, options)
 
-    def fees(self, options: AnyDict | None = None) -> dict[str, object]:
+    def fees(self, options: AnyDict | None = None) -> Result[dict[str, object], BitvavoError]:
         """Get trading fees."""
         return self.private.fees(options)
 
-    def deposits(self, options: AnyDict | None = None) -> dict[str, object]:
+    def deposits(self, options: AnyDict | None = None) -> Result[dict[str, object], BitvavoError]:
         """Get deposit history."""
         return self.private.deposits(options)
 
-    def withdrawals(self, options: AnyDict | None = None) -> dict[str, object]:
+    def withdrawals(self, options: AnyDict | None = None) -> Result[dict[str, object], BitvavoError]:
         """Get withdrawal history."""
         return self.private.withdrawals(options)
 
-    def withdraw(self, symbol: str, amount: str, address: str, options: AnyDict | None = None) -> dict[str, object]:
+    def withdraw(
+        self,
+        symbol: str,
+        amount: str,
+        address: str,
+        options: AnyDict | None = None,
+    ) -> Result[dict[str, object], BitvavoError]:
         """Withdraw assets."""
         return self.private.withdraw(symbol, amount, address, options)

@@ -22,10 +22,10 @@ from bitvavo_api_upgraded.bitvavo import (
     Bitvavo,
     asks_compare,
     bids_compare,
-    create_postfix,
     error_callback_example,
 )
 from bitvavo_api_upgraded.settings import bitvavo_settings
+from bitvavo_client.endpoints.common import create_postfix
 
 if TYPE_CHECKING:
     from bitvavo_api_upgraded.type_aliases import anydict, errordict
@@ -1039,7 +1039,8 @@ class TestBitvavo:
         assert response["address"].startswith("0x")  # only counts for SHIB (?)
 
     @pytest.mark.skipif(
-        True, reason="{'errorCode': 400, 'error': 'Unknown error. Please contact support with a copy of your request.'}"
+        True,
+        reason="{'errorCode': 400, 'error': 'Unknown error. Please contact support with a copy of your request.'}",
     )
     def test_deposit_assets_fiat(self, bitvavo: Bitvavo) -> None:
         """
@@ -1375,7 +1376,11 @@ class TestWebSocketAppFacadeInit:
 
             # Create WebSocketAppFacade instance
             facade = Bitvavo.WebSocketAppFacade(
-                APIKEY=api_key, APISECRET=api_secret, ACCESSWINDOW=access_window, WSURL=ws_url, bitvavo=mock_bitvavo
+                APIKEY=api_key,
+                APISECRET=api_secret,
+                ACCESSWINDOW=access_window,
+                WSURL=ws_url,
+                bitvavo=mock_bitvavo,
             )
 
             # Verify instance attributes are set correctly

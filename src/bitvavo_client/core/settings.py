@@ -9,7 +9,9 @@ class BitvavoSettings(BaseSettings):
     """Core Bitvavo API settings using Pydantic v2."""
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
-        env_prefix="BITVAVO_", extra="ignore", env_file=".env"
+        env_prefix="BITVAVO_",
+        extra="ignore",
+        env_file=".env",
     )
 
     rest_url: str = "https://api.bitvavo.com/v2"

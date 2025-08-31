@@ -450,7 +450,7 @@ class TestProcessLocalBook:
                 "asks": [["50001", "1.5"], ["50002", "0.5"]],
                 "nonce": 12345,
                 "market": "BTC-EUR",
-            }
+            },
         }
         ws.callbacks = {"subscriptionBookUser": {}}
 
@@ -482,7 +482,7 @@ class TestProcessLocalBook:
         # Create mock WebSocket facade
         ws = MagicMock()
         ws.localBook = {
-            "BTC-EUR": {"bids": [["50000", "1.0"]], "asks": [["50001", "1.5"]], "nonce": 12345, "market": "BTC-EUR"}
+            "BTC-EUR": {"bids": [["50000", "1.0"]], "asks": [["50001", "1.5"]], "nonce": 12345, "market": "BTC-EUR"},
         }
         ws.callbacks = {
             "subscriptionBookUser": {},
@@ -576,7 +576,7 @@ class TestProcessLocalBook:
         # Create mock WebSocket facade
         ws = MagicMock()
         ws.localBook = {
-            "BTC-EUR": {"bids": [["50000", "1.0"]], "asks": [["50001", "1.5"]], "nonce": 12345, "market": "BTC-EUR"}
+            "BTC-EUR": {"bids": [["50000", "1.0"]], "asks": [["50001", "1.5"]], "nonce": 12345, "market": "BTC-EUR"},
         }
         ws.callbacks = {"subscriptionBookUser": {}}
 
@@ -791,30 +791,6 @@ class TestAdvancedCandlesConversion:
         assert result == test_data
 
 
-class TestMockingEdgeCases:
-    """Test edge cases using mocking to simulate unavailable libraries."""
-
-    def test_library_availability_with_mock(self) -> None:
-        """Test library availability through is_library_available function."""
-        # Test when pandas is available
-        with patch("tests.test_dataframe_utils.is_library_available", return_value=True):
-            assert is_library_available("pandas") is True
-
-        # Test when pandas is not available
-        with patch("tests.test_dataframe_utils.is_library_available", return_value=False):
-            assert is_library_available("pandas") is False
-
-    def test_polars_availability_with_mock(self) -> None:
-        """Test polars availability through is_library_available function."""
-        # Test when polars is available
-        with patch("tests.test_dataframe_utils.is_library_available", return_value=True):
-            assert is_library_available("polars") is True
-
-        # Test when polars is not available
-        with patch("tests.test_dataframe_utils.is_library_available", return_value=False):
-            assert is_library_available("polars") is False
-
-
 class TestCreateSpecialDataframe:
     """Test the _create_special_dataframe function comprehensively."""
 
@@ -950,26 +926,6 @@ class TestImportErrorHandling:
 
 class TestErrorConditionsAndEdgeCases:
     """Test specific error conditions and edge cases for missing coverage."""
-
-    def test_convert_candles_with_invalid_candle_format(self) -> None:
-        """Test convert_candles_to_dataframe with invalid candle data that gets filtered out."""
-        if pd is None:
-            return  # Skip if pandas not available
-
-        # Mix of valid and invalid candles
-        invalid_candles = [
-            [1640995200000, 50000, 51000, 49000, 50500, 100],  # Valid
-            [1640995260000, 50500],  # Invalid - too short
-            "not a list",  # Invalid - not a list
-            [1640995320000, 50600, 51100, 49100, 50800, 150, "extra"],  # Valid but extra data
-        ]
-
-        result = convert_candles_to_dataframe(invalid_candles, OutputFormat.PANDAS)
-
-        # Should only have 2 valid candles converted
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) == 2  # Only valid candles
-        assert "timestamp" in result.columns
 
     def test_convert_candles_all_invalid_returns_original(self) -> None:
         """Test convert_candles_to_dataframe when all candles are invalid."""

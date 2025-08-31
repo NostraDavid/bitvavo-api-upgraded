@@ -25,7 +25,7 @@ class TestBitvavoWithSettings:
                 "ACCESSWINDOW": 15000,
                 "DEBUGGING": True,
                 "PREFER_KEYLESS": False,
-            }
+            },
         )
 
         assert bitvavo.base == "https://custom.api.com/v2"
@@ -56,7 +56,7 @@ class TestBitvavoWithSettings:
                 "PREFER_KEYLESS": upgraded_settings.PREFER_KEYLESS,
                 "APIKEY": base_settings.APIKEY,
                 "APISECRET": base_settings.APISECRET,
-            }
+            },
         )
 
         assert bitvavo.APIKEY == "settings_key"
@@ -71,7 +71,7 @@ class TestBitvavoWithSettings:
                 "APISECRET": "env_secret",
                 "DEBUGGING": True,
                 "PREFER_KEYLESS": False,
-            }
+            },
         )
 
         assert bitvavo.APIKEY == "env_key"
@@ -107,7 +107,7 @@ class TestBitvavoWithSettings:
             {
                 "APIKEYS": [{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}],
                 "PREFER_KEYLESS": True,
-            }
+            },
         )
 
         # Test that keyless preference is used
@@ -133,7 +133,7 @@ class TestBackwardCompatibility:
                 "WSURL": "wss://ws.bitvavo.com/v2/",
                 "ACCESSWINDOW": 10000,
                 "DEBUGGING": True,
-            }
+            },
         )
 
         assert bitvavo.APIKEY == "old_key"
@@ -243,7 +243,7 @@ class TestRealWorldUsagePatterns:
                     "PREFER_KEYLESS": upgraded_settings.PREFER_KEYLESS,
                     "APIKEY": base_settings.APIKEY,
                     "APISECRET": base_settings.APISECRET,
-                }
+                },
             )
 
             # Verify configuration
@@ -266,7 +266,7 @@ class TestRealWorldUsagePatterns:
                     {"key": "dev_key_1", "secret": "dev_secret_1"},
                     {"key": "dev_key_2", "secret": "dev_secret_2"},
                 ],
-            }
+            },
         )
 
         assert bitvavo.debugging is True

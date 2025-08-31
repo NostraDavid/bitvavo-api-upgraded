@@ -1,11 +1,15 @@
 ---
 repos:
   # update the rev versions with a `pre-commit autoupdate`
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.8
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.2.0
     hooks:
-      - id: ruff  # Run the linter.
-      - id: ruff-format  # Run the formatter.
+      - id: add-trailing-comma
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.10
+    hooks:
+      - id: ruff # Run the linter.
+      - id: ruff-format # Run the formatter.
   - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
     rev: 0.2.3
     hooks:

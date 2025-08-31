@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
-import hashlib
-import hmac
 import json
+import statistics
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from threading import Thread
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import websocket as ws_lib
-from requests import delete, get, post, put
+from httpx import delete, get, post, put
 from structlog.stdlib import get_logger
 from websocket import WebSocketApp  # missing stubs for WebSocketApp
 
@@ -19,86 +19,22 @@ from bitvavo_api_upgraded.dataframe_utils import convert_candles_to_dataframe, c
 from bitvavo_api_upgraded.helper_funcs import configure_loggers, time_ms, time_to_wait
 from bitvavo_api_upgraded.settings import bitvavo_settings, bitvavo_upgraded_settings
 from bitvavo_api_upgraded.type_aliases import OutputFormat, anydict, errordict, intdict, ms, s_f, strdict, strintdict
+from bitvavo_client.auth.signing import create_signature
+from bitvavo_client.endpoints.common import (
+    _default,
+    asks_compare,
+    bids_compare,
+    create_postfix,
+    epoch_millis,
+    sort_and_insert,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 configure_loggers()
 
 logger = get_logger(__name__)
-
-
-def create_signature(timestamp: ms, method: str, url: str, body: anydict | None, api_secret: str) -> str:
-    string = f"{timestamp}{method}/v2{url}"
-    if body is not None and len(body.keys()) > 0:
-        string += json.dumps(body, separators=(",", ":"))
-    signature = hmac.new(api_secret.encode("utf-8"), string.encode("utf-8"), hashlib.sha256).hexdigest()
-    return signature
-
-
-def create_postfix(options: anydict | None) -> str:
-    """Generate a URL postfix, based on the `options` dict.
-
-    ---
-    Args:
-        options (anydict): [description]
-
-    ---
-    Returns:
-        str: [description]
-    """
-    options = _default(options, {})
-    params = [f"{key}={options[key]}" for key in options]
-    postfix = "&".join(params)  # intersperse
-    return f"?{postfix}" if len(options) > 0 else postfix
-
-
-def _default(value: anydict | None, fallback: anydict) -> anydict:
-    """
-    Note that is close, but not actually equal to:
-
-    `return value or fallback`
-
-    I checked this with a temporary hypothesis test.
-
-    This note is all you will get out of me.
-    """
-    return value if value is not None else fallback
-
-
-def _epoch_millis(dt: dt.datetime) -> int:
-    return int(dt.timestamp() * 1000)
-
-
-def asks_compare(a: float, b: float) -> bool:
-    return a < b
-
-
-def bids_compare(a: float, b: float) -> bool:
-    return a > b
-
-
-def sort_and_insert(
-    asks_or_bids: list[list[str]],
-    update: list[list[str]],
-    compareFunc: Callable[[float, float], bool],
-) -> list[list[str]] | errordict:
-    for updateEntry in update:
-        entrySet: bool = False
-        for j in range(len(asks_or_bids)):
-            bookItem = asks_or_bids[j]
-            if compareFunc(float(updateEntry[0]), float(bookItem[0])):
-                asks_or_bids.insert(j, updateEntry)
-                entrySet = True
-                break
-            if float(updateEntry[0]) == float(bookItem[0]):
-                if float(updateEntry[1]) > 0.0:
-                    asks_or_bids[j] = updateEntry
-                    entrySet = True
-                    break
-                asks_or_bids.pop(j)
-                entrySet = True
-                break
-        if not entrySet:
-            asks_or_bids.append(updateEntry)
-    return asks_or_bids
 
 
 def process_local_book(ws: Bitvavo.WebSocketAppFacade, message: anydict) -> None:
@@ -412,7 +348,9 @@ class Bitvavo:
         key_name = f"API_KEY_{key_index}" if key_index >= 0 else "KEYLESS"
 
         logger.warning(
-            "rate-limit-reached", key_name=key_name, rateLimitRemaining=self.rate_limits[key_index]["remaining"]
+            "rate-limit-reached",
+            key_name=key_name,
+            rateLimitRemaining=self.rate_limits[key_index]["remaining"],
         )
         logger.info(
             "napping-until-reset",
@@ -423,7 +361,7 @@ class Bitvavo:
         )
         time.sleep(napTime + 1)  # +1 to add a tiny bit of buffer time
 
-    def calc_lag(self, samples: int = 5, timeout_seconds: float = 5.0) -> ms:
+    def calc_lag(self, samples: int = 5, timeout_seconds: float = 5.0) -> ms:  # noqa: C901
         """
         Calculate the time difference between the client and server using statistical analysis.
 
@@ -452,21 +390,17 @@ class Bitvavo:
                 server_response = self.time()
                 client_time_after = time_ms()
 
-                match server_response:
-                    case Success(data):
-                        if isinstance(data, dict) and "time" in data:
-                            # Use midpoint of request duration for better accuracy
-                            client_time_avg = (client_time_before + client_time_after) // 2
-                            server_time = data["time"]
-                            if isinstance(server_time, int):
-                                return ms(server_time - client_time_avg)
-                        return None
-                    case Failure(_):
-                        return None
-                    case _:
-                        return None
-
-            except Exception:
+                if isinstance(server_response, dict) and "time" in server_response:
+                    # Use midpoint of request duration for better accuracy
+                    client_time_avg = (client_time_before + client_time_after) // 2
+                    server_time = server_response["time"]
+                    if isinstance(server_time, int):
+                        return ms(server_time - client_time_avg)
+                    return None
+            except (ValueError, TypeError, KeyError):
+                return None
+            else:
+                # If error or unexpected response
                 return None
 
         lag_measurements: list[ms] = []
@@ -486,7 +420,9 @@ class Bitvavo:
             except TimeoutError:
                 if self.debugging:
                     logger.warning(
-                        "lag-calculation-timeout", collected_samples=len(lag_measurements), requested_samples=samples
+                        "lag-calculation-timeout",
+                        collected_samples=len(lag_measurements),
+                        requested_samples=samples,
                     )
 
         if len(lag_measurements) < max(2, samples // 2):
@@ -506,7 +442,7 @@ class Bitvavo:
                 filtered_measurements = [lag for lag in lag_measurements if lower_bound <= lag <= upper_bound]
 
                 # Use filtered data if we still have enough samples
-                if len(filtered_measurements) >= 2:
+                if len(filtered_measurements) >= 2:  # noqa: PLR2004
                     lag_measurements = filtered_measurements
 
             except statistics.StatisticsError:
@@ -1133,9 +1069,9 @@ class Bitvavo:
         if limit is not None:
             options["limit"] = limit
         if start is not None:
-            options["start"] = _epoch_millis(start)
+            options["start"] = epoch_millis(start)
         if end is not None:
-            options["end"] = _epoch_millis(end)
+            options["end"] = epoch_millis(end)
         postfix = create_postfix(options)
         result = self.public_request(f"{self.base}/{market}/candles{postfix}")  # type: ignore[return-value]
         return convert_candles_to_dataframe(result, output_format)

@@ -9,6 +9,7 @@ functional error handling can import and use these utilities directly.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, ClassVar, TypeVar
 
 import httpx
@@ -221,7 +222,7 @@ def _validation_failure(reason: str, payload: dict[str, Any]) -> BitvavoError:
 def decode_response_result(
     resp: httpx.Response,
     model: type[T] | None,
-    schema: dict | None = None,
+    schema: Mapping[str, object] | None = None,
 ) -> Result[T | Any, BitvavoError]:
     if not (HTTP_STATUS_OK_MIN <= resp.status_code <= HTTP_STATUS_OK_MAX):
         return Failure(_map_error(resp))

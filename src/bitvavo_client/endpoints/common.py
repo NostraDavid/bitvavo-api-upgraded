@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from bitvavo_client.core.types import AnyDict
 
 
-def _default(value: AnyDict | None, fallback: AnyDict) -> AnyDict:
+def default(value: AnyDict | None, fallback: AnyDict) -> AnyDict:
     """Return value if not None, otherwise fallback.
 
     Note that this is close, but not actually equal to:
@@ -36,7 +36,7 @@ def create_postfix(options: AnyDict | None) -> str:
     Returns:
         Query string with '?' prefix if options exist, empty string otherwise
     """
-    options = _default(options, {})
+    options = default(options, {})
     params = [f"{key}={options[key]}" for key in options]
     postfix = "&".join(params)
     return f"?{postfix}" if len(options) > 0 else postfix

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
@@ -58,8 +59,8 @@ class HTTPClient:
         *,
         body: AnyDict | None = None,
         weight: int = 1,
-        model: type[T] | None,
-        schema: dict | None = None,
+        model: type[T] | Any | None,
+        schema: Mapping[str, object] | None = None,
     ) -> Result[T, BitvavoError | httpx.HTTPError]:
         """Make HTTP request and return a Result.
 

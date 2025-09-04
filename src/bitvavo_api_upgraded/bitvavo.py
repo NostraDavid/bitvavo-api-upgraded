@@ -21,10 +21,10 @@ from bitvavo_api_upgraded.settings import bitvavo_settings, bitvavo_upgraded_set
 from bitvavo_api_upgraded.type_aliases import OutputFormat, anydict, errordict, intdict, ms, s_f, strdict, strintdict
 from bitvavo_client.auth.signing import create_signature
 from bitvavo_client.endpoints.common import (
-    _default,
     asks_compare,
     bids_compare,
     create_postfix,
+    default,
     epoch_millis,
     sort_and_insert,
 )
@@ -1064,7 +1064,7 @@ class Bitvavo:
         # timestamp is converted to datetime, numeric columns to float
         ```
         """
-        options = _default(options, {})
+        options = default(options, {})
         options["interval"] = interval
         if limit is not None:
             options["limit"] = limit
@@ -1298,7 +1298,7 @@ class Bitvavo:
         ]
         ```
         """
-        options = _default(options, {})
+        options = default(options, {})
         rateLimitingWeight = 25
         if "market" in options:
             rateLimitingWeight = 1
@@ -1815,7 +1815,7 @@ class Bitvavo:
         ]
         ```
         """  # noqa: E501
-        options = _default(options, {})
+        options = default(options, {})
         options["market"] = market
         postfix = create_postfix(options)
         return self.private_request("/orders", postfix, {}, "GET", 5)  # type: ignore[return-value]
@@ -1913,7 +1913,7 @@ class Bitvavo:
         ]
         ```
         """
-        options = _default(options, {})
+        options = default(options, {})
         rateLimitingWeight = 25
         if "market" in options:
             rateLimitingWeight = 1
@@ -1979,7 +1979,7 @@ class Bitvavo:
         ]
         ```
         """  # noqa: E501
-        options = _default(options, {})
+        options = default(options, {})
         options["market"] = market
         postfix = create_postfix(options)
         result = self.private_request("/trades", postfix, {}, "GET", 5)  # type: ignore[return-value]

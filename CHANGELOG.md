@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v4.1.0 - 2025-09-07
 
 **NEW ARCHITECTURE**: Modern, modular `bitvavo_client` with type-safe `returns` pattern! 🏗️
 

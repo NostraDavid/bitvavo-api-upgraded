@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v4.1.1 - 2025-09-07
 
 - actually add bitvavo_client
 - add py.typed

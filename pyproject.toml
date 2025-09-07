@@ -394,7 +394,8 @@ docstring-code-line-length = "dynamic"
 [tool.ruff.lint.extend-per-file-ignores]
 # These are the rules we can ignore for tests
 "tests/**/*.py" = [
-    "S101",    # (suspicious-non-cryptographic-random-usage)
+    "S101",    # (assert)
+    "S105",    # (hardcoded-password-string) - test secrets are not real secrets
     "ARG",     # (flake8-unused-arguments)
     "FBT",     # (flake8-boolean-trap)
     "PLR2004", # (magic-value-comparison)

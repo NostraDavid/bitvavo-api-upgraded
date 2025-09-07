@@ -12,7 +12,7 @@ import polars as pl
 import pytest
 from returns.result import Failure, Success
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     import httpx
 
 from bitvavo_client.adapters.returns_adapter import BitvavoError

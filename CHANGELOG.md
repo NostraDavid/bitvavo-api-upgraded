@@ -1,5 +1,95 @@
 # Changelog
 
+## $UNRELEASED
+
+**NEW ARCHITECTURE**: Modern, modular `bitvavo_client` with type-safe `returns` pattern! 🏗️
+
+This release introduces a completely rewritten client architecture alongside the existing API, providing a modern, type-safe, and highly testable alternative while maintaining full backward compatibility.
+
+### Added
+
+- **🏗️ New `bitvavo_client` Module**: Complete architectural rewrite with modern Python patterns
+  - `BitvavoClient` facade providing clean, intuitive API access
+  - Separation of concerns with dedicated `PublicAPI` and `PrivateAPI` endpoint classes
+  - Built on the `returns` library for functional error handling with `Success`/`Failure` pattern
+  - Type-safe throughout with comprehensive Pydantic model validation
+  - Configurable response formats: raw dicts, Pydantic models, or DataFrames
+
+- **📊 Enhanced Model System**: Comprehensive Pydantic models for all API responses
+  - `public_models.py`: ServerTime, Markets, Assets, OrderBook, Trades, Candles, etc.
+  - `private_models.py`: Account, Orders, Trades, Deposits, Withdrawals, etc.
+  - Full validation with descriptive error messages
+  - Automatic type conversion and constraint checking
+
+- **🔧 Modern Configuration**: Enhanced settings system with `BitvavoSettings`
+  - Environment variable integration with `.env` support
+  - Type-safe configuration with Pydantic validation
+  - Flexible rate limiting and authentication options
+
+- **🧪 Comprehensive Test Suite**: Extensive testing with multiple response format validation
+  - Abstract test base classes ensuring consistent API coverage
+  - Tests for raw dict, Pydantic model, and DataFrame response formats
+  - Parameter validation testing for all endpoints
+  - MiCA compliance validation for regulatory reporting endpoints
+
+- **📋 Error Codes Documentation**: Added `docs/html/error_codes.html` with comprehensive Bitvavo API error documentation
+
+### Changed
+
+- **🎯 Enhanced `calc_lag()` Function**: Improved server time calculation using statistical analysis instead of naive timing
+- **🐍 Python 3.10+ Target**: Updated Ruff configuration to target Python 3.10 features
+- **🔧 Dependency Updates**: Updated various dependencies including:
+  - `identify` v2.6.13 → v2.6.14
+  - `pyspark` v4.0.0 → v4.0.1
+  - `pytest-cov` v6.2.1 → v6.3.0
+- **📦 Renamed Internal Functions**: `_default()` renamed to `default()` for consistency
+- **🔍 Stricter Type Checking**: Enhanced type hints and made `zip()` calls strict throughout codebase
+
+### Architecture Highlights
+
+**Modern Client Usage**:
+
+```python
+from bitvavo_client import BitvavoClient, BitvavoSettings
+from bitvavo_client.core.model_preferences import ModelPreference
+
+# Configure client with typed settings
+settings = BitvavoSettings()  # Loads from environment/config
+client = BitvavoClient(settings, preferred_model=ModelPreference.PYDANTIC)
+
+# Type-safe API calls with functional error handling
+result = client.public.markets()
+match result:
+    case Success(markets):
+        for market in markets:
+            print(f"{market.market}: {market.status}")
+    case Failure(error):
+        print(f"API error: {error}")
+```
+
+**Key Architectural Improvements**:
+
+- **Functional Error Handling**: No more exception-based error handling; explicit `Success`/`Failure` patterns
+- **Type Safety**: Full type coverage with mypy compatibility
+- **Modular Design**: Clear separation between transport, authentication, validation, and API logic
+- **Testability**: Dependency injection and abstract interfaces enable comprehensive testing
+- **Flexibility**: Support for multiple response formats (dict/Pydantic/DataFrame) in the same codebase
+
+### Migration Path
+
+The existing `bitvavo_api_upgraded` module remains **100% unchanged and fully supported**. The new `bitvavo_client` provides a modern alternative:
+
+- **Current users**: No action required - existing code continues to work
+- **New projects**: Consider using `bitvavo_client` for improved type safety and error handling
+- **Gradual migration**: Both can be used side-by-side during transition
+
+### Files Added/Modified
+
+- **48 Python/config files** added or modified
+- **New module structure**: Complete `bitvavo_client/` package with submodules for auth, transport, endpoints, models, etc.
+- **Enhanced tooling**: Updated pre-commit hooks, pyproject.toml configuration
+- **Documentation**: Error codes reference and architectural documentation
+
 ## v4.0.0 - 2025-08-22
 
 ### Removed

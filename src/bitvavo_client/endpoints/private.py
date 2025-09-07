@@ -15,7 +15,7 @@ from bitvavo_client.core.model_preferences import ModelPreference
 from bitvavo_client.endpoints.common import create_postfix, default
 from bitvavo_client.schemas.private_schemas import DEFAULT_SCHEMAS
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from bitvavo_client.core.types import AnyDict
     from bitvavo_client.transport.http import HTTPClient
 

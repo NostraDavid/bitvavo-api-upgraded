@@ -25,7 +25,7 @@ MAX_TIMESTAMP_VALUE = 8640000000000000  # Maximum allowed timestamp value
 MAX_BOOK_DEPTH = 1000  # Maximum depth for order book
 MAX_BOOK_REPORT_DEPTH = 1000  # Maximum depth for order book report
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
 
     import httpx

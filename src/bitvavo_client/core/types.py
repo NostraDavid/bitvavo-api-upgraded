@@ -1,13 +1,11 @@
 """Type definitions for bitvavo_client."""
 
-from __future__ import annotations
-
-from typing import Any
+from typing import Any  # pragma: no cover
 
 # Type aliases for better readability
-Result = dict[str, Any] | list[dict[str, Any]]
-ErrorDict = dict[str, Any]
-AnyDict = dict[str, Any]
-StrDict = dict[str, str]
-IntDict = dict[str, int]
-StrIntDict = dict[str, str | int]
+Result = dict[str, Any] | list[dict[str, Any]]  # pragma: no cover
+ErrorDict = dict[str, Any]  # pragma: no cover
+AnyDict = dict[str, Any]  # pragma: no cover
+StrDict = dict[str, str]  # pragma: no cover
+IntDict = dict[str, int]  # pragma: no cover
+StrIntDict = dict[str, str | int]  # pragma: no cover

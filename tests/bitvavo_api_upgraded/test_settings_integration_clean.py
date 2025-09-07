@@ -182,7 +182,7 @@ class TestBitvavoWithSettings:
 
         assert len(bitvavo.api_keys) == 1
         assert bitvavo.api_keys[0]["key"] == "settings_key"
-        assert bitvavo.api_keys[0]["secret"] == "settings_secret"  # noqa: S105 (Possible hardcoded password assigned)
+        assert bitvavo.api_keys[0]["secret"] == "settings_secret"
 
     def test_settings_with_multi_key_features(self) -> None:
         """Test that settings work with multi-key features."""

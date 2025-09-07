@@ -780,7 +780,7 @@ class OrderBookReportEntry(BaseModel):
         side = v.strip().upper()
         if side not in {"BUYI", "SELL"}:
             msg = (
-                f"Order side must be 'BUYI' or 'SELL', got: {side!r}. "
+                f"Order side must be 'BUY' or 'SELL', got: {side!r}. "
                 "Valid values: BUYI (buy orders), SELL (sell orders)"
             )
             raise ValueError(msg)

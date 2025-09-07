@@ -17,7 +17,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from returns.result import Failure, Result, Success
 from structlog.stdlib import get_logger
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
 
 T = TypeVar("T")

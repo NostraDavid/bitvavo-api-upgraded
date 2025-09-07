@@ -1370,7 +1370,7 @@ class TestWebSocketAppFacadeInit:
 
             # Test parameters
             api_key = "test_api_key"
-            api_secret = "test_api_secret"  # noqa: S105 # Test data, not actual secret
+            api_secret = "test_api_secret"  # Test data, not actual secret
             access_window = 10000
             ws_url = "wss://ws.bitvavo.com/v2/"
 

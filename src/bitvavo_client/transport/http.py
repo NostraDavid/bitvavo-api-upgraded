@@ -14,7 +14,7 @@ from bitvavo_client.adapters.returns_adapter import (
 )
 from bitvavo_client.auth.signing import create_signature
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from bitvavo_client.auth.rate_limit import RateLimitManager
     from bitvavo_client.core.settings import BitvavoSettings
     from bitvavo_client.core.types import AnyDict

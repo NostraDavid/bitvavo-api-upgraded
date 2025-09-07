@@ -38,7 +38,7 @@ class RateLimitManager:
             True if request can be made within rate limits
         """
         self.ensure_key(idx)
-        return (self.state[idx]["remaining"] - weight) > self.buffer
+        return (self.state[idx]["remaining"] - weight) >= self.buffer
 
     def update_from_headers(self, idx: int, headers: dict[str, str]) -> None:
         """Update rate limit state from response headers.

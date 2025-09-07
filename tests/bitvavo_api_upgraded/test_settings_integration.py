@@ -315,7 +315,7 @@ class TestBitvavoSettings:
 
         assert len(settings.APIKEYS) == 1
         assert settings.APIKEYS[0]["key"] == "test_key"
-        assert settings.APIKEYS[0]["secret"] == "test_secret"  # noqa: S105 (Possible hardcoded password assigned)
+        assert settings.APIKEYS[0]["secret"] == "test_secret"
 
     def test_api_rating_limit_calculation(self) -> None:
         """Test that API_RATING_LIMIT_PER_SECOND is calculated correctly."""

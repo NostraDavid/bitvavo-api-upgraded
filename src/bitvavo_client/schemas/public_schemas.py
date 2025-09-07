@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import polars as pl
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
 
 # Time endpoint schema

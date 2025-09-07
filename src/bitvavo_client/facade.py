@@ -10,7 +10,7 @@ from bitvavo_client.endpoints.private import PrivateAPI
 from bitvavo_client.endpoints.public import PublicAPI
 from bitvavo_client.transport.http import HTTPClient
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from bitvavo_client.core.model_preferences import ModelPreference
 
 T = TypeVar("T")

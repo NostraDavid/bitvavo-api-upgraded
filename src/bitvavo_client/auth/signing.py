@@ -7,7 +7,7 @@ import hmac
 import json
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from bitvavo_client.core.types import AnyDict
 
 

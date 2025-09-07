@@ -1,19 +1,17 @@
 """Error definitions for bitvavo_client."""
 
-from __future__ import annotations
 
-
-class BitvavoError(Exception):
+class BitvavoError(Exception):  # pragma: no cover
     """Base exception for Bitvavo API errors."""
 
 
-class RateLimitError(BitvavoError):
+class RateLimitError(BitvavoError):  # pragma: no cover
     """Raised when rate limit is exceeded."""
 
 
-class AuthenticationError(BitvavoError):
+class AuthenticationError(BitvavoError):  # pragma: no cover
     """Raised when authentication fails."""
 
 
-class NetworkError(BitvavoError):
+class NetworkError(BitvavoError):  # pragma: no cover
     """Raised when network operations fail."""

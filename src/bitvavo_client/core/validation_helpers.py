@@ -45,7 +45,7 @@ def format_validation_error(error: ValidationError, input_data: Any = None) -> s
         elif "decimal" in message.lower() or "numeric" in message.lower():
             error_lines.append("     💡 Use a decimal string like '123.45'")
         elif "side" in location.lower():
-            error_lines.append("     💡 Order side must be 'BUYI' or 'SELL'")
+            error_lines.append("     💡 Order side must be 'BUY' or 'SELL'")
 
         error_lines.append("")  # Empty line between errors
 

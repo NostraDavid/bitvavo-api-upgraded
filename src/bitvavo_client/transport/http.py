@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from returns.result import Failure, Result
@@ -19,9 +18,6 @@ if TYPE_CHECKING:
     from bitvavo_client.auth.rate_limit import RateLimitManager
     from bitvavo_client.core.settings import BitvavoSettings
     from bitvavo_client.core.types import AnyDict
-
-
-T = TypeVar("T")
 
 
 class HTTPClient:
@@ -59,20 +55,17 @@ class HTTPClient:
         *,
         body: AnyDict | None = None,
         weight: int = 1,
-        model: type[T] | Any | None,
-        schema: Mapping[str, object] | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
-        """Make HTTP request and return a Result.
+    ) -> Result[Any, BitvavoError | httpx.HTTPError]:
+        """Make HTTP request and return raw JSON data as a Result.
 
         Args:
             method: HTTP method (GET, POST, PUT, DELETE)
             endpoint: API endpoint path
             body: Request body for POST/PUT requests
             weight: Rate limit weight of the request
-            model: Optional Pydantic model to validate successful responses
 
         Returns:
-            Result containing parsed response or error
+            Result containing raw JSON response or error
 
         Raises:
             HTTPError: On transport-level failures
@@ -90,7 +83,8 @@ class HTTPClient:
             return Failure(exc)
 
         self._update_rate_limits(response)
-        return decode_response_result(response, model=model, schema=schema)
+        # Always return raw data - let the caller handle model conversion
+        return decode_response_result(response, model=Any)
 
     def _create_auth_headers(self, method: str, endpoint: str, body: AnyDict | None) -> dict[str, str]:
         """Create authentication headers if API key is configured."""

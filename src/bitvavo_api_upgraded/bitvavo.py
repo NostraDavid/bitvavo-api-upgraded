@@ -595,7 +595,6 @@ class Bitvavo:
 
         ---
         Args:
-        # TODO(NostraDavid) fill these in
         ```python
         endpoint: str = "/order"
         postfix: str = ""  # ?key=value&key2=another_value&...
@@ -2508,7 +2507,6 @@ class Bitvavo:
                 time.sleep(0.1)
 
         def do_send(self, ws: WebSocketApp, message: str, private: bool = False) -> None:  # noqa: FBT001, FBT002
-            # TODO(NostraDavid): add nap-time to the websocket, or do it here; I don't know yet.
             if private and self.APIKEY == "":
                 logger.error(
                     "no-apikey",
@@ -3980,8 +3978,6 @@ class Bitvavo:
             self.do_send(self.ws, json.dumps(options), True)
 
         def subscription_ticker(self, market: str, callback: Callable[[Any], None]) -> None:
-            # TODO(NostraDavid): one possible improvement here is to turn `market` into a list of markets, so we can sub
-            # to all of them at once. Same goes for other `subscription*()`
             """
             Subscribe to the ticker channel, which means `callback` gets passed the new best bid or ask whenever they
             change (server-side).

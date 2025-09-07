@@ -138,48 +138,6 @@ class Markets(RootModel[list[Market]]):
         return {market.quote for market in self.root}
 
 
-class Network(BaseModel):
-    """Flexible model for a token network entry.
-
-    The exact network objects returned by the API can vary. To remain
-    strict about known fields while still allowing additional keys we keep
-    'extra' set to "allow".
-    """
-
-    model_config = ConfigDict(
-        frozen=True,
-        extra="allow",
-        str_strip_whitespace=True,
-    )
-
-    # Common fields seen in network objects. Keep them optional because not
-    # every network object contains all of them.
-    network: str | None = Field(default=None, description="Network identifier (e.g. 'ERC20', 'BEP20')")
-    name: str | None = Field(default=None, description="Human readable network name")
-    chain: str | None = Field(default=None, description="Chain identifier if present")
-    deposit_status: str | None = Field(
-        default=None,
-        alias="depositStatus",
-        description="Deposit status for this network",
-    )
-    withdrawal_status: str | None = Field(
-        default=None,
-        alias="withdrawalStatus",
-        description="Withdrawal status for this network",
-    )
-    withdraw_fee: str | None = Field(
-        default=None,
-        alias="withdrawFee",
-        description="Withdrawal fee on this network (string)",
-    )
-    withdraw_min_amount: str | None = Field(
-        default=None,
-        alias="withdrawMinAmount",
-        description="Minimum withdrawal amount (string)",
-    )
-    # Allow any other keys the API may return (contract address, confirmations, etc.)
-
-
 class Asset(BaseModel):
     """Pydantic model for a single asset/currency entry (from the /assets endpoint)."""
 
@@ -231,9 +189,9 @@ class Asset(BaseModel):
         alias="withdrawalStatus",
         description="Withdrawal status (e.g. 'OK', 'MAINTENANCE', 'DELISTED')",
     )
-    networks: list[Network] = Field(
+    networks: list[str] = Field(
         ...,
-        description="List of network objects for this asset",
+        description="List of supported networks (e.g. ['Mainnet', 'ETH'])",
     )
     message: str = Field(
         ...,
@@ -246,6 +204,15 @@ class Asset(BaseModel):
     def non_empty_str(cls, v: str) -> str:
         if not v or not v.strip():
             msg = "must be a non-empty string"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("networks")
+    @classmethod
+    def validate_networks(cls, v: list[str]) -> list[str]:
+        """Ensure all networks are non-empty strings."""
+        if not all(isinstance(network, str) and network.strip() for network in v):
+            msg = "All networks must be non-empty strings"
             raise ValueError(msg)
         return v
 
@@ -262,55 +229,12 @@ class Asset(BaseModel):
 
 
 class Assets(RootModel[list[Asset]]):
-    """Wrapper model representing a list of Asset objects (API /assets response).
-
-    Handles the case where some network entries in the incoming API response
-    are simple strings (e.g. "ETH") instead of dicts. We normalize those
-    string entries to dicts with the "network" key before validation so the
-    Network model can parse them.
-    """
+    """Wrapper model representing a list of Asset objects (API /assets response)."""
 
     model_config = ConfigDict(
         frozen=True,
         validate_assignment=True,
     )
-
-    @field_validator("root", mode="before")
-    @classmethod
-    def _normalize_network_strings(cls, v: Any) -> Any:
-        # v is expected to be an iterable (usually a list) of asset dicts
-        try:
-            items = list(v)
-        except TypeError:
-            return v
-
-        normalized: list[object] = []
-        for asset in items:
-            # If it's already a validated Asset/BaseModel instance, keep it.
-            if hasattr(asset, "__class__") and isinstance(asset, Asset):
-                normalized.append(asset)
-                continue
-
-            # Only transform dict-like assets
-            if isinstance(asset, dict):
-                nets = asset.get("networks")
-                if isinstance(nets, list):
-                    new_nets: list[object] = []
-                    for n in nets:
-                        # Convert string entries into {"network": "<string>"}
-                        if isinstance(n, str):
-                            new_nets.append({"network": n})
-                        else:
-                            new_nets.append(n)
-                    # copy asset to avoid mutating input
-                    asset_copy = dict(asset)
-                    asset_copy["networks"] = new_nets
-                    normalized.append(asset_copy)
-                else:
-                    normalized.append(asset)
-            else:
-                normalized.append(asset)
-        return normalized
 
     def __len__(self) -> int:
         return len(self.root)
@@ -489,10 +413,10 @@ class TickerBook(BaseModel):
     )
 
     market: str = Field(..., description="Market symbol (e.g. 'BTC-EUR')", min_length=1)
-    bid: str = Field(..., description="Best bid price as string")
-    bid_size: str = Field(..., alias="bidSize", description="Size available at best bid as string")
-    ask: str = Field(..., description="Best ask price as string")
-    ask_size: str = Field(..., alias="askSize", description="Size available at best ask as string")
+    bid: str | None = Field(..., description="Best bid price as string")
+    bid_size: str | None = Field(..., alias="bidSize", description="Size available at best bid as string")
+    ask: str | None = Field(..., description="Best ask price as string")
+    ask_size: str | None = Field(..., alias="askSize", description="Size available at best ask as string")
 
     @field_validator("market")
     @classmethod
@@ -504,7 +428,9 @@ class TickerBook(BaseModel):
 
     @field_validator("bid", "ask", "bid_size", "ask_size")
     @classmethod
-    def _validate_numeric_str(cls, v: str) -> str:
+    def _validate_numeric_str(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
         try:
             d = Decimal(v)
         except Exception as exc:
@@ -517,12 +443,29 @@ class TickerBook(BaseModel):
 
 
 class TickerBooks(RootModel[list[TickerBook]]):
-    """Wrapper for a list of TickerBook items (e.g. API /ticker/book response)."""
+    """Wrapper for a list of TickerBook items (e.g. API /ticker/book response).
+
+    Handles both list responses (when no market is specified) and single object
+    responses (when a specific market is requested via query parameter).
+    """
 
     model_config = ConfigDict(
         frozen=True,
         validate_assignment=True,
     )
+
+    @field_validator("root", mode="before")
+    @classmethod
+    def _normalize_input(cls, v: Any) -> list[dict]:
+        """Convert single TickerBook dict to list for consistent handling."""
+        if isinstance(v, dict):
+            # Single ticker book object - wrap in list
+            return [v]
+        if isinstance(v, list):
+            # Already a list of ticker books
+            return v
+        msg = "Input must be a dict or list of dicts"
+        raise TypeError(msg)
 
     def __len__(self) -> int:
         return len(self.root)
@@ -807,3 +750,338 @@ class Ticker24hs(RootModel[list[Ticker24h]]):
     def to_serializable(self) -> list[dict]:
         """Return a list of dicts suitable for JSON serialization."""
         return [t.model_dump(by_alias=True) for t in self.root]
+
+
+class OrderBookReportEntry(BaseModel):
+    """Individual order entry in a MiCA-compliant order book report."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        extra="forbid",
+        str_strip_whitespace=True,
+        validate_assignment=True,
+        # Enhanced error reporting configuration
+        title="OrderBookReportEntry",
+        validate_default=True,
+        loc_by_alias=False,
+    )
+
+    side: str = Field(..., description="Order side: 'BUYI' for bids, 'SELL' for asks")
+    price: str = Field(..., description="Price value as decimal string")
+    quantity: str = Field(..., alias="size", description="Quantity value as decimal string")
+    num_orders: int = Field(..., alias="numOrders", description="Number of orders at this price level", ge=1)
+
+    @field_validator("side")
+    @classmethod
+    def _validate_side(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            msg = f"Order side must be a non-empty string, got {type(v).__name__}: {v!r}"
+            raise ValueError(msg)
+        side = v.strip().upper()
+        if side not in {"BUYI", "SELL"}:
+            msg = (
+                f"Order side must be 'BUYI' or 'SELL', got: {side!r}. "
+                "Valid values: BUYI (buy orders), SELL (sell orders)"
+            )
+            raise ValueError(msg)
+        return side
+
+    @field_validator("price", "quantity")
+    @classmethod
+    def _validate_numeric_str(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            msg = f"Numeric field must be a non-empty string, got {type(v).__name__}: {v!r}"
+            raise ValueError(msg)
+        try:
+            d = Decimal(v)
+        except (ValueError, TypeError) as exc:
+            msg = f"Numeric field must be a valid decimal string (e.g., '123.45'), got: {v!r}. Error: {exc}"
+            raise ValueError(msg) from exc
+        if d < 0:
+            msg = f"Numeric field must be non-negative, got: {v!r} (value: {d})"
+            raise ValueError(msg)
+        return v
+
+
+class OrderBookReport(BaseModel):
+    """MiCA-compliant order book report model (API /report/{market}/book response)."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        extra="forbid",
+        str_strip_whitespace=True,
+        validate_assignment=True,
+        populate_by_name=True,
+        # Enhanced error reporting configuration
+        title="OrderBookReport",
+        validate_default=True,
+        loc_by_alias=False,
+    )
+
+    submission_timestamp: str = Field(
+        ...,
+        alias="submissionTimestamp",
+        description="Timestamp when order book is submitted to database (ISO 8601)",
+    )
+    asset_code: str = Field(..., alias="assetCode", description="DTI code or symbol of the asset")
+    asset_name: str = Field(..., alias="assetName", description="Full name of the asset")
+    bids: list[OrderBookReportEntry] = Field(..., description="List of buy orders")
+    asks: list[OrderBookReportEntry] = Field(..., description="List of sell orders")
+    price_currency: str = Field(..., alias="priceCurrency", description="DTI code of price currency")
+    price_notation: str = Field(..., alias="priceNotation", description="Price notation (always 'MONE')")
+    quantity_currency: str = Field(..., alias="quantityCurrency", description="Currency for quantity expression")
+    quantity_notation: str = Field(..., alias="quantityNotation", description="Quantity notation (always 'CRYP')")
+    venue: str = Field(..., description="Market Identifier Code (always 'VAVO')")
+    trading_system: str = Field(..., alias="tradingSystem", description="Trading system identifier (always 'VAVO')")
+    publication_timestamp: str = Field(
+        ...,
+        alias="publicationTimestamp",
+        description="Timestamp when book snapshot is added to database (ISO 8601)",
+    )
+
+    @field_validator("submission_timestamp", "publication_timestamp")
+    @classmethod
+    def _validate_timestamp(cls, v: str) -> str:
+        if not isinstance(v, str):
+            msg = "timestamp must be a string"
+            raise TypeError(msg)
+
+        # Allow empty timestamps
+        if not v.strip():
+            return v
+
+        # Basic format validation - should be ISO 8601 format
+        if not v.endswith("Z") or "T" not in v:
+            msg = "timestamp must be in ISO 8601 format (e.g., '2025-05-02T14:23:11.123456Z') or empty"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("asset_code", "asset_name", "price_currency", "quantity_currency", "venue", "trading_system")
+    @classmethod
+    def _non_empty_str(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            msg = "must be a non-empty string"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("price_notation")
+    @classmethod
+    def _validate_price_notation(cls, v: str) -> str:
+        if not isinstance(v, str) or v.strip() != "MONE":
+            msg = "price_notation must be 'MONE'"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("quantity_notation")
+    @classmethod
+    def _validate_quantity_notation(cls, v: str) -> str:
+        if not isinstance(v, str) or v.strip() != "CRYP":
+            msg = "quantity_notation must be 'CRYP'"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("venue", "trading_system")
+    @classmethod
+    def _validate_venue_system(cls, v: str) -> str:
+        if not isinstance(v, str) or v.strip() not in ["VAVO", "CLOB"]:
+            msg = "venue and trading_system must be 'VAVO' or 'CLOB'"
+            raise ValueError(msg)
+        return v
+
+    def best_bid(self) -> OrderBookReportEntry | None:
+        """Get the best (highest) bid."""
+        if not self.bids:
+            return None
+        return max(self.bids, key=lambda bid: Decimal(bid.price))
+
+    def best_ask(self) -> OrderBookReportEntry | None:
+        """Get the best (lowest) ask."""
+        if not self.asks:
+            return None
+        return min(self.asks, key=lambda ask: Decimal(ask.price))
+
+    def spread(self) -> Decimal | None:
+        """Calculate the spread between best bid and ask."""
+        best_bid = self.best_bid()
+        best_ask = self.best_ask()
+        if best_bid and best_ask:
+            return Decimal(best_ask.price) - Decimal(best_bid.price)
+        return None
+
+
+class TradeReportEntry(BaseModel):
+    """Individual trade entry in a MiCA-compliant trades report."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        extra="forbid",
+        str_strip_whitespace=True,
+        validate_assignment=True,
+        populate_by_name=True,
+    )
+
+    trade_id: str = Field(
+        ...,
+        alias="tradeId",
+        description="The unique identifier of the trade",
+        min_length=1,
+    )
+    transact_timestamp: str = Field(
+        ...,
+        alias="transactTimestamp",
+        description="The timestamp when the trade is added to the database (ISO 8601 format)",
+    )
+    asset_code: str = Field(
+        ...,
+        alias="assetCode",
+        description="The DTI code or a symbol of the asset",
+        min_length=1,
+    )
+    asset_name: str = Field(
+        ...,
+        alias="assetName",
+        description="The full name of the asset",
+        min_length=1,
+    )
+    price: str = Field(
+        ...,
+        description="The price of 1 unit of base currency in the amount of quote currency at the time of the trade",
+    )
+    missing_price: str = Field(
+        "",
+        alias="missingPrice",
+        description="Indicates if the price is pending (PNDG) or not applicable (NOAP). May be empty.",
+    )
+    price_notation: str = Field(
+        ...,
+        alias="priceNotation",
+        description="Indicates whether the price is expressed as a monetary value, percentage, yield, or basis points",
+    )
+    price_currency: str = Field(
+        ...,
+        alias="priceCurrency",
+        description="The currency in which the price is expressed",
+        min_length=1,
+    )
+    quantity: str = Field(
+        ...,
+        description="The quantity of the asset (decimal string)",
+    )
+    quantity_currency: str = Field(
+        ...,
+        alias="quantityCurrency",
+        description="The currency in which the quantity of the crypto asset is expressed",
+        min_length=1,
+    )
+    quantity_notation: str = Field(
+        ...,
+        alias="quantityNotation",
+        description="Indicates whether the quantity is expressed as units, nominal value, monetary value, or crypto",
+    )
+    venue: str = Field(
+        ...,
+        description="The Market Identifier Code of the Bitvavo trading platform",
+        min_length=1,
+    )
+    publication_timestamp: str = Field(
+        ...,
+        alias="publicationTimestamp",
+        description="The timestamp when the trade is added to the database (ISO 8601 format)",
+    )
+    publication_venue: str = Field(
+        ...,
+        alias="publicationVenue",
+        description="The Market Identifier Code of the trading platform that publishes the transaction",
+        min_length=1,
+    )
+
+    @field_validator(
+        "trade_id", "asset_code", "asset_name", "price_currency", "quantity_currency", "venue", "publication_venue"
+    )
+    @classmethod
+    def _non_empty_str(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            msg = "must be a non-empty string"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("price", "quantity")
+    @classmethod
+    def _numeric_str(cls, v: str) -> str:
+        try:
+            d = Decimal(v)
+        except Exception as exc:
+            msg = "must be a numeric string"
+            raise ValueError(msg) from exc
+        if d < 0:
+            msg = "must be non-negative"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("transact_timestamp", "publication_timestamp")
+    @classmethod
+    def _iso_timestamp(cls, v: str) -> str:
+        if not isinstance(v, str):
+            msg = "timestamp must be a string"
+            raise TypeError(msg)
+
+        # Basic format validation - should be ISO 8601 format
+        if not v.endswith("Z") or "T" not in v:
+            msg = "timestamp must be in ISO 8601 format (e.g., '2024-05-02T14:43:11.123456Z')"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("price_notation")
+    @classmethod
+    def _validate_price_notation(cls, v: str) -> str:
+        if not isinstance(v, str) or v.strip() != "MONE":
+            msg = "price_notation must be 'MONE'"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("quantity_notation")
+    @classmethod
+    def _validate_quantity_notation(cls, v: str) -> str:
+        if not isinstance(v, str) or v.strip() != "CRYP":
+            msg = "quantity_notation must be 'CRYP'"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("venue", "publication_venue")
+    @classmethod
+    def _validate_venue(cls, v: str) -> str:
+        if not isinstance(v, str) or v.strip() != "VAVO":
+            msg = "venue must be 'VAVO'"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("missing_price")
+    @classmethod
+    def _validate_missing_price(cls, v: str) -> str:
+        if not isinstance(v, str):
+            msg = "missing_price must be a string"
+            raise TypeError(msg)
+
+        # Allow empty string or specific values
+        if v and v.strip() not in ["PNDG", "NOAP"]:
+            msg = "missing_price must be empty, 'PNDG', or 'NOAP'"
+            raise ValueError(msg)
+        return v
+
+
+class TradesReport(RootModel[list[TradeReportEntry]]):
+    """MiCA-compliant trades report model (API /report/{market}/trades response)."""
+
+    model_config = ConfigDict(
+        frozen=True,
+        validate_assignment=True,
+    )
+
+    def __len__(self) -> int:
+        return len(self.root)
+
+    def __iter__(self) -> Any:
+        return iter(self.root)
+
+    def __getitem__(self, item: int) -> TradeReportEntry:
+        return self.root[item]

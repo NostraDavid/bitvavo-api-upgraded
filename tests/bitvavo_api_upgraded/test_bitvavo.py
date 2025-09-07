@@ -1211,7 +1211,7 @@ class TestBitvavo:
             assert item["status"] in [
                 "completed",
                 "awaiting_processing",
-            ]  # TODO(NostraDavid): expand this list, if possible
+            ]
 
     def test_account_history(self, bitvavo: Bitvavo) -> None:
         """Test the new accountHistory method for MiCA compliance."""
@@ -1579,9 +1579,6 @@ class TestWebSocketAppFacadeInit:
         capsys: pytest.CaptureFixture[str],
         websocket: Bitvavo.WebSocketAppFacade,
     ) -> None:
-        """
-        TODO: check if it's the orderId or something else
-        """
         websocket.get_order(
             market="BTC-EUR",
             orderId="6d0dffa7-07fe-448e-9928-233821e7cdb5",

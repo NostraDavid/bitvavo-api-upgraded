@@ -137,7 +137,7 @@ replace = "v{new_version} - {now:%Y-%m-%d}"
 
 [tool.coverage.run]
 branch = true
-source = ["bitvavo_api_upgraded"]
+source = ["bitvavo_api_upgraded", "bitvavo_client"]
 parallel = true
 relative_files = true
 omit = ["docs/*", "scripts/*", "tests/*"]

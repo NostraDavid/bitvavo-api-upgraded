@@ -9,14 +9,16 @@ functional error handling can import and use these utilities directly.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any, ClassVar, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import httpx
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from returns.result import Failure, Result, Success
 from structlog.stdlib import get_logger
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 T = TypeVar("T")
 
@@ -219,7 +221,36 @@ def _validation_failure(reason: str, payload: dict[str, Any]) -> BitvavoError:
     )
 
 
-def decode_response_result(
+def _enhance_dataframe_error(exc: Exception, data: Any, schema: Mapping[str, object] | None, model: type) -> str:
+    """Create enhanced error message for DataFrame schema mismatches."""
+    error_msg = str(exc)
+
+    if "column-schema names do not match the data dictionary" not in error_msg:
+        return error_msg
+
+    # Extract actual field names from the data
+    if isinstance(data, dict):
+        actual_fields = list(data.keys())
+    elif isinstance(data, list) and data and isinstance(data[0], dict):
+        actual_fields = list(data[0].keys())
+    else:
+        actual_fields = []
+
+    # Extract expected field names from schema
+    expected_fields = list(schema.keys()) if schema else []
+
+    model_name = getattr(model, "__name__", "DataFrame")
+    return (
+        f"DataFrame schema mismatch for {model_name}:\n"
+        f"  Expected fields: {expected_fields}\n"
+        f"  Actual fields:   {actual_fields}\n"
+        f"  Missing fields:  {set(expected_fields) - set(actual_fields)}\n"
+        f"  Extra fields:    {set(actual_fields) - set(expected_fields)}\n"
+        f"  Original error:  {error_msg}"
+    )
+
+
+def decode_response_result(  # noqa: C901 (complexity)
     resp: httpx.Response,
     model: type[T] | None,
     schema: Mapping[str, object] | None = None,
@@ -248,23 +279,36 @@ def decode_response_result(
         # (pandas / polars). Also fall back to calling a constructor if provided.
         if (isinstance(model, type) and issubclass(model, BaseModel)) or isinstance(model, BaseModel):
             parsed = model.model_validate(data)
+        elif schema is None:
+            parsed = model(data)  # type: ignore[arg-type]
         else:
-            # Narwhals accepts dict/list at runtime, but static typing may not match its overloads.
-            # Assign the converted value and silence the specific mypy/ruff arg-type complaint.
-            parsed = model(data) if schema is None else model(data, schema=schema)  # type: ignore[arg-type]
+            # I don't like the complexity of this piece, but it's needed because the data from ticker_book may return an
+            # int when it should be a float... Why is their DB such a damned mess? Fuck me, man...
+            try:
+                import polars as pl  # noqa: PLC0415
+
+                if model is pl.DataFrame:
+                    parsed = model(data, schema=schema, strict=False)  # type: ignore[arg-type]
+                else:
+                    parsed = model(data, schema=schema)  # type: ignore[arg-type]
+            except ImportError:
+                parsed = model(data, schema=schema)  # type: ignore[arg-type]
         return Success(parsed)
     except Exception as exc:  # noqa: BLE001
         # If the payload looks like a Bitvavo error, map it so callers get a structured error.
         if isinstance(data, dict) and any(key in data for key in ["errorCode", "error", "message"]):
             return Failure(_map_error(resp))
 
+        # Enhanced error message for DataFrame schema mismatches
+        enhanced_error = _enhance_dataframe_error(exc, data, schema, model)
+
         logger.warning(
             "model_validation-failed",
-            error=str(exc),
+            error=enhanced_error,
             exception_type=type(exc).__name__,
             payload=data,
         )
-        return Failure(_validation_failure(str(exc), data if isinstance(data, dict) else {"raw": data}))
+        return Failure(_validation_failure(enhanced_error, data if isinstance(data, dict) else {"raw": data}))
 
 
 # ---------------------------------------------------------------------------

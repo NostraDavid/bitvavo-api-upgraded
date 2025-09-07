@@ -376,7 +376,6 @@ class TestErrorHandling:
         """Test that validation fails appropriately when narwhals isn't available."""
         # This test is mainly for documentation - in practice, we can't easily mock
         # the import failures in pytest without complex mocking
-        # TODO(dev): Add more comprehensive mocking tests if needed
         assert True  # Placeholder test
 
     def test_validate_without_pandas_for_pandas_format(self) -> None:
@@ -801,7 +800,7 @@ class TestCreateSpecialDataframe:
 
         test_data = [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
 
-        result = _create_special_dataframe(test_data, "dask")
+        result = _create_special_dataframe(test_data, OutputFormat.DASK)
 
         # Should be a dask dataframe
         assert isinstance(result, dd.DataFrame)
@@ -819,7 +818,7 @@ class TestCreateSpecialDataframe:
 
         test_data = [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
 
-        result = _create_special_dataframe(test_data, "duckdb")
+        result = _create_special_dataframe(test_data, OutputFormat.DUCKDB)
 
         # Should be a duckdb relation
         assert hasattr(result, "df")  # DuckDB relation has df() method

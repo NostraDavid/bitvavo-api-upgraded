@@ -1,40 +1,75 @@
 # Bitvavo API (upgraded)
 
-A **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency exchange API. This is an "upgraded" fork of the official Bitvavo SDK with comprehensive improvements.
+A **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency exchange API. This is an "upgraded" fork of the official Bitvavo SDK with comprehensive improvements and modern architecture.
 
 ## Why Choose This Over the Official SDK?
 
-- 🎯 **Complete type annotations** for all functions and classes (better IDE
-  support)
-- 🧪 **Comprehensive test suite** (found and fixed 6+ bugs in the original
-  untested code)
-- 📋 **Detailed changelog** tracking all changes and improvements
-- 🔄 **Up-to-date API compliance** including MiCA regulatory requirements
-  (v2.0.0+)
-- 🐍 **Modern Python support** (3.9+, dropped EOL versions)
-- 🔑 **Multi-key & keyless support**: Multiple API keys for rate limiting and
-  public endpoint access without authentication
-- ⚡ **Enhanced reliability**:
-  - Working `getRemainingLimit()` function
-  - Automatic ban detection and waiting
-  - Client-server lag compensation for stable API calls
-  - Proper `ACCESSWINDOW` timeout handling
-- 📚 **Better developer experience**:
-  - Built-in documentation with examples
-  - Fancy logging via `structlog` (including external libs)
-  - Configuration via `.env` files with Pydantic validation
+### Modern Architecture
+
+- **Two interfaces**: Legacy `Bitvavo` class for backward compatibility + new `BitvavoClient` for modern development
+- **Modular design**: Clean separation between public/private APIs, transport, and authentication
+- **Type safety**: Complete type annotations with generics and precise return types
+
+### Quality & Reliability
+
+- **Comprehensive test suite** (found and fixed multiple bugs in the original)
+- **Enhanced error handling** with detailed validation messages
+- **Rate limiting** with automatic throttling and multi-key support
+- **Up-to-date API compliance** including MiCA regulatory requirements
+
+### Data Format Flexibility
+
+- **Multiple output formats**: Raw dictionaries, validated Pydantic models, or DataFrames
+- **Unified dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark)
+- **Result types** for functional error handling
+
+### Developer Experience
+
+- **Modern Python support** (3.9+, dropped EOL versions)
+- **Configuration via environment variables** or Pydantic settings
+- **Enhanced documentation** with comprehensive examples
+- **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
 
 ## Quick Start
 
-```python
+```bash
 pip install bitvavo_api_upgraded
 ```
 
-For code examples, look down below.
+### Two Ways to Use This Package
 
-## 🚨 Breaking Changes in v2.0.0
+#### Option 1: New BitvavoClient (Recommended)
 
-It's somewhat minor:
+Modern, modular interface with clean architecture:
+
+```python
+from bitvavo_client import BitvavoClient, BitvavoSettings
+
+# Auto-load from .env file
+settings = BitvavoSettings()
+client = BitvavoClient(**settings.model_dump())
+
+# Access public endpoints (no auth needed)
+time_result = client.public.time()
+markets_result = client.public.markets()
+
+# Access private endpoints (auth required)
+balance_result = client.private.balance()
+orders_result = client.private.orders('BTC-EUR')
+```
+
+#### Option 2: Legacy Bitvavo (Backward Compatibility)
+
+Drop-in replacement for the official SDK:
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+bitvavo = Bitvavo({'APIKEY': 'your-key', 'APISECRET': 'your-secret'})
+balance = bitvavo.balance({})
+```
+
+## Breaking Changes in v2.0.0
 
 **MiCA Compliance Update**: All trading operations now require an `operatorId` parameter:
 
@@ -42,48 +77,63 @@ It's somewhat minor:
 # Before (v1.17.x and earlier)
 bitvavo.placeOrder(market="BTC-EUR", side="buy", orderType="limit", body={...})
 
-# After (v2.0.0+)  
+# After (v2.0.0+)
 bitvavo.placeOrder(market="BTC-EUR", side="buy", orderType="limit", body={...}, operatorId=12345)
 ```
 
 **New MiCA reporting endpoints**:
 
 - `reportTrades()` - Generate trade reports for regulatory compliance
-- `reportBook()` - Generate order book reports  
-- `accountHistory()` - Detailed account transaction history
-
-## Compatibility Promise
+- `reportBook()` - Generate order book reports
+- `accountHistory()` - Detailed account transaction history## Compatibility Promise
 
 Version `1.*` maintains compatibility with the original API, with these improvements:
 
-- ✅ **Fixed**: `Bitvavo.candles()` - renamed `symbol` → `market` parameter (was a bug)
-- ✅ **Fixed**: `Bitvavo.book()` - same `symbol` → `market` fix
-- ✅ **Removed**: Internal `rateLimitThread` class (cleaner implementation)
+- **Fixed**: `Bitvavo.candles()` - renamed `symbol` → `market` parameter (was a bug)
+- **Fixed**: `Bitvavo.book()` - same `symbol` → `market` fix
+- **Removed**: Internal `rateLimitThread` class (cleaner implementation)
 
 ## Configuration Options
 
-Modern configuration via `.env` files (powered by Pydantic Settings):
+### Environment Variables
+
+Create a `.env` file in your project root:
 
 ```env
-# Required: API credentials (single key)
+# API authentication
+BITVAVO_API_KEY=your-api-key-here
+BITVAVO_API_SECRET=your-api-secret-here
+
+# Client behavior
+BITVAVO_PREFER_KEYLESS=true          # Use keyless for public endpoints
+BITVAVO_DEFAULT_RATE_LIMIT=1000      # Rate limit per key
+BITVAVO_DEBUGGING=false              # Enable debug logging
+
+# Legacy format (still supported)
 BITVAVO_APIKEY=your-api-key-here
 BITVAVO_APISECRET=your-api-secret-here
-
-# Optional: Multiple API keys for rate limit distribution
-# BITVAVO_APIKEYS='[{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]'
-
-# Optional: Keyless configuration (public endpoints only)
-BITVAVO_PREFER_KEYLESS=true                            # Prefer public endpoints when possible
-
-# Optional: Customize behavior
-BITVAVO_API_UPGRADED_LOG_LEVEL=INFO                    # Logging level (DEBUG/INFO/WARNING/ERROR)
-BITVAVO_API_UPGRADED_LOG_EXTERNAL_LEVEL=WARNING        # External libs logging level
-BITVAVO_API_UPGRADED_LAG=50                            # Client-server lag compensation (ms)
-BITVAVO_API_UPGRADED_RATE_LIMITING_BUFFER=25           # Rate limit buffer (increase if getting banned)
-BITVAVO_API_UPGRADED_DEFAULT_RATE_LIMIT=750            # Default rate limit for new API keys
 ```
 
-Then use in your code:
+### Usage Examples
+
+#### New BitvavoClient
+
+```python
+from bitvavo_client import BitvavoClient, BitvavoSettings
+
+# Auto-load from .env
+client = BitvavoClient()
+
+# Custom settings
+settings = BitvavoSettings(
+    api_key="your-key",
+    api_secret="your-secret",
+    prefer_keyless=True
+)
+client = BitvavoClient(settings)
+```
+
+#### Legacy Bitvavo
 
 ```python
 from bitvavo_api_upgraded import Bitvavo, BitvavoSettings
@@ -167,19 +217,47 @@ ws.subscriptionTicker("BTC-EUR", handle_ticker)
 
 ## Migration from Official SDK
 
+### Option 1: Quick Migration (Legacy Interface)
+
 1. **Install**: `pip install bitvavo_api_upgraded`
 2. **Update imports**: `from bitvavo_api_upgraded import Bitvavo`
 3. **Add operatorId**: Include in all trading operations (placeOrder, updateOrder, cancelOrder)
 4. **Enjoy**: Better error handling, type hints, and reliability!
 
+### Option 2: Modern Architecture (New Interface)
+
+For new projects or when refactoring:
+
+```python
+# Old
+from python_bitvavo_api.bitvavo import Bitvavo
+bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+
+# New
+from bitvavo_client import BitvavoClient, BitvavoSettings
+client = BitvavoClient(BitvavoSettings(api_key='key', api_secret='secret'))
+```
+
+### Breaking Changes in v2.0.0
+
+**MiCA Compliance**: All trading operations now require an `operatorId` parameter:
+
+```python
+# Before (v1.17.x and earlier)
+bitvavo.placeOrder(market="BTC-EUR", side="buy", orderType="limit", body={...})
+
+# After (v2.0.0+)
+bitvavo.placeOrder(market="BTC-EUR", side="buy", orderType="limit", body={...}, operatorId=12345)
+```
+
 ## Links & Resources
 
-- 📚 [Official Bitvavo API Documentation](https://docs.bitvavo.com/)
-- 📖 [Trading Rules & Terminology](https://bitvavo.com/en/trading-rules) (helpful for understanding crypto trading concepts)
-- 🔧 [GitHub Repository](https://github.com/Thaumatorium/bitvavo-api-upgraded) (source code, issues, contributions)
-- 📦 [PyPI Package](https://pypi.org/project/bitvavo-api-upgraded/) (installation and version history)
-- 📋 [Changelog](https://github.com/Thaumatorium/bitvavo-api-upgraded/blob/master/CHANGELOG.md) (detailed version history)
+- [Official Bitvavo API Documentation](https://docs.bitvavo.com/)
+- [Trading Rules & Terminology](https://bitvavo.com/en/trading-rules) (helpful for understanding crypto trading concepts)
+- [GitHub Repository](https://github.com/Thaumatorium/bitvavo-api-upgraded) (source code, issues, contributions)
+- [PyPI Package](https://pypi.org/project/bitvavo-api-upgraded/) (installation and version history)
+- [Changelog](https://github.com/Thaumatorium/bitvavo-api-upgraded/blob/master/CHANGELOG.md) (detailed version history)
 
 ---
 
-*This package is not affiliated with Bitvavo. It's an independent enhancement of their Python SDK.*
+_This package is not affiliated with Bitvavo. It's an independent enhancement of their Python SDK._

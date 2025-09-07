@@ -1,11 +1,28 @@
 # Bitvavo API (upgraded)
 
-A **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency exchange API. This is an "upgraded" fork of the official Bitvavo SDK with comprehensive type hints, unit tests, and improved developer experience.
+A **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency exchange API. This is an "upgraded" fork of the official Bitvavo SDK with comprehensive type hints, unit tests, modern architecture, and improved developer experience.
 
 ## Quick Start
 
 ```bash
 pip install bitvavo_api_upgraded
+```
+
+### Basic Usage
+
+```python
+# Option 1: Original Bitvavo interface (legacy)
+from bitvavo_api_upgraded import Bitvavo
+
+bitvavo = Bitvavo({'APIKEY': 'your-key', 'APISECRET': 'your-secret'})
+balance = bitvavo.balance({})
+
+# Option 2: New modular BitvavoClient interface (recommended)
+from bitvavo_client import BitvavoClient, BitvavoSettings
+
+client = BitvavoClient()
+result = client.public.time()  # No authentication needed
+result = client.private.balance()  # Authentication required
 ```
 
 ### Optional Dataframe Support
@@ -54,66 +71,127 @@ Scroll down for detailed usage examples and configuration instructions.
 
 This wrapper improves upon the official Bitvavo SDK with:
 
-- 🎯 **Complete type annotations** for all functions and classes
-- 🧪 **Comprehensive test suite** (found and fixed multiple bugs in the original)
-- 📋 **Detailed changelog** tracking all changes and improvements
-- 🔄 **Up-to-date API compliance** including MiCA regulatory requirements
-- 📚 **Enhanced documentation** with examples and clear usage patterns
-- 🐍 **Modern Python support** (3.9+, dropped EOL versions)
-- 🔑 **Multi-key & keyless support** for enhanced rate limiting and public access
-- ⚡ **Better error handling** and rate limiting
-- 🔧 **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
-- 📊 **Unified dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, SQLFrame)
+### Modern Architecture
+
+- **Modular design**: Clean separation between public/private APIs, transport, and authentication
+- **Two interfaces**: Legacy `Bitvavo` class for backward compatibility + new `BitvavoClient` for modern development
+- **Dependency injection**: Testable, maintainable, and extensible codebase
+- **Type safety**: Comprehensive type annotations with generics and precise return types
+
+### Quality & Reliability
+
+- **Comprehensive test suite** (found and fixed multiple bugs in the original)
+- **100% type coverage** with mypy strict mode
+- **Enhanced error handling** with detailed validation messages
+- **Rate limiting** with automatic throttling and multi-key support
+
+### Data Format Flexibility
+
+- **Unified dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, SQLFrame)
+- **Pydantic models** for validated, structured data
+- **Raw dictionary access** for backward compatibility
+- **Result types** for functional error handling
+
+### Enhanced Performance
+
+- **Multi-key support** for better rate limiting and load distribution
+- **Keyless access** for public endpoints (doesn't count against your API limits)
+- **Connection pooling** and retry logic
+- **Async-ready architecture** (async support coming in future release)
+
+### Developer Experience
+
+- **Modern Python support** (3.9+, dropped EOL versions)
+- **Configuration via environment variables** or Pydantic settings
+- **Detailed changelog** tracking all changes and improvements
+- **Enhanced documentation** with examples and clear usage patterns
+- **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
 
 ## Features
 
 ### Full API Coverage
 
-- ✅ All REST endpoints (public and private)
-- ✅ **Multiple API key support** with automatic load balancing
-- ✅ **Keyless access** for public endpoints without authentication
-- ✅ **Comprehensive dataframe support** via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, and more)
-- ✅ WebSocket support with reconnection logic
-- ✅ Rate limiting with automatic throttling
-- ✅ MiCA compliance reporting endpoints
+- All REST endpoints (public and private)
+- Multiple API key support with automatic load balancing
+- Keyless access for public endpoints without authentication
+- Comprehensive dataframe support via Narwhals (pandas, polars, cuDF, modin, PyArrow, Dask, DuckDB, Ibis, PySpark, and more)
+- WebSocket support with reconnection logic
+- Rate limiting with automatic throttling
+- MiCA compliance reporting endpoints
 
 ### Developer Experience
 
-- ✅ Type hints for better IDE support
-- ✅ Comprehensive error handling
-- ✅ Detailed logging with `structlog`
-- ✅ Configuration via `.env` files
-- ✅ Extensive test coverage
+- Type hints for better IDE support
+- Comprehensive error handling
+- Detailed logging with `structlog`
+- Configuration via `.env` files
+- Extensive test coverage
 
 ### Production Ready
 
-- ✅ Automatic rate limit management
-- ✅ Multi-key failover support
-- ✅ Connection retry logic
-- ✅ Proper error responses
-- ✅ Memory efficient WebSocket handling
+- Automatic rate limit management
+- Multi-key failover support
+- Connection retry logic
+- Proper error responses
+- Memory efficient WebSocket handling
 
 ## Configuration
+
+### Environment Variables
 
 Create a `.env` file in your project root:
 
 ```env
-# Single API key (traditional)
-BITVAVO_APIKEY=your-api-key-here
-BITVAVO_APISECRET=your-api-secret-here
+# API authentication
+BITVAVO_API_KEY=your-api-key-here
+BITVAVO_API_SECRET=your-api-secret-here
 
-# Multiple API keys (for rate limiting)
-# BITVAVO_APIKEYS='[{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]'
+# Multi-key support (JSON array as string)
+# BITVAVO_API_KEYS='[{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]'
 
-# Keyless access (public endpoints only)
-BITVAVO_PREFER_KEYLESS=true
+# Client behavior
+BITVAVO_PREFER_KEYLESS=true          # Use keyless for public endpoints
+BITVAVO_DEFAULT_RATE_LIMIT=1000      # Rate limit per key
+BITVAVO_RATE_LIMIT_BUFFER=50         # Buffer to avoid hitting limits
+BITVAVO_DEBUGGING=false              # Enable debug logging
 
-# Enhanced settings
-BITVAVO_API_UPGRADED_DEFAULT_RATE_LIMIT=750
-BITVAVO_API_UPGRADED_PREFER_KEYLESS=false
+# API endpoints (usually not needed to change)
+BITVAVO_REST_URL=https://api.bitvavo.com/v2
+BITVAVO_WS_URL=wss://ws.bitvavo.com/v2/
 ```
 
-Then use the settings:
+### Usage Examples
+
+#### New BitvavoClient (Recommended)
+
+```python
+from bitvavo_client import BitvavoClient, BitvavoSettings
+
+# Option 1: Auto-load from .env file
+client = BitvavoClient()
+
+# Option 2: Custom settings
+settings = BitvavoSettings(
+    api_key="your-key",
+    api_secret="your-secret",
+    prefer_keyless=True,
+    debugging=True
+)
+client = BitvavoClient(settings)
+
+# Option 3: Manual settings override
+client = BitvavoClient(BitvavoSettings(default_rate_limit=750))
+
+# Access public endpoints (no auth needed)
+time_result = client.public.time()
+markets_result = client.public.markets()
+
+# Access private endpoints (auth required)
+balance_result = client.private.balance()
+account_result = client.private.account()
+```
+
+#### Legacy Bitvavo Class (Backward Compatibility)
 
 ```python
 from bitvavo_api_upgraded import Bitvavo, BitvavoSettings
@@ -138,6 +216,68 @@ bitvavo = Bitvavo({
 
 # Option 4: Keyless (public endpoints only)
 bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+```
+
+## Data Format Flexibility
+
+The new BitvavoClient supports multiple output formats to match your workflow:
+
+### Model Preferences
+
+```python
+from bitvavo_client import BitvavoClient
+from bitvavo_client.core.model_preferences import ModelPreference
+
+# Option 1: Raw dictionaries (default, backward compatible)
+client = BitvavoClient(preferred_model=ModelPreference.RAW)
+result = client.public.time()  # Returns: {"time": 1609459200000}
+
+# Option 2: Validated Pydantic models
+client = BitvavoClient(preferred_model=ModelPreference.PYDANTIC)
+result = client.public.time()  # Returns: ServerTime(time=1609459200000)
+
+# Option 3: DataFrame format (pandas, polars, etc.)
+client = BitvavoClient(preferred_model=ModelPreference.DATAFRAME)
+result = client.public.markets()  # Returns: polars.DataFrame with market data
+```
+
+### Per-Request Format Override
+
+```python
+# Set a default preference but override per request
+client = BitvavoClient(preferred_model=ModelPreference.RAW)
+
+# Get raw dict (uses default)
+raw_data = client.public.markets()
+
+# Override to get DataFrame for this request
+import polars as pl
+df_data = client.public.markets(model=pl.DataFrame)
+
+# Override to get Pydantic model
+from bitvavo_client.core.public_models import Markets
+validated_data = client.public.markets(model=Markets)
+```
+
+### Result Types for Error Handling
+
+```python
+from returns.result import Success, Failure
+
+# Use result types for functional error handling
+result = client.public.time()
+
+if isinstance(result, Success):
+    print(f"Server time: {result.unwrap()}")
+elif isinstance(result, Failure):
+    print(f"Error: {result.failure()}")
+
+# Or use match-case (Python 3.10+)
+match result:
+    case Success(value):
+        print(f"Success: {value}")
+    case Failure(error):
+        print(f"Error: {error}")
 ```
 
 ## WebSocket Usage
@@ -229,9 +369,44 @@ balance = bitvavo.balance({})
 
 ## API Examples
 
-### Public Endpoints (No Authentication)
+### Public Endpoints (No Authentication Required)
+
+#### New BitvavoClient Interface
 
 ```python
+from bitvavo_client import BitvavoClient
+
+client = BitvavoClient()
+
+# Get server time
+time_result = client.public.time()
+
+# Get all markets
+markets_result = client.public.markets()
+
+# Get specific market
+btc_market = client.public.markets(market='BTC-EUR')
+
+# Get order book
+book_result = client.public.book('BTC-EUR')
+
+# Get recent trades
+trades_result = client.public.trades('BTC-EUR')
+
+# Get 24h ticker
+ticker_result = client.public.ticker_24h(market='BTC-EUR')
+
+# Get candlestick data
+candles_result = client.public.candles('BTC-EUR', '1h')
+```
+
+#### Legacy Bitvavo Interface
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+bitvavo = Bitvavo({'PREFER_KEYLESS': True})  # For public endpoints
+
 # Get server time
 time_resp = bitvavo.time()
 
@@ -253,7 +428,50 @@ ticker = bitvavo.ticker24h({'market': 'BTC-EUR'})
 
 ### Private Endpoints (Authentication Required)
 
+#### New BitvavoClient Interface
+
 ```python
+from bitvavo_client import BitvavoClient, BitvavoSettings
+
+# Configure with API credentials
+settings = BitvavoSettings(api_key="your-key", api_secret="your-secret")
+client = BitvavoClient(settings)
+
+# Get account info
+account_result = client.private.account()
+
+# Get balance
+balance_result = client.private.balance()
+
+# Place order
+order_result = client.private.place_order(
+    market="BTC-EUR",
+    side="buy",
+    order_type="limit",
+    amount="0.01",
+    price="45000"
+)
+
+# Get order history
+orders_result = client.private.orders('BTC-EUR')
+
+# Cancel order
+cancel_result = client.private.cancel_order(
+    market="BTC-EUR",
+    order_id="order-id-here"
+)
+
+# Get trades
+trades_result = client.private.trades('BTC-EUR')
+```
+
+#### Legacy Bitvavo Interface
+
+```python
+from bitvavo_api_upgraded import Bitvavo
+
+bitvavo = Bitvavo({'APIKEY': 'your-key', 'APISECRET': 'your-secret'})
+
 # Get account info
 account = bitvavo.account()
 
@@ -465,15 +683,49 @@ uv run ruff format
 ### Project Structure
 
 ```text
-src/bitvavo_api_upgraded/   # Source code
-├── __init__.py             # Main exports
-├── bitvavo.py              # Core API class
-├── settings.py             # Pydantic settings
-├── helper_funcs.py         # Utility functions
-└── type_aliases.py         # Type definitions
+src/
+├── bitvavo_api_upgraded/           # Legacy interface (backward compatibility)
+│   ├── __init__.py                 # Main exports
+│   ├── bitvavo.py                  # Original monolithic API class
+│   ├── settings.py                 # Pydantic settings
+│   ├── helper_funcs.py             # Utility functions
+│   └── type_aliases.py             # Type definitions
+└── bitvavo_client/                 # Modern modular interface
+    ├── __init__.py                 # New client exports
+    ├── facade.py                   # Main BitvavoClient class
+    ├── core/                       # Core functionality
+    │   ├── settings.py             # Settings management
+    │   ├── models.py               # Pydantic data models
+    │   ├── validation_helpers.py   # Enhanced error handling
+    │   └── types.py                # Type definitions
+    ├── endpoints/                  # API endpoint handlers
+    │   ├── public.py               # Public API endpoints
+    │   ├── private.py              # Private API endpoints
+    │   └── common.py               # Shared endpoint utilities
+    ├── transport/                  # HTTP transport layer
+    │   └── http.py                 # HTTP client with connection pooling
+    ├── auth/                       # Authentication & authorization
+    │   ├── signing.py              # Request signing
+    │   └── rate_limit.py           # Rate limiting management
+    ├── adapters/                   # External integrations
+    │   └── returns_adapter.py      # Result type adapters
+    ├── schemas/                    # DataFrame schemas
+    │   ├── public_schemas.py       # Public endpoint schemas
+    │   └── private_schemas.py      # Private endpoint schemas
+    └── df/                         # DataFrame conversion
+        └── convert.py              # Narwhals-based converters
 
-tests/                      # Comprehensive test suite
-docs/                       # Documentation
+tests/                              # Comprehensive test suite
+├── bitvavo_api_upgraded/           # Legacy interface tests
+└── bitvavo_client/                 # Modern interface tests
+    ├── core/                       # Core functionality tests
+    ├── endpoints/                  # Endpoint tests
+    ├── transport/                  # Transport layer tests
+    ├── auth/                       # Authentication tests
+    ├── adapters/                   # Adapter tests
+    └── df/                         # DataFrame tests
+
+docs/                               # Documentation
 ```
 
 ### Semantic Versioning
@@ -488,47 +740,110 @@ This project follows [semantic versioning](https://semver.org/):
 
 This package includes a `py.typed` file to enable type checking. Reference: [Don't forget py.typed for your typed Python package](https://blog.whtsky.me/tech/2021/dont-forget-py.typed-for-your-typed-python-package/)
 
-## Migration from Official SDK
+## Migration & Architecture Options
 
-### Key Differences
+This package provides **two interfaces** to suit different use cases:
 
-- Import: `from bitvavo_api_upgraded import Bitvavo` (instead of `from python_bitvavo_api.bitvavo import Bitvavo`)
-- **Breaking Change**: Trading operations require `operatorId` parameter
-- **New**: Multiple API key support for better rate limiting
-- **New**: Keyless access for public endpoints
-- **New**: Comprehensive dataframe support
-- Enhanced error handling and type safety
-- Better configuration management with `.env` support
+### 1. Legacy Bitvavo Class (Backward Compatibility)
 
-### Migration Steps
-
-1. Update import statements
-2. Add `operatorId` to trading method calls
-3. Optional: Migrate to `.env` configuration
-4. Optional: Configure multiple API keys for better rate limits
-5. Optional: Enable keyless mode for public endpoint efficiency
-6. Enjoy improved type hints and error handling!
-
-### Enhanced Features (Optional)
+For existing users migrating from the official SDK:
 
 ```python
-# Traditional single key (works as before)
+from bitvavo_api_upgraded import Bitvavo
+
+# Drop-in replacement for python_bitvavo_api.bitvavo
 bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
-
-# New: Multiple keys for rate limiting
-bitvavo = Bitvavo({
-    'APIKEYS': [
-        {'key': 'key1', 'secret': 'secret1'},
-        {'key': 'key2', 'secret': 'secret2'}
-    ]
-})
-
-# New: Keyless for public endpoints
-bitvavo = Bitvavo({'PREFER_KEYLESS': True})
-
-# New: Dataframe support
-markets_df = bitvavo.markets({}, output_format='pandas')
+balance = bitvavo.balance({})
 ```
+
+### 2. New BitvavoClient (Modern Architecture)
+
+For new projects or those wanting better architecture:
+
+```python
+from bitvavo_client import BitvavoClient, BitvavoSettings
+
+# Modern, typed, modular interface
+client = BitvavoClient()
+result = client.public.time()
+result = client.private.balance()
+```
+
+### Migration from Official SDK
+
+#### Key Changes
+
+- **Import**: `from bitvavo_api_upgraded import Bitvavo` (instead of `from python_bitvavo_api.bitvavo import Bitvavo`)
+- **Breaking**: Trading operations require `operatorId` parameter
+- **Enhanced**: Better error handling and type safety
+- **New**: Modern `BitvavoClient` interface available
+- **New**: Multiple API key support for rate limiting
+- **New**: Keyless access for public endpoints
+- **New**: Comprehensive dataframe support
+- **New**: Configuration via `.env` files
+
+#### Migration Steps
+
+1. **Update import statements**
+
+   ```python
+   # Old
+   from python_bitvavo_api.bitvavo import Bitvavo
+
+   # New (legacy interface)
+   from bitvavo_api_upgraded import Bitvavo
+
+   # New (modern interface)
+   from bitvavo_client import BitvavoClient
+   ```
+
+2. **Add operatorId to trading operations**
+
+   ```python
+   # Add operatorId parameter to placeOrder, cancelOrder, etc.
+   order = bitvavo.placeOrder("BTC-EUR", "buy", "limit", {...}, operatorId=12345)
+   ```
+
+3. **Optional: Migrate to modern interface**
+
+   ```python
+   # Legacy style
+   bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+
+   # Modern style
+   client = BitvavoClient(BitvavoSettings(api_key='key', api_secret='secret'))
+   ```
+
+4. **Optional: Use new features**
+
+   ```python
+   # Multi-key support
+   bitvavo = Bitvavo({'APIKEYS': [{'key': 'k1', 'secret': 's1'}, {'key': 'k2', 'secret': 's2'}]})
+
+   # Keyless for public endpoints
+   bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+
+   # DataFrame support
+   markets_df = bitvavo.markets({}, output_format='pandas')
+   ```
+
+### Choosing an Interface
+
+| Feature                    | Legacy `Bitvavo`       | Modern `BitvavoClient`     |
+| -------------------------- | ---------------------- | -------------------------- |
+| **Backward compatibility** | ✅ Drop-in replacement | ❌ New interface           |
+| **Type safety**            | ✅ Typed responses     | ✅ Full generics support   |
+| **Error handling**         | ✅ Enhanced errors     | ✅ Result types + enhanced |
+| **Modular design**         | ❌ Monolithic          | ✅ Separated concerns      |
+| **Testing**                | ✅ Testable            | ✅ Highly testable         |
+| **DataFrame support**      | ✅ Via output_format   | ✅ Via model preferences   |
+| **Result types**           | ❌ Exceptions only     | ✅ Success/Failure pattern |
+| **WebSocket support**      | ✅ Full support        | 🚧 Coming soon             |
+
+**Recommendation**:
+
+- Use **Legacy `Bitvavo`** for quick migrations and WebSocket usage
+- Use **Modern `BitvavoClient`** for new projects requiring clean architecture
 
 ---
 

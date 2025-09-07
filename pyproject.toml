@@ -45,6 +45,9 @@ dependencies = [
     "websocket-client >=1.2",  # something something websocket
 ]
 
+[tool.uv.build-backend]
+module-name = ["bitvavo_api_upgraded", "bitvavo_client"]
+
 [[tool.uv.index]]
 # Optional name for the index.
 name = "nvidia"

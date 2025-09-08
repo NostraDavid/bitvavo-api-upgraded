@@ -12,6 +12,13 @@ class RateLimitStrategy(Protocol):
     def __call__(self, manager: RateLimitManager, idx: int, weight: int) -> None: ...
 
 
+class DefaultRateLimitStrategy(RateLimitStrategy):
+    """Default RateLimitStrategy implementation that sleeps until the key's rate limit resets."""
+
+    def __call__(self, manager: RateLimitManager, idx: int, _: int) -> None:
+        manager.sleep_until_reset(idx)
+
+
 class RateLimitManager:
     """Manages rate limiting for multiple API keys and keyless requests.
 
@@ -29,7 +36,8 @@ class RateLimitManager:
         """
         self.state: dict[int, dict[str, int]] = {-1: {"remaining": default_remaining, "resetAt": 0}}
         self.buffer: int = buffer
-        self._strategy: RateLimitStrategy = strategy or (lambda m, i, w: m.sleep_until_reset(i))
+
+        self._strategy: RateLimitStrategy = strategy or DefaultRateLimitStrategy()
 
     def ensure_key(self, idx: int) -> None:
         """Ensure a key index exists in the state."""

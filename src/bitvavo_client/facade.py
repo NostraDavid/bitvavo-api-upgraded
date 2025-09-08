@@ -65,7 +65,7 @@ class BitvavoClient:
         if not self._api_keys:
             return
 
-        for idx, (key, secret) in enumerate(self._api_keys):
+        for idx, (_key, _secret) in enumerate(self._api_keys):
             self.rate_limiter.ensure_key(idx)
 
         first_key = self._api_keys[0]
@@ -85,7 +85,8 @@ class BitvavoClient:
     def select_key(self, index: int) -> None:
         """Select a specific API key by index."""
         if not (0 <= index < len(self._api_keys)):
-            raise IndexError("API key index out of range")
+            msg = "API key index out of range"
+            raise IndexError(msg)
         self._current_key = index
         key, secret = self._api_keys[index]
         self.http.configure_key(key, secret, index)

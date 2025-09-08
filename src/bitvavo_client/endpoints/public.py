@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar
 
-from returns.result import Result
-
-from bitvavo_client.adapters.returns_adapter import BitvavoError
 from bitvavo_client.core import public_models
-from bitvavo_client.core.model_preferences import ModelPreference
 from bitvavo_client.endpoints.base import BaseAPI
 from bitvavo_client.endpoints.common import create_postfix
 from bitvavo_client.schemas.public_schemas import DEFAULT_SCHEMAS
@@ -27,7 +23,12 @@ MAX_BOOK_REPORT_DEPTH = 1000  # Maximum depth for order book report
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
+
     import httpx
+    from returns.result import Result
+
+    from bitvavo_client.adapters.returns_adapter import BitvavoError
+    from bitvavo_client.core.model_preferences import ModelPreference
     from bitvavo_client.core.types import AnyDict
     from bitvavo_client.transport.http import HTTPClient
 
@@ -37,7 +38,7 @@ T = TypeVar("T")
 class PublicAPI(BaseAPI):
     """Handles all public Bitvavo API endpoints."""
 
-    _endpoint_models = {
+    _endpoint_models: ClassVar[dict[str, type[Any]]] = {
         "time": public_models.ServerTime,
         "markets": public_models.Markets,
         "assets": public_models.Assets,

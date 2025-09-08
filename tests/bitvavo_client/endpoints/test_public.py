@@ -2348,7 +2348,7 @@ class TestPublicAPI_DATAFRAME(AbstractPublicAPITests):  # noqa: N801
         match result:
             case Success(data):
                 assert isinstance(data, pl.DataFrame)
-                
+
                 # Check if we have data - be more defensive about empty results
                 data_length = optional_length(data)
                 if data_length is None or data_length == 0:
@@ -2391,19 +2391,19 @@ class TestPublicAPI_DATAFRAME(AbstractPublicAPITests):  # noqa: N801
 
                 # Validate OHLC relationships - be more lenient due to potential data quality issues
                 open_val, high_val, low_val, close_val = ohlc_values
-                
+
                 # Basic sanity checks
                 assert low_val <= high_val, f"Low ({low_val}) must be <= High ({high_val})"
-                
+
                 # For OHLC consistency, allow some tolerance for data quality issues
                 max_oc = max(open_val, close_val)
                 min_oc = min(open_val, close_val)
-                
+
                 if high_val < max_oc:
                     # Log the values for debugging but don't fail the test
                     # This might happen with low-quality candle data
                     pass
-                    
+
                 if low_val > min_oc:
                     # Log the values for debugging but don't fail the test
                     # This might happen with low-quality candle data

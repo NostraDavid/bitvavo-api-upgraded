@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from returns.result import Failure, Result, Success
 
 from bitvavo_client.adapters.returns_adapter import BitvavoError
 from bitvavo_client.core.model_preferences import ModelPreference
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 T = TypeVar("T")
 
@@ -42,7 +44,7 @@ def _extract_dataframe_data(data: Any, *, items_key: str | None = None) -> list[
     raise ValueError(msg)
 
 
-def _get_dataframe_constructor(preference: ModelPreference) -> tuple[Any, str]:
+def _get_dataframe_constructor(preference: ModelPreference) -> tuple[Any, str]:  # noqa: PLR0911 (Too many return statements)
     """Get the appropriate dataframe constructor and library name based on preference."""
     if preference not in _DATAFRAME_LIBRARY_MAP:
         msg = f"Unsupported dataframe preference: {preference}"
@@ -67,7 +69,7 @@ def _get_dataframe_constructor(preference: ModelPreference) -> tuple[Any, str]:
             import dask.dataframe as dd  # noqa: PLC0415
             import pandas as pd  # noqa: PLC0415
 
-            return lambda data, **kwargs: dd.from_pandas(pd.DataFrame(data), npartitions=1), library_name
+            return lambda data, **_: dd.from_pandas(pd.DataFrame(data), npartitions=1), library_name
         if preference == ModelPreference.MODIN:
             import modin.pandas as mpd  # noqa: PLC0415
 
@@ -78,13 +80,13 @@ def _get_dataframe_constructor(preference: ModelPreference) -> tuple[Any, str]:
             return cudf.DataFrame, library_name
         import ibis  # noqa: PLC0415
 
-        return lambda data, **kwargs: ibis.memtable(data), library_name
+        return lambda data, **_: ibis.memtable(data), library_name
     except ImportError as e:  # pragma: no cover - import failure is environment dependent
         msg = f"{library_name} is not installed. Install with appropriate package manager."
         raise ImportError(msg) from e
 
 
-def _create_dataframe_with_constructor(
+def _create_dataframe_with_constructor(  # noqa: C901 (is too complex)
     constructor: Any, library_name: str, df_data: list | dict, empty_schema: dict | None
 ) -> Any:
     """Create DataFrame with data using the appropriate constructor."""

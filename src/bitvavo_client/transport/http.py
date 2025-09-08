@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from returns.result import Failure, Result
@@ -15,6 +15,8 @@ from bitvavo_client.adapters.returns_adapter import (
 from bitvavo_client.auth.signing import create_signature
 
 if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Callable
+
     from bitvavo_client.auth.rate_limit import RateLimitManager
     from bitvavo_client.core.settings import BitvavoSettings
     from bitvavo_client.core.types import AnyDict

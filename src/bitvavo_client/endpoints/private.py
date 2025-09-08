@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import httpx
 from returns.result import Failure, Result, Success
@@ -11,8 +11,8 @@ from bitvavo_client.adapters.returns_adapter import BitvavoError
 from bitvavo_client.core import private_models
 from bitvavo_client.core.model_preferences import ModelPreference
 from bitvavo_client.endpoints.base import (
-    BaseAPI,
     _DATAFRAME_LIBRARY_MAP,
+    BaseAPI,
     _create_dataframe_from_data,
 )
 from bitvavo_client.endpoints.common import create_postfix, default
@@ -28,7 +28,7 @@ T = TypeVar("T")
 class PrivateAPI(BaseAPI):
     """Handles all private Bitvavo API endpoints requiring authentication."""
 
-    _endpoint_models = {
+    _endpoint_models: ClassVar[dict[str, Any]] = {
         "account": private_models.Account,
         "balance": private_models.Balances,
         "orders": private_models.Orders,

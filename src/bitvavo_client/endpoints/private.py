@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
@@ -11,6 +10,11 @@ from returns.result import Failure, Result, Success
 from bitvavo_client.adapters.returns_adapter import BitvavoError
 from bitvavo_client.core import private_models
 from bitvavo_client.core.model_preferences import ModelPreference
+from bitvavo_client.endpoints.base import (
+    BaseAPI,
+    _DATAFRAME_LIBRARY_MAP,
+    _create_dataframe_from_data,
+)
 from bitvavo_client.endpoints.common import create_postfix, default
 from bitvavo_client.schemas.private_schemas import DEFAULT_SCHEMAS
 
@@ -21,208 +25,25 @@ if TYPE_CHECKING:  # pragma: no cover
 T = TypeVar("T")
 
 
-def _extract_dataframe_data(data: Any, *, items_key: str | None = None) -> list[dict] | dict:
-    """Extract the meaningful data for DataFrame creation from API responses.
-
-    Args:
-        data: Raw API response data
-        items_key: Key to extract from nested response (e.g., 'items' for paginated responses)
-
-    Returns:
-        List of dicts or single dict suitable for DataFrame creation
-
-    Raises:
-        ValueError: If data format is unexpected
-    """
-    if items_key and isinstance(data, dict) and items_key in data:
-        # Extract nested items (e.g., transaction_history['items'])
-        items = data[items_key]
-        if not isinstance(items, list):
-            msg = f"Expected {items_key} to be a list, got {type(items)}"
-            raise ValueError(msg)
-        return items
-    if isinstance(data, list):
-        # Direct list response (e.g., balance, trades)
-        return data
-    if isinstance(data, dict):
-        # Single dict response - wrap in list for DataFrame
-        return [data]
-
-    msg = f"Unexpected data type for DataFrame creation: {type(data)}"
-    raise ValueError(msg)
-
-
-# DataFrames preference to library mapping
-_DATAFRAME_LIBRARY_MAP = {
-    ModelPreference.POLARS: ("polars", "pl.DataFrame"),
-    ModelPreference.PANDAS: ("pandas", "pd.DataFrame"),
-    ModelPreference.PYARROW: ("pyarrow", "pa.Table"),
-    ModelPreference.DASK: ("dask", "dd.DataFrame"),
-    ModelPreference.MODIN: ("modin", "mpd.DataFrame"),
-    ModelPreference.CUDF: ("cudf", "cudf.DataFrame"),
-    ModelPreference.IBIS: ("ibis", "ibis.Table"),
-}
-
-
-def _get_dataframe_constructor(preference: ModelPreference) -> tuple[Any, str]:
-    """Get the appropriate dataframe constructor and library name based on preference.
-
-    Args:
-        preference: ModelPreference enum value
-
-    Returns:
-        Tuple of (constructor_class, library_name)
-
-    Raises:
-        ImportError: If required library is not available
-        ValueError: If preference is not a supported dataframe type
-    """
-    if preference not in _DATAFRAME_LIBRARY_MAP:
-        msg = f"Unsupported dataframe preference: {preference}"
-        raise ValueError(msg)
-
-    library_name, _ = _DATAFRAME_LIBRARY_MAP[preference]
-
-    try:
-        if preference == ModelPreference.POLARS:
-            import polars as pl  # noqa: PLC0415
-
-            return pl.DataFrame, library_name
-        if preference == ModelPreference.PANDAS:
-            import pandas as pd  # noqa: PLC0415
-
-            return pd.DataFrame, library_name
-        if preference == ModelPreference.PYARROW:
-            import pyarrow as pa  # noqa: PLC0415
-
-            return pa.Table.from_pylist, library_name
-        if preference == ModelPreference.DASK:
-            import dask.dataframe as dd  # noqa: PLC0415
-            import pandas as pd  # noqa: PLC0415
-
-            return lambda data, **kwargs: dd.from_pandas(pd.DataFrame(data), npartitions=1), library_name
-        if preference == ModelPreference.MODIN:
-            import modin.pandas as mpd  # noqa: PLC0415
-
-            return mpd.DataFrame, library_name
-        if preference == ModelPreference.CUDF:
-            import cudf  # noqa: PLC0415
-
-            return cudf.DataFrame, library_name
-        # ModelPreference.IBIS
-        import ibis  # noqa: PLC0415
-
-        return lambda data, **kwargs: ibis.memtable(data), library_name
-    except ImportError as e:
-        msg = f"{library_name} is not installed. Install with appropriate package manager."
-        raise ImportError(msg) from e
-
-
-def _create_dataframe_from_data(
-    data: Any, preference: ModelPreference, *, items_key: str | None = None, empty_schema: dict[str, Any] | None = None
-) -> Result[Any, BitvavoError]:
-    """Create a DataFrame from API response data using the specified preference.
-
-    Args:
-        data: Raw API response data
-        preference: ModelPreference enum value indicating which library to use
-        items_key: Key to extract from nested response (optional)
-        empty_schema: Schema to use for empty DataFrames and type casting
-
-    Returns:
-        Result containing DataFrame or error
-    """
-    try:
-        df_data = _extract_dataframe_data(data, items_key=items_key)
-        constructor, library_name = _get_dataframe_constructor(preference)
-
-        if df_data:
-            # Create DataFrame using appropriate constructor
-            df = _create_dataframe_with_constructor(constructor, library_name, df_data, empty_schema)
-            return Success(df)  # type: ignore[return-value]
-
-        # Create empty DataFrame
-        df = _create_empty_dataframe(constructor, library_name, empty_schema)
-        return Success(df)  # type: ignore[return-value]
-
-    except (ValueError, TypeError, ImportError) as exc:
-        error = BitvavoError(
-            http_status=500,
-            error_code=-1,
-            reason="DataFrame creation failed",
-            message=f"Failed to create DataFrame from API response: {exc}",
-            raw={"data_type": type(data).__name__, "data_sample": str(data)[:200]},
-        )
-        return Failure(error)
-
-
-def _create_dataframe_with_constructor(
-    constructor: Any, library_name: str, df_data: list | dict, empty_schema: dict | None
-) -> Any:
-    """Create DataFrame with data using the appropriate constructor."""
-    if library_name == "polars":
-        df = constructor(df_data, strict=False)
-        if empty_schema:
-            df = _apply_polars_schema(df, empty_schema)
-        return df
-    if library_name in ("pandas", "modin", "cudf"):
-        df = constructor(df_data)
-        if empty_schema:
-            df = _apply_pandas_like_schema(df, empty_schema)
-        return df
-    if library_name == "pyarrow" or library_name == "dask":
-        return constructor(df_data)
-    # ibis
-    return constructor(df_data)
-
-
-def _create_empty_dataframe(constructor: Any, library_name: str, empty_schema: dict | None) -> Any:
-    """Create empty DataFrame using the appropriate constructor."""
-    if empty_schema is None:
-        empty_schema = {"id": str} if library_name != "polars" else {"id": "pl.String"}
-
-    if library_name == "polars":
-        import polars as pl  # noqa: PLC0415
-
-        schema = {k: pl.String if v == "pl.String" else v for k, v in empty_schema.items()}
-        return constructor([], schema=schema)
-    if library_name in ("pandas", "modin", "cudf", "dask") or library_name == "pyarrow":
-        return constructor([])
-    # ibis
-    return constructor([dict.fromkeys(empty_schema.keys())])
-
-
-def _apply_polars_schema(df: Any, schema: dict) -> Any:
-    """Apply schema to polars DataFrame."""
-    import polars as pl  # noqa: PLC0415
-
-    for col, expected_dtype in schema.items():
-        if col in df.columns:
-            with contextlib.suppress(Exception):
-                df = df.with_columns(pl.col(col).cast(expected_dtype))
-    return df
-
-
-def _apply_pandas_like_schema(df: Any, schema: dict) -> Any:
-    """Apply schema to pandas-like DataFrame."""
-    pandas_schema = {}
-    for col, dtype in schema.items():
-        if col in df.columns:
-            if "String" in str(dtype) or "Utf8" in str(dtype):
-                pandas_schema[col] = "string"
-            elif "Int" in str(dtype):
-                pandas_schema[col] = "int64"
-            elif "Float" in str(dtype):
-                pandas_schema[col] = "float64"
-
-    if pandas_schema and hasattr(df, "astype"):
-        with contextlib.suppress(Exception):
-            df = df.astype(pandas_schema)
-    return df
-
-
-class PrivateAPI:
+class PrivateAPI(BaseAPI):
     """Handles all private Bitvavo API endpoints requiring authentication."""
+
+    _endpoint_models = {
+        "account": private_models.Account,
+        "balance": private_models.Balances,
+        "orders": private_models.Orders,
+        "order": private_models.Order,
+        "trade_history": private_models.Trades,
+        "transaction_history": private_models.TransactionHistory,
+        "fees": private_models.Fees,
+        "deposit_history": private_models.DepositHistories,
+        "deposit": private_models.Deposit,
+        "withdrawals": private_models.Withdrawals,
+        "withdraw": private_models.WithdrawResponse,
+        "cancel_order": private_models.CancelOrderResponse,
+    }
+
+    _default_schemas = DEFAULT_SCHEMAS
 
     def __init__(
         self,
@@ -231,166 +52,8 @@ class PrivateAPI:
         preferred_model: ModelPreference | str | None = None,
         default_schema: dict | None = None,
     ) -> None:
-        """Initialize private API handler.
-
-        Args:
-            http_client: HTTP client for making requests
-            preferred_model: Preferred model format for responses
-            default_schema: Default schema for DataFrame conversion
-        """
-        self.http: HTTPClient = http_client
-
-        # Handle preferred_model parameter - try to convert strings to ModelPreference,
-        # but allow arbitrary strings to pass through for custom handling
-        if preferred_model is None:
-            self.preferred_model = None
-        elif isinstance(preferred_model, ModelPreference):
-            self.preferred_model = preferred_model
-        elif isinstance(preferred_model, str):
-            try:
-                self.preferred_model = ModelPreference(preferred_model)
-            except ValueError:
-                # If string doesn't match a valid ModelPreference, store as-is
-                self.preferred_model = preferred_model
-        else:
-            self.preferred_model = preferred_model
-
-        self.default_schema = default_schema
-
-    def _get_effective_model(
-        self,
-        endpoint_type: str,
-        model: type[T] | Any | None,
-        schema: dict | None,
-    ) -> tuple[type[T] | Any | None, dict | None]:
-        """Get the effective model and schema to use for a request.
-
-        Args:
-            endpoint_type: Type of endpoint (e.g., 'account', 'balance', 'orders')
-            model: Model explicitly passed to method (overrides preference)
-            schema: Schema explicitly passed to method
-
-        Returns:
-            Tuple of (effective_model, effective_schema)
-
-        Raises:
-            ValueError: If endpoint_type is not recognized
-        """
-        # If model is explicitly provided, use it
-        if model is not None:
-            return model, schema
-
-        # If no preferred model is set, return None (raw response)
-        if self.preferred_model is None:
-            return None, schema
-
-        # Apply preference based on enum value
-        if self.preferred_model == ModelPreference.RAW:
-            return Any, schema
-
-        # Handle all DataFrame preferences
-        if self.preferred_model in _DATAFRAME_LIBRARY_MAP:
-            # Validate endpoint type
-            if endpoint_type not in list(DEFAULT_SCHEMAS.keys()):
-                msg = f"Invalid endpoint_type '{endpoint_type}'. Valid types: {sorted(DEFAULT_SCHEMAS)}"
-                raise ValueError(msg)
-            # Use the provided schema, fallback to instance default, then to endpoint-specific default
-            effective_schema = schema or self.default_schema or DEFAULT_SCHEMAS.get(endpoint_type)
-            # Convert to dict if it's a Mapping but not already a dict
-            if effective_schema is not None and not isinstance(effective_schema, dict):
-                effective_schema = dict(effective_schema)
-            # Return the preference itself, not a specific DataFrame class
-            return self.preferred_model, effective_schema
-
-        if self.preferred_model == ModelPreference.PYDANTIC:
-            # Map endpoint types to appropriate Pydantic models
-            endpoint_model_map = {
-                "account": private_models.Account,
-                "balance": private_models.Balances,
-                "orders": private_models.Orders,
-                "order": private_models.Order,
-                "trade_history": private_models.Trades,
-                "transaction_history": private_models.TransactionHistory,
-                "fees": private_models.Fees,
-                "deposit_history": private_models.DepositHistories,
-                "deposit": private_models.Deposit,
-                "withdrawals": private_models.Withdrawals,
-                "withdraw": private_models.WithdrawResponse,
-                "cancel_order": private_models.CancelOrderResponse,
-            }
-            if endpoint_type not in endpoint_model_map:
-                msg = f"No Pydantic model defined for endpoint_type '{endpoint_type}'. Add it to endpoint_model_map."
-                raise ValueError(msg)
-            return endpoint_model_map[endpoint_type], schema
-
-        # Default case (AUTO or unknown)
-        return None, schema
-
-    def _convert_raw_result(
-        self,
-        raw_result: Result[Any, BitvavoError | httpx.HTTPError],
-        endpoint_type: str,
-        model: type[T] | Any | None,
-        schema: dict | None,
-        *,
-        items_key: str | None = None,
-    ) -> Result[Any, BitvavoError | httpx.HTTPError]:
-        """Convert raw API result to the desired model format.
-
-        Args:
-            raw_result: Raw result from HTTP client
-            endpoint_type: Type of endpoint (e.g., 'account', 'balance', 'orders')
-            model: Model explicitly passed to method (overrides preference)
-            schema: Schema explicitly passed to method
-            items_key: Key to extract from nested response for DataFrames
-
-        Returns:
-            Result with converted data or original error
-        """
-        # If the raw result is an error, return it as-is
-        if isinstance(raw_result, Failure):
-            return raw_result
-
-        # Get the effective model and schema to use
-        effective_model, effective_schema = self._get_effective_model(endpoint_type, model, schema)
-
-        # If no conversion needed (raw data requested), return as-is
-        if effective_model is Any or effective_model is None:
-            return raw_result
-
-        # Extract the raw data
-        raw_data = raw_result.unwrap()
-
-        # Handle DataFrames specially
-        if effective_model in _DATAFRAME_LIBRARY_MAP and isinstance(effective_model, ModelPreference):
-            return _create_dataframe_from_data(
-                raw_data, effective_model, items_key=items_key, empty_schema=effective_schema
-            )
-
-        # Handle other model types using the same logic as PublicAPI
-        try:
-            # Handle different model types
-            if hasattr(effective_model, "model_validate"):
-                # Pydantic model
-                parsed = effective_model.model_validate(raw_data)  # type: ignore[misc]
-            elif effective_schema is None:
-                # Simple constructor call - this handles dict and other simple types
-                parsed = effective_model(raw_data)  # type: ignore[misc]
-            else:
-                # Other models with schema
-                parsed = effective_model(raw_data, schema=effective_schema)  # type: ignore[misc]
-
-            return Success(parsed)
-        except (ValueError, TypeError, AttributeError) as exc:
-            # If conversion fails, return a structured error
-            error = BitvavoError(
-                http_status=500,
-                error_code=-1,
-                reason="Model conversion failed",
-                message=str(exc),
-                raw=raw_data if isinstance(raw_data, dict) else {"raw": raw_data},
-            )
-            return Failure(error)
+        """Initialize private API handler."""
+        super().__init__(http_client, preferred_model=preferred_model, default_schema=default_schema)
 
     def account(
         self,
@@ -1225,8 +888,8 @@ class PrivateAPI:
         Returns:
             Result containing withdrawal result or error
         """
-        effective_model, effective_schema = self._get_effective_model("withdraw", model, schema)
         body = {"symbol": symbol, "amount": amount, "address": address}
         if options:
             body.update(options)
-        return self.http.request("POST", "/withdrawal", body=body, weight=1)
+        raw_result = self.http.request("POST", "/withdrawal", body=body, weight=1)
+        return self._convert_raw_result(raw_result, "withdraw", model, schema)

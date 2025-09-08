@@ -587,3 +587,18 @@ class TestRateLimitManagerIntegration:
         # Should have budget again
         assert manager.get_remaining(0) == 1000
         assert manager.has_budget(0, 900) is True
+
+
+class TestRateLimitStrategy:
+    """Test custom rate limit strategy invocation."""
+
+    def test_custom_strategy_called(self) -> None:
+        """Ensure custom strategy is invoked when handle_limit is called."""
+        called: list[tuple[int, int]] = []
+
+        def strategy(manager: RateLimitManager, idx: int, weight: int) -> None:
+            called.append((idx, weight))
+
+        manager = RateLimitManager(default_remaining=100, buffer=0, strategy=strategy)
+        manager.handle_limit(2, 5)
+        assert called == [(2, 5)]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import pytest
 from pydantic_settings import SettingsConfigDict
@@ -141,9 +141,12 @@ class TestBitvavoClientAPIKeyConfiguration:
         mock_configure_key.assert_called_once_with("test_key", "test_secret", 0)
         mock_ensure_key.assert_called_once_with(0)
 
+    @patch("bitvavo_client.facade.HTTPClient.set_key_rotation_callback")
     @patch("bitvavo_client.facade.HTTPClient.configure_key")
     @patch("bitvavo_client.facade.RateLimitManager.ensure_key")
-    def test_configure_multiple_api_keys(self, mock_ensure_key: Mock, mock_configure_key: Mock) -> None:
+    def test_configure_multiple_api_keys(
+        self, mock_ensure_key: Mock, mock_configure_key: Mock, mock_set_cb: Mock
+    ) -> None:
         """Test configuration with multiple API keys."""
         settings = TestBitvavoSettings(
             api_keys=[
@@ -155,7 +158,9 @@ class TestBitvavoClientAPIKeyConfiguration:
 
         # Should configure the first key (index 0)
         mock_configure_key.assert_called_once_with("key1", "secret1", 0)
-        mock_ensure_key.assert_called_once_with(0)
+        mock_ensure_key.assert_has_calls([call(0), call(1)])
+        assert mock_ensure_key.call_count == 2
+        mock_set_cb.assert_called_once()
 
     @patch("bitvavo_client.facade.HTTPClient.configure_key")
     @patch("bitvavo_client.facade.RateLimitManager.ensure_key")
@@ -178,6 +183,20 @@ class TestBitvavoClientAPIKeyConfiguration:
         # Should not configure any keys
         mock_configure_key.assert_not_called()
         mock_ensure_key.assert_not_called()
+
+    @patch("bitvavo_client.facade.HTTPClient.configure_key")
+    def test_rotate_key(self, mock_configure_key: Mock) -> None:
+        """Test rotating between multiple API keys."""
+        settings = TestBitvavoSettings(
+            api_keys=[
+                {"key": "key1", "secret": "secret1"},
+                {"key": "key2", "secret": "secret2"},
+            ]
+        )
+        client = BitvavoClient(settings)
+        mock_configure_key.reset_mock()
+        client.rotate_key()
+        mock_configure_key.assert_called_once_with("key2", "secret2", 1)
 
 
 class TestBitvavoClientComponentIntegration:

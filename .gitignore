@@ -22,6 +22,7 @@
 !uv.lock
 !tox.ini
 !DATAFRAMES.md
+!AGENTS.md
 
 # re-ignore recursively
 __pycache__

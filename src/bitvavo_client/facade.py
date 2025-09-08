@@ -60,9 +60,7 @@ class BitvavoClient:
         if self.settings.api_key and self.settings.api_secret:
             self._api_keys.append((self.settings.api_key, self.settings.api_secret))
         if self.settings.api_keys:
-            self._api_keys.extend(
-                (item["key"], item["secret"]) for item in self.settings.api_keys
-            )
+            self._api_keys.extend((item["key"], item["secret"]) for item in self.settings.api_keys)
 
         if not self._api_keys:
             return

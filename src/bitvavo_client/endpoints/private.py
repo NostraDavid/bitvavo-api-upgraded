@@ -53,9 +53,7 @@ class PrivateAPI(BaseAPI):
         default_schema: dict | None = None,
     ) -> None:
         """Initialize private API handler."""
-        super().__init__(
-            http_client, preferred_model=preferred_model, default_schema=default_schema
-        )
+        super().__init__(http_client, preferred_model=preferred_model, default_schema=default_schema)
 
     def account(
         self,

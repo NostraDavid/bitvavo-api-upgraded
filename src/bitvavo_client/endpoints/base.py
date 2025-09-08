@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import contextlib
-from typing import Any, Mapping, Protocol, TypeVar
+from collections.abc import Mapping
+from typing import Any, TypeVar
 
 from returns.result import Failure, Result, Success
 
@@ -87,18 +88,49 @@ def _create_dataframe_with_constructor(
     constructor: Any, library_name: str, df_data: list | dict, empty_schema: dict | None
 ) -> Any:
     """Create DataFrame with data using the appropriate constructor."""
+
+    # Helper function to check if data is array-like and schema exists
+    def _is_array_data_with_schema() -> bool:
+        return bool(empty_schema and isinstance(df_data, list) and df_data and isinstance(df_data[0], (list, tuple)))
+
     if library_name == "polars":
+        # Handle special case for array data (like candles) with schema
+        if _is_array_data_with_schema() and empty_schema:
+            # Transform array data into named columns based on schema
+            column_names = list(empty_schema.keys())
+            if len(df_data[0]) == len(column_names):  # type: ignore[index]
+                # Create DataFrame with explicit column names
+                import polars as pl  # noqa: PLC0415
+
+                df = pl.DataFrame(df_data, schema=column_names, orient="row")
+                df = _apply_polars_schema(df, empty_schema)
+                return df
+
         df = constructor(df_data, strict=False)
         if empty_schema:
             df = _apply_polars_schema(df, empty_schema)
         return df
+
     if library_name in ("pandas", "modin", "cudf"):
+        # Handle special case for array data (like candles) with schema
+        if _is_array_data_with_schema() and empty_schema:
+            # Transform array data into named columns based on schema
+            column_names = list(empty_schema.keys())
+            if len(df_data[0]) == len(column_names):  # type: ignore[index]
+                # Create DataFrame with explicit column names
+                df = constructor(df_data, columns=column_names)
+                if empty_schema:
+                    df = _apply_pandas_like_schema(df, empty_schema)
+                return df
+
         df = constructor(df_data)
         if empty_schema:
             df = _apply_pandas_like_schema(df, empty_schema)
         return df
+
     if library_name in ("pyarrow", "dask"):
         return constructor(df_data)
+
     return constructor(df_data)
 
 
@@ -214,9 +246,7 @@ class BaseAPI:
             return Any, schema
 
         if isinstance(self.preferred_model, ModelPreference) and self.preferred_model in _DATAFRAME_LIBRARY_MAP:
-            effective_schema = (
-                schema or self.default_schema or self._default_schemas.get(endpoint_type)
-            )
+            effective_schema = schema or self.default_schema or self._default_schemas.get(endpoint_type)
             if effective_schema is not None and not isinstance(effective_schema, dict):
                 effective_schema = dict(effective_schema)
             return self.preferred_model, effective_schema
@@ -248,7 +278,10 @@ class BaseAPI:
 
         if isinstance(effective_model, ModelPreference) and effective_model in _DATAFRAME_LIBRARY_MAP:
             return _create_dataframe_from_data(
-                raw_data, effective_model, items_key=items_key, empty_schema=effective_schema  # type: ignore[arg-type]
+                raw_data,
+                effective_model,
+                items_key=items_key,
+                empty_schema=effective_schema,  # type: ignore[arg-type]
             )
 
         try:

@@ -61,9 +61,7 @@ class PublicAPI(BaseAPI):
         default_schema: Mapping[str, object] | None = None,
     ) -> None:
         """Initialize public API handler."""
-        super().__init__(
-            http_client, preferred_model=preferred_model, default_schema=default_schema
-        )
+        super().__init__(http_client, preferred_model=preferred_model, default_schema=default_schema)
 
     def time(
         self,

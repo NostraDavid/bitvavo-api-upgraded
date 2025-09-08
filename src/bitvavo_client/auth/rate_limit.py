@@ -9,7 +9,7 @@ from typing import Protocol
 class RateLimitStrategy(Protocol):
     """Protocol for custom rate limit handling strategies."""
 
-    def __call__(self, manager: "RateLimitManager", idx: int, weight: int) -> None: ...
+    def __call__(self, manager: RateLimitManager, idx: int, weight: int) -> None: ...
 
 
 class RateLimitManager:
@@ -19,9 +19,7 @@ class RateLimitManager:
     for keyless requests.
     """
 
-    def __init__(
-        self, default_remaining: int, buffer: int, strategy: RateLimitStrategy | None = None
-    ) -> None:
+    def __init__(self, default_remaining: int, buffer: int, strategy: RateLimitStrategy | None = None) -> None:
         """Initialize rate limit manager.
 
         Args:
@@ -29,13 +27,9 @@ class RateLimitManager:
             buffer: Buffer to keep before hitting limit
             strategy: Optional strategy callback when rate limit exceeded
         """
-        self.state: dict[int, dict[str, int]] = {
-            -1: {"remaining": default_remaining, "resetAt": 0}
-        }
+        self.state: dict[int, dict[str, int]] = {-1: {"remaining": default_remaining, "resetAt": 0}}
         self.buffer: int = buffer
-        self._strategy: RateLimitStrategy = strategy or (
-            lambda m, i, w: m.sleep_until_reset(i)
-        )
+        self._strategy: RateLimitStrategy = strategy or (lambda m, i, w: m.sleep_until_reset(i))
 
     def ensure_key(self, idx: int) -> None:
         """Ensure a key index exists in the state."""

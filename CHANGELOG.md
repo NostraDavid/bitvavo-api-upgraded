@@ -1,5 +1,10 @@
 # Changelog
 
+## $UNRELEASED
+
+- centralize shared DataFrame logic via `BaseAPI`
+- support configurable rate-limit strategies and API key rotation
+
 ## v4.1.2 - 2025-09-08
 
 - replace `DATAFRAME` with multiple separate DataFrame models.

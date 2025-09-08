@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import httpx
 from returns.result import Failure, Result
@@ -35,6 +35,7 @@ class HTTPClient:
         self.key_index: int = -1
         self.api_key: str = ""
         self.api_secret: str = ""
+        self.key_rotation_callback: Callable[[], bool] | None = None
 
     def configure_key(self, key: str, secret: str, index: int) -> None:
         """Configure API key for authenticated requests.
@@ -47,6 +48,10 @@ class HTTPClient:
         self.api_key = key
         self.api_secret = secret
         self.key_index = index
+
+    def set_key_rotation_callback(self, callback: Callable[[], bool]) -> None:
+        """Set callback to rotate API keys when rate limit exceeded."""
+        self.key_rotation_callback = callback
 
     def request(
         self,
@@ -72,7 +77,11 @@ class HTTPClient:
         """
         # Check rate limits
         if not self.rate_limiter.has_budget(self.key_index, weight):
-            self.rate_limiter.sleep_until_reset(self.key_index)
+            rotated = False
+            if self.key_rotation_callback:
+                rotated = self.key_rotation_callback()
+            if not rotated or not self.rate_limiter.has_budget(self.key_index, weight):
+                self.rate_limiter.handle_limit(self.key_index, weight)
 
         url = f"{self.settings.rest_url}{endpoint}"
         headers = self._create_auth_headers(method, endpoint, body)

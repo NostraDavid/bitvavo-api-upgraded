@@ -3,6 +3,13 @@
 from __future__ import annotations
 
 import time
+from typing import Protocol
+
+
+class RateLimitStrategy(Protocol):
+    """Protocol for custom rate limit handling strategies."""
+
+    def __call__(self, manager: "RateLimitManager", idx: int, weight: int) -> None: ...
 
 
 class RateLimitManager:
@@ -12,15 +19,23 @@ class RateLimitManager:
     for keyless requests.
     """
 
-    def __init__(self, default_remaining: int, buffer: int) -> None:
+    def __init__(
+        self, default_remaining: int, buffer: int, strategy: RateLimitStrategy | None = None
+    ) -> None:
         """Initialize rate limit manager.
 
         Args:
             default_remaining: Default rate limit amount
             buffer: Buffer to keep before hitting limit
+            strategy: Optional strategy callback when rate limit exceeded
         """
-        self.state: dict[int, dict[str, int]] = {-1: {"remaining": default_remaining, "resetAt": 0}}
+        self.state: dict[int, dict[str, int]] = {
+            -1: {"remaining": default_remaining, "resetAt": 0}
+        }
         self.buffer: int = buffer
+        self._strategy: RateLimitStrategy = strategy or (
+            lambda m, i, w: m.sleep_until_reset(i)
+        )
 
     def ensure_key(self, idx: int) -> None:
         """Ensure a key index exists in the state."""
@@ -78,6 +93,10 @@ class RateLimitManager:
         now = int(time.time() * 1000)
         ms_left = max(0, self.state[idx]["resetAt"] - now)
         time.sleep(ms_left / 1000 + 1)
+
+    def handle_limit(self, idx: int, weight: int) -> None:
+        """Invoke the configured strategy when rate limit is exceeded."""
+        self._strategy(self, idx, weight)
 
     def get_remaining(self, idx: int) -> int:
         """Get remaining rate limit for key index.

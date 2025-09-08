@@ -50,17 +50,44 @@ class BitvavoClient:
         self.private = PrivateAPI(self.http, preferred_model=preferred_model, default_schema=default_schema)
 
         # Configure API keys if available
+        self._api_keys: list[tuple[str, str]] = []
+        self._current_key: int = 0
         self._configure_api_keys()
 
     def _configure_api_keys(self) -> None:
         """Configure API keys for authentication."""
+        # Collect keys from settings
         if self.settings.api_key and self.settings.api_secret:
-            # Single API key configuration
-            self.http.configure_key(self.settings.api_key, self.settings.api_secret, 0)
-            self.rate_limiter.ensure_key(0)
-        elif self.settings.api_keys:
-            # Multiple API keys - configure the first one by default
-            if self.settings.api_keys:
-                first_key = self.settings.api_keys[0]
-                self.http.configure_key(first_key["key"], first_key["secret"], 0)
-                self.rate_limiter.ensure_key(0)
+            self._api_keys.append((self.settings.api_key, self.settings.api_secret))
+        if self.settings.api_keys:
+            self._api_keys.extend(
+                (item["key"], item["secret"]) for item in self.settings.api_keys
+            )
+
+        if not self._api_keys:
+            return
+
+        for idx, (key, secret) in enumerate(self._api_keys):
+            self.rate_limiter.ensure_key(idx)
+
+        first_key = self._api_keys[0]
+        self.http.configure_key(first_key[0], first_key[1], 0)
+        if len(self._api_keys) > 1:
+            self.http.set_key_rotation_callback(self.rotate_key)
+
+    def rotate_key(self) -> bool:
+        """Rotate to the next configured API key if available."""
+        if len(self._api_keys) <= 1:
+            return False
+        self._current_key = (self._current_key + 1) % len(self._api_keys)
+        key, secret = self._api_keys[self._current_key]
+        self.http.configure_key(key, secret, self._current_key)
+        return True
+
+    def select_key(self, index: int) -> None:
+        """Select a specific API key by index."""
+        if not (0 <= index < len(self._api_keys)):
+            raise IndexError("API key index out of range")
+        self._current_key = index
+        key, secret = self._api_keys[index]
+        self.http.configure_key(key, secret, index)

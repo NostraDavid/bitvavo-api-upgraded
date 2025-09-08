@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v4.1.2 - 2025-09-08
 
 - replace `DATAFRAME` with multiple separate DataFrame models.
 

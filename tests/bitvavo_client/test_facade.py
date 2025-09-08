@@ -205,13 +205,13 @@ class TestBitvavoClientComponentIntegration:
         schema = {"test": "schema"}
         client = BitvavoClient(
             settings=TestBitvavoSettings(),
-            preferred_model=ModelPreference.DATAFRAME,
+            preferred_model=ModelPreference.POLARS,
             default_schema=schema,
         )
 
         # Both endpoints should have the same preferences
-        assert client.public.preferred_model == ModelPreference.DATAFRAME
-        assert client.private.preferred_model == ModelPreference.DATAFRAME
+        assert client.public.preferred_model == ModelPreference.POLARS
+        assert client.private.preferred_model == ModelPreference.POLARS
         assert client.public.default_schema is schema
         assert client.private.default_schema is schema
 

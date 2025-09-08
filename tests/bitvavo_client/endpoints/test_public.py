@@ -2033,7 +2033,7 @@ class TestPublicAPI_DATAFRAME(AbstractPublicAPITests):  # noqa: N801
     def public_api(self) -> PublicAPI:
         """PublicAPI configured for DataFrame responses."""
         http = self._create_http_client()
-        return PublicAPI(http, preferred_model=ModelPreference.DATAFRAME)
+        return PublicAPI(http, preferred_model=ModelPreference.POLARS)
 
     def test_time(self, public_api: PublicAPI) -> None:
         """Time endpoint should return server time as a Polars DataFrame."""

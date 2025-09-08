@@ -237,7 +237,7 @@ client = BitvavoClient(preferred_model=ModelPreference.PYDANTIC)
 result = client.public.time()  # Returns: ServerTime(time=1609459200000)
 
 # Option 3: DataFrame format (pandas, polars, etc.)
-client = BitvavoClient(preferred_model=ModelPreference.DATAFRAME)
+client = BitvavoClient(preferred_model=ModelPreference.POLARS)
 result = client.public.markets()  # Returns: polars.DataFrame with market data
 ```
 
@@ -250,9 +250,10 @@ client = BitvavoClient(preferred_model=ModelPreference.RAW)
 # Get raw dict (uses default)
 raw_data = client.public.markets()
 
-# Override to get DataFrame for this request
+# Override to get Polars DataFrame for this request
 import polars as pl
-df_data = client.public.markets(model=pl.DataFrame)
+from bitvavo_client.core.model_preferences import ModelPreference
+df_data = client.public.markets(model=ModelPreference.POLARS)
 
 # Override to get Pydantic model
 from bitvavo_client.core.public_models import Markets

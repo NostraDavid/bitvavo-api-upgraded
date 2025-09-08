@@ -452,22 +452,23 @@ class TestDecodeResponseResult:
     def test_decode_response_with_polars_dataframe(self) -> None:
         """Test decoding response with Polars DataFrame."""
         mock_df = Mock()
-        mock_polars = Mock()
-        mock_polars.DataFrame = Mock(return_value=mock_df)
+
+        # Create a mock class that looks like polars.DataFrame
+        mock_polars_dataframe = Mock()
+        # Configure mock to pass the polars detection check
+        mock_polars_dataframe.configure_mock(__name__="DataFrame", __module__="polars.dataframe")
+        mock_polars_dataframe.return_value = mock_df
 
         mock_response = Mock(spec=httpx.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = [{"price": 50000, "volume": 1.5}]
 
-        # Mock the polars import within the function
-        with patch("builtins.__import__") as mock_import:
-            mock_import.return_value = mock_polars
-            schema = {"price": float, "volume": float}
-            result = decode_response_result(mock_response, mock_polars.DataFrame, schema)
+        schema = {"price": float, "volume": float}
+        result = decode_response_result(mock_response, mock_polars_dataframe, schema)  # type: ignore[arg-type]
 
         assert isinstance(result, Success)
         assert result.unwrap() is mock_df
-        mock_polars.DataFrame.assert_called_once_with([{"price": 50000, "volume": 1.5}], schema=schema, strict=False)
+        mock_polars_dataframe.assert_called_once_with([{"price": 50000, "volume": 1.5}], schema=schema)
 
     def test_decode_response_with_polars_import_error(self) -> None:
         """Test decoding response when Polars import fails."""

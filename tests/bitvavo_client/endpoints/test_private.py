@@ -2028,7 +2028,7 @@ class TestPrivateAPI_DATAFRAME(AbstractPrivateAPITests):  # noqa: N801
         if settings.api_key and settings.api_secret:
             http.configure_key(settings.api_key, settings.api_secret, 0)
 
-        return PrivateAPI(http, preferred_model=ModelPreference.DATAFRAME)
+        return PrivateAPI(http, preferred_model=ModelPreference.POLARS)
 
     def test_account(self, private_api: PrivateAPI, expected_caps: set[str]) -> None:
         """Account endpoint should return Failure for DataFrame model preference."""

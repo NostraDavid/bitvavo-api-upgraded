@@ -1,5 +1,9 @@
 # Changelog
 
+## $UNRELEASED
+
+- replace `DATAFRAME` with multiple separate DataFrame models.
+
 ## v4.1.1 - 2025-09-07
 
 - actually add bitvavo_client

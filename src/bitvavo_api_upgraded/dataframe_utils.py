@@ -31,7 +31,7 @@ def is_library_available(library_name: str) -> bool:
         "cudf": "cudf",
         "modin": "modin.pandas",
         "pyarrow": "pyarrow",
-        "dask": "dask.dataframe",
+        "dask": "dask",
         "duckdb": "duckdb",
         "ibis": "ibis",
         "pyspark": "pyspark.sql",

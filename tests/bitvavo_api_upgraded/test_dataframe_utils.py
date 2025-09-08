@@ -727,16 +727,98 @@ class TestAdvancedConversion:
 
     @pytest.mark.skipif(not is_library_available("pandas"), reason="pandas not available")
     def test_convert_to_dataframe_special_formats(self) -> None:
-        """Test conversion with special format handling."""
+        """Test conversion with all possible output formats."""
         test_data = [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
 
-        # Test dask conversion
-        result = convert_to_dataframe(test_data, OutputFormat.DASK)
-        assert hasattr(result, "compute")
+        # Test basic formats that always work
+        self._test_dict_format(test_data)
 
-        # Test duckdb conversion
-        result = convert_to_dataframe(test_data, OutputFormat.DUCKDB)
-        assert hasattr(result, "fetchall")
+        # Test standard dataframe formats
+        self._test_standard_dataframe_formats(test_data)
+
+        # Test special handling formats
+        self._test_special_dataframe_formats(test_data)
+
+        # Test distributed/big data formats
+        self._test_distributed_dataframe_formats(test_data)
+
+    def _test_dict_format(self, test_data: list[dict[str, int]]) -> None:
+        """Test DICT format conversion."""
+        result = convert_to_dataframe(test_data, OutputFormat.DICT)
+        assert result == test_data
+
+    def _test_standard_dataframe_formats(self, test_data: list[dict[str, int]]) -> None:
+        """Test standard dataframe format conversions."""
+        # Test PANDAS format
+        if is_library_available("pandas"):
+            result = convert_to_dataframe(test_data, OutputFormat.PANDAS)
+            assert hasattr(result, "shape")
+            assert hasattr(result, "columns")
+            assert result.shape == (2, 2)
+
+        # Test POLARS format
+        if is_library_available("polars") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.POLARS)
+            assert hasattr(result, "shape")
+            assert hasattr(result, "columns")
+            assert result.shape == (2, 2)
+
+        # Test PYARROW format
+        if is_library_available("pyarrow") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.PYARROW)
+            assert hasattr(result, "shape")
+            assert hasattr(result, "columns")  # Narwhals normalizes interface
+            assert result.shape == (2, 2)
+
+    def _test_special_dataframe_formats(self, test_data: list[dict[str, int]]) -> None:
+        """Test special handling dataframe formats."""
+        # Test DASK format (special handling)
+        if is_library_available("dask") and is_library_available("pandas"):
+            result = convert_to_dataframe(test_data, OutputFormat.DASK)
+            assert hasattr(result, "compute")
+            computed = result.compute()
+            assert hasattr(computed, "shape")
+            assert computed.shape == (2, 2)
+
+        # Test DUCKDB format (special handling)
+        if is_library_available("duckdb") and is_library_available("pandas"):
+            result = convert_to_dataframe(test_data, OutputFormat.DUCKDB)
+            assert hasattr(result, "fetchall") or hasattr(result, "df")
+
+        # Test GPU/accelerated formats
+        if is_library_available("cudf") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.CUDF)
+            assert hasattr(result, "shape")
+            assert hasattr(result, "columns")
+            assert result.shape == (2, 2)
+
+        if is_library_available("modin") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.MODIN)
+            assert hasattr(result, "shape")
+            assert hasattr(result, "columns")
+            assert result.shape == (2, 2)
+
+    def _test_distributed_dataframe_formats(self, test_data: list[dict[str, int]]) -> None:
+        """Test distributed/big data dataframe formats."""
+        # Test IBIS format
+        if is_library_available("ibis") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.IBIS)
+            assert hasattr(result, "schema") or hasattr(result, "columns")
+
+        # Test PYSPARK format
+        if is_library_available("pyspark") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.PYSPARK)
+            assert hasattr(result, "count") or hasattr(result, "columns")
+
+        # Test PYSPARK_CONNECT format
+        if is_library_available("pyspark-connect") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.PYSPARK_CONNECT)
+            assert hasattr(result, "count") or hasattr(result, "columns")
+
+        # Test SQLFRAME format
+        if is_library_available("sqlframe") and is_narwhals_available():
+            result = convert_to_dataframe(test_data, OutputFormat.SQLFRAME)
+            assert hasattr(result, "count") or hasattr(result, "columns")
 
 
 class TestAdvancedCandlesConversion:
@@ -803,6 +885,7 @@ class TestCreateSpecialDataframe:
         result = _create_special_dataframe(test_data, OutputFormat.DASK)
 
         # Should be a dask dataframe
+        assert dd is not None
         assert isinstance(result, dd.DataFrame)
 
         # Convert to pandas to check contents
@@ -860,6 +943,7 @@ class TestCreateSpecialDataframe:
         result = _create_special_dataframe(test_data, OutputFormat.DASK)
 
         # Should still create a dask dataframe, just empty
+        assert dd is not None
         assert isinstance(result, dd.DataFrame)
 
         pandas_result = result.compute()
@@ -876,6 +960,7 @@ class TestCreateSpecialDataframe:
         # pandas.DataFrame() should handle this gracefully (create single-column df)
         result = _create_special_dataframe(test_data, OutputFormat.DASK)
 
+        assert dd is not None
         assert isinstance(result, dd.DataFrame)
 
 

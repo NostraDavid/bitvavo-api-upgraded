@@ -23,8 +23,26 @@ class ModelPreference(StrEnum):
     # Return raw Python data structures (dict/list)
     RAW = "raw"
 
-    # Return Polars DataFrame (requires schema)
-    DATAFRAME = "dataframe"
+    # Return Polars DataFrame
+    POLARS = "polars"
+
+    # Return Pandas DataFrame
+    PANDAS = "pandas"
+
+    # Return PyArrow Table
+    PYARROW = "pyarrow"
+
+    # Return Dask DataFrame
+    DASK = "dask"
+
+    # Return Modin DataFrame
+    MODIN = "modin"
+
+    # Return CuDF DataFrame (GPU accelerated)
+    CUDF = "cudf"
+
+    # Return Ibis DataFrame
+    IBIS = "ibis"
 
     # Return appropriate Pydantic model for each endpoint
     PYDANTIC = "pydantic"

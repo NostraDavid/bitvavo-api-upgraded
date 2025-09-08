@@ -6,7 +6,6 @@ import contextlib
 from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
-import polars as pl
 from returns.result import Failure, Result, Success
 
 from bitvavo_client.adapters.returns_adapter import BitvavoError
@@ -53,13 +52,80 @@ def _extract_dataframe_data(data: Any, *, items_key: str | None = None) -> list[
     raise ValueError(msg)
 
 
+# DataFrames preference to library mapping
+_DATAFRAME_LIBRARY_MAP = {
+    ModelPreference.POLARS: ("polars", "pl.DataFrame"),
+    ModelPreference.PANDAS: ("pandas", "pd.DataFrame"),
+    ModelPreference.PYARROW: ("pyarrow", "pa.Table"),
+    ModelPreference.DASK: ("dask", "dd.DataFrame"),
+    ModelPreference.MODIN: ("modin", "mpd.DataFrame"),
+    ModelPreference.CUDF: ("cudf", "cudf.DataFrame"),
+    ModelPreference.IBIS: ("ibis", "ibis.Table"),
+}
+
+
+def _get_dataframe_constructor(preference: ModelPreference) -> tuple[Any, str]:
+    """Get the appropriate dataframe constructor and library name based on preference.
+
+    Args:
+        preference: ModelPreference enum value
+
+    Returns:
+        Tuple of (constructor_class, library_name)
+
+    Raises:
+        ImportError: If required library is not available
+        ValueError: If preference is not a supported dataframe type
+    """
+    if preference not in _DATAFRAME_LIBRARY_MAP:
+        msg = f"Unsupported dataframe preference: {preference}"
+        raise ValueError(msg)
+
+    library_name, _ = _DATAFRAME_LIBRARY_MAP[preference]
+
+    try:
+        if preference == ModelPreference.POLARS:
+            import polars as pl  # noqa: PLC0415
+
+            return pl.DataFrame, library_name
+        if preference == ModelPreference.PANDAS:
+            import pandas as pd  # noqa: PLC0415
+
+            return pd.DataFrame, library_name
+        if preference == ModelPreference.PYARROW:
+            import pyarrow as pa  # noqa: PLC0415
+
+            return pa.Table.from_pylist, library_name
+        if preference == ModelPreference.DASK:
+            import dask.dataframe as dd  # noqa: PLC0415
+            import pandas as pd  # noqa: PLC0415
+
+            return lambda data, **kwargs: dd.from_pandas(pd.DataFrame(data), npartitions=1), library_name
+        if preference == ModelPreference.MODIN:
+            import modin.pandas as mpd  # noqa: PLC0415
+
+            return mpd.DataFrame, library_name
+        if preference == ModelPreference.CUDF:
+            import cudf  # noqa: PLC0415
+
+            return cudf.DataFrame, library_name
+        # ModelPreference.IBIS
+        import ibis  # noqa: PLC0415
+
+        return lambda data, **kwargs: ibis.memtable(data), library_name
+    except ImportError as e:
+        msg = f"{library_name} is not installed. Install with appropriate package manager."
+        raise ImportError(msg) from e
+
+
 def _create_dataframe_from_data(
-    data: Any, *, items_key: str | None = None, empty_schema: dict[str, Any] | None = None
-) -> Result[pl.DataFrame, BitvavoError]:
-    """Create a DataFrame from API response data.
+    data: Any, preference: ModelPreference, *, items_key: str | None = None, empty_schema: dict[str, Any] | None = None
+) -> Result[Any, BitvavoError]:
+    """Create a DataFrame from API response data using the specified preference.
 
     Args:
         data: Raw API response data
+        preference: ModelPreference enum value indicating which library to use
         items_key: Key to extract from nested response (optional)
         empty_schema: Schema to use for empty DataFrames and type casting
 
@@ -68,28 +134,18 @@ def _create_dataframe_from_data(
     """
     try:
         df_data = _extract_dataframe_data(data, items_key=items_key)
+        constructor, library_name = _get_dataframe_constructor(preference)
 
         if df_data:
-            # Create DataFrame with flexible schema first
-            df = pl.DataFrame(df_data, strict=False)
-
-            # Apply schema casting if provided
-            if empty_schema:
-                # Cast columns that exist in both DataFrame and schema
-                for col, expected_dtype in empty_schema.items():
-                    if col in df.columns:
-                        with contextlib.suppress(pl.exceptions.PolarsError, ValueError):
-                            df = df.with_columns(pl.col(col).cast(expected_dtype))
-
+            # Create DataFrame using appropriate constructor
+            df = _create_dataframe_with_constructor(constructor, library_name, df_data, empty_schema)
             return Success(df)  # type: ignore[return-value]
 
-        # Create empty DataFrame with provided schema or minimal default
-        if empty_schema is None:
-            empty_schema = {"id": pl.String}  # Minimal default schema
-        df = pl.DataFrame([], schema=empty_schema)
+        # Create empty DataFrame
+        df = _create_empty_dataframe(constructor, library_name, empty_schema)
         return Success(df)  # type: ignore[return-value]
 
-    except (ValueError, TypeError, pl.exceptions.PolarsError) as exc:
+    except (ValueError, TypeError, ImportError) as exc:
         error = BitvavoError(
             http_status=500,
             error_code=-1,
@@ -98,6 +154,71 @@ def _create_dataframe_from_data(
             raw={"data_type": type(data).__name__, "data_sample": str(data)[:200]},
         )
         return Failure(error)
+
+
+def _create_dataframe_with_constructor(
+    constructor: Any, library_name: str, df_data: list | dict, empty_schema: dict | None
+) -> Any:
+    """Create DataFrame with data using the appropriate constructor."""
+    if library_name == "polars":
+        df = constructor(df_data, strict=False)
+        if empty_schema:
+            df = _apply_polars_schema(df, empty_schema)
+        return df
+    if library_name in ("pandas", "modin", "cudf"):
+        df = constructor(df_data)
+        if empty_schema:
+            df = _apply_pandas_like_schema(df, empty_schema)
+        return df
+    if library_name == "pyarrow" or library_name == "dask":
+        return constructor(df_data)
+    # ibis
+    return constructor(df_data)
+
+
+def _create_empty_dataframe(constructor: Any, library_name: str, empty_schema: dict | None) -> Any:
+    """Create empty DataFrame using the appropriate constructor."""
+    if empty_schema is None:
+        empty_schema = {"id": str} if library_name != "polars" else {"id": "pl.String"}
+
+    if library_name == "polars":
+        import polars as pl  # noqa: PLC0415
+
+        schema = {k: pl.String if v == "pl.String" else v for k, v in empty_schema.items()}
+        return constructor([], schema=schema)
+    if library_name in ("pandas", "modin", "cudf", "dask") or library_name == "pyarrow":
+        return constructor([])
+    # ibis
+    return constructor([dict.fromkeys(empty_schema.keys())])
+
+
+def _apply_polars_schema(df: Any, schema: dict) -> Any:
+    """Apply schema to polars DataFrame."""
+    import polars as pl  # noqa: PLC0415
+
+    for col, expected_dtype in schema.items():
+        if col in df.columns:
+            with contextlib.suppress(Exception):
+                df = df.with_columns(pl.col(col).cast(expected_dtype))
+    return df
+
+
+def _apply_pandas_like_schema(df: Any, schema: dict) -> Any:
+    """Apply schema to pandas-like DataFrame."""
+    pandas_schema = {}
+    for col, dtype in schema.items():
+        if col in df.columns:
+            if "String" in str(dtype) or "Utf8" in str(dtype):
+                pandas_schema[col] = "string"
+            elif "Int" in str(dtype):
+                pandas_schema[col] = "int64"
+            elif "Float" in str(dtype):
+                pandas_schema[col] = "float64"
+
+    if pandas_schema and hasattr(df, "astype"):
+        with contextlib.suppress(Exception):
+            df = df.astype(pandas_schema)
+    return df
 
 
 class PrivateAPI:
@@ -118,7 +239,22 @@ class PrivateAPI:
             default_schema: Default schema for DataFrame conversion
         """
         self.http: HTTPClient = http_client
-        self.preferred_model = ModelPreference(preferred_model) if preferred_model else None
+
+        # Handle preferred_model parameter - try to convert strings to ModelPreference,
+        # but allow arbitrary strings to pass through for custom handling
+        if preferred_model is None:
+            self.preferred_model = None
+        elif isinstance(preferred_model, ModelPreference):
+            self.preferred_model = preferred_model
+        elif isinstance(preferred_model, str):
+            try:
+                self.preferred_model = ModelPreference(preferred_model)
+            except ValueError:
+                # If string doesn't match a valid ModelPreference, store as-is
+                self.preferred_model = preferred_model
+        else:
+            self.preferred_model = preferred_model
+
         self.default_schema = default_schema
 
     def _get_effective_model(
@@ -152,7 +288,8 @@ class PrivateAPI:
         if self.preferred_model == ModelPreference.RAW:
             return Any, schema
 
-        if self.preferred_model == ModelPreference.DATAFRAME:
+        # Handle all DataFrame preferences
+        if self.preferred_model in _DATAFRAME_LIBRARY_MAP:
             # Validate endpoint type
             if endpoint_type not in list(DEFAULT_SCHEMAS.keys()):
                 msg = f"Invalid endpoint_type '{endpoint_type}'. Valid types: {sorted(DEFAULT_SCHEMAS)}"
@@ -162,7 +299,8 @@ class PrivateAPI:
             # Convert to dict if it's a Mapping but not already a dict
             if effective_schema is not None and not isinstance(effective_schema, dict):
                 effective_schema = dict(effective_schema)
-            return pl.DataFrame, effective_schema
+            # Return the preference itself, not a specific DataFrame class
+            return self.preferred_model, effective_schema
 
         if self.preferred_model == ModelPreference.PYDANTIC:
             # Map endpoint types to appropriate Pydantic models
@@ -224,8 +362,10 @@ class PrivateAPI:
         raw_data = raw_result.unwrap()
 
         # Handle DataFrames specially
-        if effective_model is pl.DataFrame:
-            return _create_dataframe_from_data(raw_data, items_key=items_key, empty_schema=effective_schema)
+        if effective_model in _DATAFRAME_LIBRARY_MAP and isinstance(effective_model, ModelPreference):
+            return _create_dataframe_from_data(
+                raw_data, effective_model, items_key=items_key, empty_schema=effective_schema
+            )
 
         # Handle other model types using the same logic as PublicAPI
         try:
@@ -283,7 +423,7 @@ class PrivateAPI:
         """
         # Check if DataFrame is requested - not supported for this endpoint
         effective_model, effective_schema = self._get_effective_model("account", model, schema)
-        if effective_model is pl.DataFrame:
+        if effective_model in _DATAFRAME_LIBRARY_MAP:
             msg = "DataFrame model is not supported due to the shape of data"
             return Failure(TypeError(msg))
 
@@ -774,7 +914,7 @@ class PrivateAPI:
 
         effective_model, effective_schema = self._get_effective_model("deposit", model, schema)
 
-        if effective_model is pl.DataFrame:
+        if effective_model in _DATAFRAME_LIBRARY_MAP:
             msg = "DataFrame model is not supported due to the shape of data"
             return Failure(TypeError(msg))
 
@@ -850,9 +990,11 @@ class PrivateAPI:
         effective_schema: dict | None,
     ) -> Result[Any, BitvavoError]:
         """Convert transaction items to the desired model format."""
-        if effective_model is pl.DataFrame:
-            # Convert items to DataFrame
-            return _create_dataframe_from_data(items_data, items_key=None, empty_schema=effective_schema)
+        if effective_model in _DATAFRAME_LIBRARY_MAP and isinstance(effective_model, ModelPreference):
+            # Convert items to DataFrame using the specific preference
+            return _create_dataframe_from_data(
+                items_data, effective_model, items_key=None, empty_schema=effective_schema
+            )
 
         if effective_model is Any or effective_model is None:
             # Raw data - return items list directly

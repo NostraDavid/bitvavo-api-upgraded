@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
-import polars as pl
 from returns.result import Failure, Success
 
 from bitvavo_client.adapters.returns_adapter import BitvavoError
@@ -24,6 +23,17 @@ MAX_END_TIMESTAMP = 8640000000000000  # Maximum end timestamp value
 MAX_TIMESTAMP_VALUE = 8640000000000000  # Maximum allowed timestamp value
 MAX_BOOK_DEPTH = 1000  # Maximum depth for order book
 MAX_BOOK_REPORT_DEPTH = 1000  # Maximum depth for order book report
+
+# DataFrames preference to library mapping
+_DATAFRAME_LIBRARY_MAP = {
+    ModelPreference.POLARS: ("polars", "pl.DataFrame"),
+    ModelPreference.PANDAS: ("pandas", "pd.DataFrame"),
+    ModelPreference.PYARROW: ("pyarrow", "pa.Table"),
+    ModelPreference.DASK: ("dask", "dd.DataFrame"),
+    ModelPreference.MODIN: ("modin", "mpd.DataFrame"),
+    ModelPreference.CUDF: ("cudf", "cudf.DataFrame"),
+    ModelPreference.IBIS: ("ibis", "ibis.Table"),
+}
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
@@ -55,7 +65,21 @@ class PublicAPI:
             default_schema: Default schema for DataFrame conversion
         """
         self.http: HTTPClient = http_client
-        self.preferred_model = ModelPreference(preferred_model) if preferred_model else None
+
+        # Handle preferred_model parameter - try to convert strings to ModelPreference,
+        # but allow arbitrary strings to pass through for custom handling
+        if preferred_model is None:
+            self.preferred_model = None
+        elif isinstance(preferred_model, ModelPreference):
+            self.preferred_model = preferred_model
+        elif isinstance(preferred_model, str):
+            try:
+                self.preferred_model = ModelPreference(preferred_model)
+            except ValueError:
+                # If string doesn't match a valid ModelPreference, store as-is
+                self.preferred_model = preferred_model
+        else:
+            self.preferred_model = preferred_model
 
         # If using DATAFRAME preference without a default schema, we could provide sensible defaults
         # But keep it explicit for now - users can import and use schemas as needed
@@ -89,10 +113,12 @@ class PublicAPI:
         if self.preferred_model == ModelPreference.RAW:
             return Any, schema
 
-        if self.preferred_model == ModelPreference.DATAFRAME:
+        # Handle all DataFrame preferences
+        if self.preferred_model in _DATAFRAME_LIBRARY_MAP:
             # Use the provided schema, fallback to instance default, then to endpoint-specific default
             effective_schema = schema or self.default_schema or DEFAULT_SCHEMAS.get(endpoint_type)
-            return pl.DataFrame, effective_schema
+            # Return the preference itself, not a specific DataFrame class
+            return self.preferred_model, effective_schema
 
         if self.preferred_model == ModelPreference.PYDANTIC:
             # Map endpoint types to appropriate Pydantic models
@@ -140,24 +166,23 @@ class PublicAPI:
         effective_model, effective_schema = self._get_effective_model(endpoint_type, model, schema)
 
         # If no conversion needed (raw data requested), return as-is
-        if effective_model is Any or effective_model is None:
+        if effective_model is Any or effective_model is None or effective_model == ModelPreference.RAW:
             return raw_result
 
         # Extract the raw data
         raw_data = raw_result.unwrap()
 
-        # Perform conversion using the same logic as the returns adapter
+        # Perform conversion
         try:
-            # Handle different model types
-            if hasattr(effective_model, "model_validate"):
+            # Handle DataFrame preferences specially
+            if isinstance(effective_model, ModelPreference) and effective_model in _DATAFRAME_LIBRARY_MAP:
+                parsed = self._create_dataframe(raw_data, effective_model, effective_schema)
+            elif hasattr(effective_model, "model_validate"):
                 # Pydantic model
                 parsed = effective_model.model_validate(raw_data)  # type: ignore[misc]
-            elif effective_schema is None:
+            else:
                 # Simple constructor call - this handles dict and other simple types
                 parsed = effective_model(raw_data)  # type: ignore[misc]
-            else:
-                # DataFrame with schema - use type ignoring for now to get working
-                parsed = effective_model(raw_data, schema=effective_schema, strict=False)  # type: ignore[misc]
 
             return Success(parsed)
         except (ValueError, TypeError, AttributeError) as exc:
@@ -170,6 +195,71 @@ class PublicAPI:
                 raw=raw_data if isinstance(raw_data, dict) else {"raw": raw_data},
             )
             return Failure(error)
+
+    def _create_dataframe(
+        self,
+        data: Any,
+        preference: ModelPreference,
+        schema: Mapping[str, object] | None,
+    ) -> Any:
+        """Create a DataFrame from raw data using the specified preference.
+
+        Args:
+            data: Raw data to convert
+            preference: DataFrame preference (POLARS, PANDAS, etc.)
+            schema: Schema for DataFrame conversion
+
+        Returns:
+            DataFrame instance
+
+        Raises:
+            ImportError: If the required DataFrame library is not available
+            ValueError: If DataFrame creation fails
+        """
+        if preference == ModelPreference.POLARS:
+            import polars as pl
+
+            return self._create_polars_dataframe(data, schema, pl)
+
+        if preference == ModelPreference.PANDAS:
+            import pandas as pd
+
+            return pd.DataFrame(data)
+
+        if preference == ModelPreference.PYARROW:
+            import pyarrow as pa
+
+            return pa.Table.from_pylist(data if isinstance(data, list) else [data])
+
+        # For other DataFrame types, try basic conversion
+        msg = f"DataFrame preference {preference} not yet fully implemented"
+        raise NotImplementedError(msg)
+
+    def _create_polars_dataframe(
+        self,
+        data: Any,
+        schema: Mapping[str, object] | None,
+        pl: Any,  # polars module
+    ) -> Any:
+        """Create a Polars DataFrame with proper schema handling.
+
+        Args:
+            data: Raw data to convert
+            schema: Schema for DataFrame conversion
+            pl: Polars module
+
+        Returns:
+            Polars DataFrame
+        """
+        if schema is None:
+            return pl.DataFrame(data)
+
+        # For Polars, we need to handle the schema with strict=False for compatibility
+        try:
+            return pl.DataFrame(data, schema=schema, strict=False)
+        except Exception:
+            # Fallback to basic DataFrame creation if schema fails
+            return pl.DataFrame(data)
 
     def time(
         self,

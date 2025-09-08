@@ -285,13 +285,12 @@ def decode_response_result(  # noqa: C901 (complexity)
             # I don't like the complexity of this piece, but it's needed because the data from ticker_book may return an
             # int when it should be a float... Why is their DB such a damned mess? Fuck me, man...
             try:
-                import polars as pl  # noqa: PLC0415
-
-                if model is pl.DataFrame:
+                # Check if model is a polars DataFrame specifically by checking module and class name
+                if hasattr(model, "__name__") and "polars" in str(model.__module__) and "DataFrame" in str(model):
                     parsed = model(data, schema=schema, strict=False)  # type: ignore[arg-type]
                 else:
                     parsed = model(data, schema=schema)  # type: ignore[arg-type]
-            except ImportError:
+            except (ImportError, AttributeError):
                 parsed = model(data, schema=schema)  # type: ignore[arg-type]
         return Success(parsed)
     except Exception as exc:  # noqa: BLE001

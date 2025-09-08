@@ -48,7 +48,7 @@ wheels = [
 
 [[package]]
 name = "bitvavo-api-upgraded"
-version = "4.0.0"
+version = "4.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
@@ -109,7 +109,7 @@ dev = [
     { name = "mdformat" },
     { name = "mkdocs" },
     { name = "mypy" },
-    { name = "narwhals" },
+    { name = "narwhals", extra = ["dask", "duckdb", "pandas", "polars", "pyarrow"] },
     { name = "pandas" },
     { name = "pandas-stubs" },
     { name = "polars" },
@@ -162,7 +162,7 @@ dev = [
     { name = "mdformat", specifier = ">=0.7.11" },
     { name = "mkdocs", specifier = ">=1.2.3" },
     { name = "mypy", specifier = ">=1.13" },
-    { name = "narwhals", specifier = ">=2.0.0" },
+    { name = "narwhals", extras = ["dask", "duckdb", "pandas", "polars", "pyarrow"], specifier = ">=2.0.0" },
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "pandas-stubs", specifier = ">=2.2.2.0" },
     { name = "polars", specifier = ">=1.0.0" },
@@ -2190,7 +2190,7 @@ wheels = [
 
 [[package]]
 name = "sqlframe"
-version = "3.39.4"
+version = "3.40.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "more-itertools" },
@@ -2198,18 +2198,18 @@ dependencies = [
     { name = "sqlglot" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e2/e9/7418a90d083052589a39586d48548f05f71bab9af3a39bdaee0f8ff36b32/sqlframe-3.39.4.tar.gz", hash = "sha256:96af766be8dc81d76531bb4d51ff158a8d26c21f1af5ffee8f3e4191d4f943ca", size = 29483318, upload-time = "2025-08-28T04:37:11.718Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/a9/5696d57edb22533c11d09a084bb8dc9d84d5ae2e75317030279e088471e2/sqlframe-3.40.1.tar.gz", hash = "sha256:6ffa69d472dba36c329b1fbeee221a3f57c98a751faf8eefede4883824ced38f", size = 29485537, upload-time = "2025-09-08T01:26:14.722Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/af/ae/f9ed1d6177738ab4061577e18a9557720cda1dbe0cfecb1fa8eefc18d6fa/sqlframe-3.39.4-py3-none-any.whl", hash = "sha256:3822216654b19a0ef3dd40cbd30acf488245418d5cd166cdb51845749a55e8b6", size = 207235, upload-time = "2025-08-28T04:37:08.414Z" },
+    { url = "https://files.pythonhosted.org/packages/67/3d/24e7cb28311ab0118e9eb4bb1173e4b377947fbede8d34d62aab2a2ae313/sqlframe-3.40.1-py3-none-any.whl", hash = "sha256:1f077e1d3ac37f555864593df846ddd6de6dd68249e626f5196cb66a1308e573", size = 208672, upload-time = "2025-09-08T01:26:12.652Z" },
 ]
 
 [[package]]
 name = "sqlglot"
-version = "27.9.0"
+version = "27.12.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/59/d4/000082a3451106b1ab455e9c68154108a3881e810a79fa39822ac1cabfc0/sqlglot-27.9.0.tar.gz", hash = "sha256:c286c7acbfe567c35e71a263ff9ac6149bce94e03dc6c7fe981cdd8c0c64e31d", size = 5430361, upload-time = "2025-08-27T21:10:24.482Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2c/8b/a19c3d9d6933f8ee6ea05a1df6e8b7ce48fd910bbb366ac9fbf522dcaa38/sqlglot-27.12.0.tar.gz", hash = "sha256:1bb0500503eea375bf86ddc72b2e9ca955113bd0cbf8968bcf4ed5f4cd8d5575", size = 5450508, upload-time = "2025-09-04T16:53:26.6Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/76/f5/4caf1bf558ccc71728134783cce23c3c73fdf2bb9d37df725967ce3faf61/sqlglot-27.9.0-py3-none-any.whl", hash = "sha256:61cc466c7d50a99aceeb83d453b0f316b555b77bb29be9436899494bd90d641b", size = 505854, upload-time = "2025-08-27T21:10:21.938Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/89/9dc71793f4cfbebbe9529986f887c1a627ffc57550f5de246409a5f721d4/sqlglot-27.12.0-py3-none-any.whl", hash = "sha256:b3a3d9d0cc27d7eece4057ff97714fe2d950ae9c5dc0df702db6fcd333565bb8", size = 510978, upload-time = "2025-09-04T16:53:23.87Z" },
 ]
 
 [[package]]

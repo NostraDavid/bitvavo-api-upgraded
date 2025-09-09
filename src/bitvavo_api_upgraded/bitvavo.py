@@ -167,7 +167,7 @@ class Bitvavo:
     )
     time_dict = bitvavo.time()
 
-    # Multiple API keys with keyless preference
+    # Multiple API keys
     bitvavo = Bitvavo(
         {
             "APIKEYS": [
@@ -175,7 +175,6 @@ class Bitvavo:
                 {"key": "$YOUR_API_KEY_2", "secret": "$YOUR_API_SECRET_2"},
                 {"key": "$YOUR_API_KEY_3", "secret": "$YOUR_API_SECRET_3"},
             ],
-            "PREFER_KEYLESS": True,  # Use keyless requests first, then API keys
             "RESTURL": "https://api.bitvavo.com/v2",
             "WSURL": "wss://ws.bitvavo.com/v2/",
             "ACCESSWINDOW": 10000,
@@ -187,7 +186,6 @@ class Bitvavo:
     # Keyless only (no API keys)
     bitvavo = Bitvavo(
         {
-            "PREFER_KEYLESS": True,
             "RESTURL": "https://api.bitvavo.com/v2",
             "WSURL": "wss://ws.bitvavo.com/v2/",
             "ACCESSWINDOW": 10000,
@@ -235,9 +233,8 @@ class Bitvavo:
                 else:
                     self.api_keys = []
 
-        # Current API key index and keyless preference - options take precedence
+        # Current API key index - options take precedence
         self.current_api_key_index: int = 0
-        self.prefer_keyless: bool = bool(_options.get("PREFER_KEYLESS", bitvavo_upgraded_settings.PREFER_KEYLESS))
 
         # Rate limiting per API key (keyless has index -1)
         self.rate_limits: dict[int, dict[str, int | ms]] = {}
@@ -271,8 +268,8 @@ class Bitvavo:
         Returns:
             tuple: (api_key, api_secret, key_index) where key_index is -1 for keyless
         """
-        # If prefer keyless and keyless has enough rate limit, use keyless
-        if self.prefer_keyless and self._has_rate_limit_available(-1, rateLimitingWeight):
+        # If keyless has enough rate limit, use keyless
+        if self._has_rate_limit_available(-1, rateLimitingWeight):
             return "", "", -1
 
         # Try to find an API key with enough rate limit
@@ -2419,15 +2416,6 @@ class Bitvavo:
 
         return status
 
-    def set_keyless_preference(self, prefer_keyless: bool) -> None:  # noqa: FBT001 (Boolean-typed positional argument in function definition)
-        """Set whether to prefer keyless requests.
-
-        Args:
-            prefer_keyless: If True, use keyless requests first when available
-        """
-        self.prefer_keyless = prefer_keyless
-        logger.info("keyless-preference-changed", prefer_keyless=prefer_keyless)
-
     def get_current_config(self) -> dict[str, str | bool | int]:
         """Get the current configuration.
 
@@ -2437,7 +2425,6 @@ class Bitvavo:
         KEY_LENGTH = 12
         return {
             "api_key_count": len(self.api_keys),
-            "prefer_keyless": self.prefer_keyless,
             "current_api_key_index": self.current_api_key_index,
             "current_api_key": self._current_api_key[:8] + "..." + self._current_api_key[-4:]
             if len(self._current_api_key) > KEY_LENGTH

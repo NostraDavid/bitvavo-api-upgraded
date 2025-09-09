@@ -367,7 +367,6 @@ class TestBitvavo:
         """
         https://api.bitvavo.com/v2/AAVE-EUR/candles?interval=1m&limit=1440&start=1755759103631&end=1755759112502
         """
-        bitvavo_settings.PREFER_KEYLESS = False
         bitvavo = Bitvavo(bitvavo_settings.model_dump())
         response = bitvavo.candles(
             market="AAVE-EUR",

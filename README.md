@@ -150,7 +150,6 @@ BITVAVO_API_SECRET=your-api-secret-here
 # BITVAVO_API_KEYS='[{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]'
 
 # Client behavior
-BITVAVO_PREFER_KEYLESS=true          # Use keyless for public endpoints
 BITVAVO_DEFAULT_RATE_LIMIT=1000      # Rate limit per key
 BITVAVO_RATE_LIMIT_BUFFER=50         # Buffer to avoid hitting limits
 BITVAVO_DEBUGGING=false              # Enable debug logging
@@ -174,7 +173,6 @@ client = BitvavoClient()
 settings = BitvavoSettings(
     api_key="your-key",
     api_secret="your-secret",
-    prefer_keyless=True,
     debugging=True
 )
 client = BitvavoClient(settings)
@@ -215,7 +213,7 @@ bitvavo = Bitvavo({
 })
 
 # Option 4: Keyless (public endpoints only)
-bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+bitvavo = Bitvavo({})
 ```
 
 ## Data Format Flexibility
@@ -336,7 +334,7 @@ trades = bitvavo.getTrades('BTC-EUR', {})  # Automatic failover if rate limit re
 from bitvavo_api_upgraded import Bitvavo
 
 # No API keys needed for public data
-bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+bitvavo = Bitvavo({})
 
 # These work without authentication and don't count against your rate limits
 markets = bitvavo.markets({})
@@ -352,13 +350,12 @@ candles = bitvavo.candles('BTC-EUR', '1h', {})
 ### Hybrid Configuration
 
 ```python
-# Combine keyless preference with API keys for optimal performance
+# Combine keyless access with API keys for optimal performance
 bitvavo = Bitvavo({
     'APIKEYS': [
         {'key': 'key1', 'secret': 'secret1'},
         {'key': 'key2', 'secret': 'secret2'}
-    ],
-    'PREFER_KEYLESS': True  # Use keyless for public endpoints, API keys for private
+    ]
 })
 
 # Public calls use keyless (no rate limit impact)
@@ -406,7 +403,7 @@ candles_result = client.public.candles('BTC-EUR', '1h')
 ```python
 from bitvavo_api_upgraded import Bitvavo
 
-bitvavo = Bitvavo({'PREFER_KEYLESS': True})  # For public endpoints
+bitvavo = Bitvavo({})  # For public endpoints
 
 # Get server time
 time_resp = bitvavo.time()
@@ -641,7 +638,7 @@ for i in range(2000):  # Would exceed single key limit
     markets = bitvavo_multi.markets({})  # Automatically switches keys
 
 # Keyless calls don't count against authenticated rate limits
-bitvavo_keyless = Bitvavo({'PREFER_KEYLESS': True})
+bitvavo_keyless = Bitvavo({})
 markets = bitvavo_keyless.markets({})  # Uses public rate limit pool
 ```
 
@@ -822,7 +819,7 @@ result = client.private.balance()
    bitvavo = Bitvavo({'APIKEYS': [{'key': 'k1', 'secret': 's1'}, {'key': 'k2', 'secret': 's2'}]})
 
    # Keyless for public endpoints
-   bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+   bitvavo = Bitvavo({})
 
    # DataFrame support
    markets_df = bitvavo.markets({}, output_format='pandas')

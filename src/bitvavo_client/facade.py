@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING, TypeVar
 
 from bitvavo_client.auth.rate_limit import RateLimitManager
@@ -51,7 +52,7 @@ class BitvavoClient:
 
         # Configure API keys if available
         self._api_keys: list[tuple[str, str]] = []
-        self._current_key: int = 0
+        self._current_key: int = -1
         self._configure_api_keys()
 
     def _configure_api_keys(self) -> None:
@@ -68,18 +69,42 @@ class BitvavoClient:
         for idx, (_key, _secret) in enumerate(self._api_keys):
             self.rate_limiter.ensure_key(idx)
 
-        first_key = self._api_keys[0]
-        self.http.configure_key(first_key[0], first_key[1], 0)
-        if len(self._api_keys) > 1:
+        if self._api_keys:
             self.http.set_key_rotation_callback(self.rotate_key)
 
     def rotate_key(self) -> bool:
         """Rotate to the next configured API key if available."""
-        if len(self._api_keys) <= 1:
+        if not self._api_keys:
             return False
-        self._current_key = (self._current_key + 1) % len(self._api_keys)
-        key, secret = self._api_keys[self._current_key]
-        self.http.configure_key(key, secret, self._current_key)
+
+        now = int(time.time() * 1000)
+
+        if self._current_key == -1:
+            idx = 0
+            if now < self.rate_limiter.get_reset_at(idx):
+                self.rate_limiter.sleep_until_reset(idx)
+            self.rate_limiter.reset_key(idx)
+            self._current_key = idx
+            key, secret = self._api_keys[idx]
+            self.http.configure_key(key, secret, idx)
+            return True
+
+        if self._current_key < len(self._api_keys) - 1:
+            idx = self._current_key + 1
+            if now < self.rate_limiter.get_reset_at(idx):
+                self.rate_limiter.sleep_until_reset(idx)
+            self.rate_limiter.reset_key(idx)
+            self._current_key = idx
+            key, secret = self._api_keys[idx]
+            self.http.configure_key(key, secret, idx)
+            return True
+
+        reset_at = self.rate_limiter.get_reset_at(-1)
+        if now < reset_at:
+            self.rate_limiter.sleep_until_reset(-1)
+        self.rate_limiter.reset_key(-1)
+        self._current_key = -1
+        self.http.configure_key("", "", -1)
         return True
 
     def select_key(self, index: int) -> None:

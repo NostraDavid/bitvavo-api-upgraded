@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from typing import Any
-from unittest.mock import Mock, call, patch
+from unittest.mock import ANY, Mock, call, patch
 
 import pytest
 from pydantic_settings import SettingsConfigDict
@@ -126,8 +126,14 @@ class TestBitvavoClientAPIKeyConfiguration:
     """Test API key configuration in BitvavoClient."""
 
     @patch("bitvavo_client.facade.HTTPClient.configure_key")
+    @patch("bitvavo_client.facade.HTTPClient.set_key_rotation_callback")
     @patch("bitvavo_client.facade.RateLimitManager.ensure_key")
-    def test_configure_single_api_key(self, mock_ensure_key: Mock, mock_configure_key: Mock) -> None:
+    def test_configure_single_api_key(
+        self,
+        mock_ensure_key: Mock,
+        mock_set_cb: Mock,
+        mock_configure_key: Mock,
+    ) -> None:
         """Test configuration with single API key."""
         # Create settings object and manually set the processed api_keys to simulate
         # what would happen when api_key and api_secret are provided
@@ -137,30 +143,34 @@ class TestBitvavoClientAPIKeyConfiguration:
 
         BitvavoClient(settings)
 
-        # Should configure the primary key
-        mock_configure_key.assert_called_once_with("test_key", "test_secret", 0)
+        # Should not configure key initially but set rotation callback
+        mock_configure_key.assert_not_called()
         mock_ensure_key.assert_called_once_with(0)
+        mock_set_cb.assert_called_once_with(ANY)
 
     @patch("bitvavo_client.facade.HTTPClient.set_key_rotation_callback")
     @patch("bitvavo_client.facade.HTTPClient.configure_key")
     @patch("bitvavo_client.facade.RateLimitManager.ensure_key")
     def test_configure_multiple_api_keys(
-        self, mock_ensure_key: Mock, mock_configure_key: Mock, mock_set_cb: Mock
+        self,
+        mock_ensure_key: Mock,
+        mock_configure_key: Mock,
+        mock_set_cb: Mock,
     ) -> None:
         """Test configuration with multiple API keys."""
         settings = TestBitvavoSettings(
             api_keys=[
                 {"key": "key1", "secret": "secret1"},
                 {"key": "key2", "secret": "secret2"},
-            ]
+            ],
         )
         BitvavoClient(settings)
 
-        # Should configure the first key (index 0)
-        mock_configure_key.assert_called_once_with("key1", "secret1", 0)
+        # No key configured initially, but callback set and keys ensured
+        mock_configure_key.assert_not_called()
         mock_ensure_key.assert_has_calls([call(0), call(1)])
         assert mock_ensure_key.call_count == 2
-        mock_set_cb.assert_called_once()
+        mock_set_cb.assert_called_once_with(ANY)
 
     @patch("bitvavo_client.facade.HTTPClient.configure_key")
     @patch("bitvavo_client.facade.RateLimitManager.ensure_key")
@@ -191,9 +201,11 @@ class TestBitvavoClientAPIKeyConfiguration:
             api_keys=[
                 {"key": "key1", "secret": "secret1"},
                 {"key": "key2", "secret": "secret2"},
-            ]
+            ],
         )
         client = BitvavoClient(settings)
+        client.rotate_key()
+        mock_configure_key.assert_called_once_with("key1", "secret1", 0)
         mock_configure_key.reset_mock()
         client.rotate_key()
         mock_configure_key.assert_called_once_with("key2", "secret2", 1)
@@ -345,9 +357,9 @@ class TestBitvavoClientErrorHandling:
         # Create settings with test values using api_keys
         settings = TestBitvavoSettings(api_keys=[{"key": "invalid_key", "secret": "test_secret"}])
 
-        # Should raise the exception during initialization
+        client = BitvavoClient(settings)
         with pytest.raises(ValueError, match="Invalid API key format"):
-            BitvavoClient(settings)
+            client.rotate_key()
 
 
 class TestBitvavoClientRealWorldUsage:

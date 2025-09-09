@@ -38,6 +38,7 @@ class HTTPClient:
         self.api_key: str = ""
         self.api_secret: str = ""
         self.key_rotation_callback: Callable[[], bool] | None = None
+        self._rate_limit_initialized: bool = False
 
     def configure_key(self, key: str, secret: str, index: int) -> None:
         """Configure API key for authenticated requests.
@@ -81,6 +82,8 @@ class HTTPClient:
             msg = "API key and secret must be configured before making requests"
             raise RuntimeError(msg)
 
+        self._ensure_rate_limit_initialized()
+
         # Check rate limits
         if not self.rate_limiter.has_budget(self.key_index, weight):
             rotated = False
@@ -103,6 +106,52 @@ class HTTPClient:
         self._update_rate_limits(response)
         # Always return raw data - let the caller handle model conversion
         return decode_response_result(response, model=Any)
+
+    def _ensure_rate_limit_initialized(self) -> None:
+        """Ensure the initial rate limit state is fetched from the API."""
+        if self._rate_limit_initialized:
+            return
+        self._rate_limit_initialized = True
+        self._initialize_rate_limit()
+
+    def _initialize_rate_limit(self) -> None:
+        """Fetch initial rate limit and handle potential rate limit errors."""
+        endpoint = "/account"
+        url = f"{self.settings.rest_url}{endpoint}"
+
+        while True:
+            headers = self._create_auth_headers("GET", endpoint, None)
+            # Record the weight for this check (weight 1)
+            self.rate_limiter.record_call(self.key_index, 1)
+
+            try:
+                response = self._make_http_request("GET", url, headers, None)
+            except httpx.HTTPError:
+                return
+
+            self._update_rate_limits(response)
+
+            err_code = ""
+            if response.status_code == httpx.codes.TOO_MANY_REQUESTS:
+                try:
+                    data = response.json()
+                except ValueError:
+                    data = {}
+                if isinstance(data, dict):
+                    err = data.get("error")
+                    if isinstance(err, dict):
+                        err_code = str(err.get("code", ""))
+            if response.status_code == httpx.codes.TOO_MANY_REQUESTS and err_code == "101":
+                self.rate_limiter.sleep_until_reset(self.key_index)
+                self.rate_limiter.reset_key(self.key_index)
+                continue
+
+            if self.rate_limiter.get_remaining(self.key_index) < self.rate_limiter.buffer:
+                self.rate_limiter.sleep_until_reset(self.key_index)
+                self.rate_limiter.reset_key(self.key_index)
+                continue
+
+            break
 
     def _create_auth_headers(self, method: str, endpoint: str, body: AnyDict | None) -> dict[str, str]:
         """Create authentication headers if API key is configured."""

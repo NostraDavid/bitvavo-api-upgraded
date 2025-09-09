@@ -1,5 +1,9 @@
 # Changelog
 
+## $UNRELEASED
+
+- fix rotate keys
+
 ## v4.2.0 - 2025-09-08
 
 - centralize shared DataFrame logic via `BaseAPI`

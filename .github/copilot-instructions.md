@@ -1,122 +1,78 @@
-# Bitvavo API Upgraded - AI Coding Assistant Instructions
+# Bitvavo API Upgraded – AI Coding Agent Instructions
 
-## Project Overview
+This project is a **typed, modular, and tested Python SDK** for the Bitvavo cryptocurrency exchange, featuring both a legacy monolithic API and a modern, agent-based architecture. It is designed for reliability, extensibility, and developer ergonomics.
 
-This is a **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency exchange API. It's an "upgraded" fork of the official Bitvavo SDK with comprehensive type hints, unit tests, and improved developer experience.
+## Architecture Overview
 
-## Architecture & Key Components
+- **Two main API entry points:**
+	- `Bitvavo` (legacy, monolithic, in `src/bitvavo_api_upgraded/bitvavo.py`): REST & WebSocket, direct dict/list returns, callback-based WS.
+	- `BitvavoClient` (modern, in `src/bitvavo_client/facade.py`): Modular, testable, supports dependency injection, orchestrates endpoint agents.
+- **Agent pattern:** Each major concern (public/private endpoints, transport, rate limiting, signing, settings, schema, DataFrame conversion) is a separate agent/module. See `AGENTS.md` for a full list and responsibilities.
+- **Settings:** Pydantic-based, loaded from `.env` or environment, with strict validation. See `src/bitvavo_api_upgraded/settings.py` and `src/bitvavo_client/core/settings.py`.
+- **Testing:** Defensive, with many tests skipped for risky or flaky API operations. See `tests/` and `tests/bitvavo_api_upgraded/conftest.py` for market filtering and skip logic.
 
-### Core API Structure
+## Key Developer Workflows
 
-- **Main class**: `Bitvavo` in `src/bitvavo_api_upgraded/bitvavo.py` - handles both REST and WebSocket operations
-- **Dual API pattern**: REST methods return dict/list data directly; WebSocket methods use callbacks
-- **WebSocket facade**: `WebSocketAppFacade` nested class provides WebSocket functionality with reconnection logic
-- **Settings system**: Pydantic-based configuration in `src/bitvavo_api_upgraded/settings.py`
+- **Install dependencies:**
+	```bash
+	uv sync
+	```
+- **Run all tests (multi-version):**
+	```bash
+	uv run tox
+	```
+- **Debug tests:**
+	```bash
+	uv run pytest
+	```
+- **Check coverage:**
+	```bash
+	uv run coverage run --source=src --module pytest
+	uv run coverage report
+	```
+- **Lint/format/typecheck:**
+	```bash
+	uv run ruff format
+	uv run ruff check --fix --unsafe-fixes
+	uv run mypy src/
+	```
 
-### Project Layout (src-layout)
+**Coverage tip:** Always use `--source=src` and ensure `PYTHONPATH` is set to `src` (see `tox.ini`). Do not use `pytest-cov` (breaks VS Code debugging).
 
-```
-src/bitvavo_api_upgraded/    # Source code
-├── __init__.py              # Main exports
-├── bitvavo.py              # Core API class (~3600 lines)
-├── settings.py             # Pydantic settings
-├── helper_funcs.py         # Utility functions
-└── type_aliases.py         # Type definitions
-tests/                      # Comprehensive test suite
-```
+## Project-Specific Patterns & Conventions
 
-## Development Workflows
-
-### Essential Commands
-
-```bash
-# Development setup
-uv sync                     # Install all dependencies
-uv run tox                  # Run full test suite across Python versions
-
-# Testing & Coverage
-uv run pytest              # Run tests with debugging support
-uv run coverage run --source=src --module pytest  # Coverage with proper src-layout
-uv run coverage report     # View coverage results
-
-# Code Quality
-uv run ruff format         # Format code
-uv run ruff check          # Lint code
-uv run mypy src/           # Type checking
-```
-
-### Coverage Configuration Notes
-
-- Uses `coverage.py` instead of `pytest-cov` (breaks VS Code debugging)
-- Requires `--source=src` for src-layout projects
-- `tox.ini` sets `PYTHONPATH={toxinidir}/src` for proper module resolution
-
-## Project-Specific Patterns
-
-### Testing Strategy
-
-- **Defensive testing**: Many tests skip risky operations (`@pytest.mark.skipif` for trading methods)
-- **API flakiness**: Tests handle inconsistent Bitvavo API responses (see `conftest.py` market filtering)
-- **WebSocket challenges**: Entire `TestWebsocket` class skipped due to freezing issues
-- **Mock patterns**: Use `pytest-mock` for time functions and external dependencies
-
-### Type System & Error Handling
-
-- **Strict typing**: `mypy` configured with `disallow_untyped_defs=true`
-- **Return types**: Methods return `dict | list` for success, `errordict` for API errors
-- **Type aliases**: Custom types like `ms` (milliseconds), `anydict` in `type_aliases.py`
-
-### Rate Limiting & Authentication
-
-- **Weight-based limits**: Bitvavo uses 1000 points/minute, tracked in `rateLimitRemaining`
-- **Settings pattern**: Use `BitvavoSettings` for API config, `BitvavoApiUpgradedSettings` for extras
-- **Environment variables**: Load via `.env` file with `BITVAVO_APIKEY`/`BITVAVO_APISECRET`
-
-### Versioning & Release
-
-- **Semantic versioning**: Automated with `bump-my-version`
-- **Changelog-first**: Update `CHANGELOG.md` with `$UNRELEASED` token before version bumps
-- **GitHub Actions**: Automated publishing on tag creation
-
-## Code Quality Standards
-
-### Linting Configuration
-
-- **Ruff**: Replaces black, isort, flake8 with `select = ["ALL"]` and specific ignores
-- **Line length**: 120 characters consistently across tools
-- **Test exemptions**: Tests ignore safety checks (`S101`), magic values (`PLR2004`)
-
-### Documentation Patterns
-
-- **Extensive docstrings**: WebSocket methods include JSON response examples
-- **Rate limit documentation**: Each method documents its weight cost
-- **API mirroring**: Maintains parity with official Bitvavo API documentation
+- **Strict typing:** All code is type-checked with `mypy` (`disallow_untyped_defs=true`). Update `type_aliases.py` for new types.
+- **Return types:** REST methods return `dict | list` or error dicts; modern client uses Result types for functional error handling.
+- **Rate limiting:** Bitvavo uses a 1000 points/minute system. Always check `getRemainingLimit()` before trading. Managed by `RateLimitManager` agent.
+- **Testing:** Many tests are skipped for trading, withdrawals, or flaky endpoints. WebSocket tests are mostly skipped due to instability.
+- **DataFrames:** Unified DataFrame conversion via Narwhals, with schemas in `src/bitvavo_client/schemas/` and utils in `src/bitvavo_api_upgraded/dataframe_utils.py`.
+- **Settings:** Use Pydantic settings classes for all config. Environment variables: `BITVAVO_APIKEY`, `BITVAVO_APISECRET`, etc.
+- **Versioning:** Use `bump-my-version` and update `CHANGELOG.md` before bumping.
 
 ## Integration Points
 
-### External Dependencies
-
-- **Bitvavo API**: REST at `api.bitvavo.com/v2`, WebSocket at `ws.bitvavo.com/v2/`
-- **Key libraries**: `requests` (REST), `websocket-client` (WS), `pydantic-settings` (config)
-- **Development tools**: `tox` (multi-version testing), `uv` (dependency management)
-
-### Configuration Management
-
-- **Pydantic settings**: Type-safe config loading from environment/`.env`
-- **Dual settings classes**: Separate original vs. enhanced functionality
-- **Validation**: Custom validators for log levels, rate limits
+- **Bitvavo API:** REST (`api.bitvavo.com/v2`), WebSocket (`ws.bitvavo.com/v2/`)
+- **Key libraries:** `requests`, `websocket-client`, `pydantic-settings`, `returns`, `tox`, `uv`, `ruff`, `mypy`
+- **Settings loading:** `.env` file or environment, validated by Pydantic
 
 ## Common Gotchas
 
-1. **Coverage setup**: Must use `--source=src` and set `PYTHONPATH` for src-layout
-2. **WebSocket testing**: Currently unreliable, most WS tests are skipped
-3. **Market filtering**: Some API responses include broken markets that tests filter out
-4. **VS Code debugging**: Disable `pytest-cov` extension to avoid conflicts with `coverage.py`
-5. **Rate limiting**: Always check `getRemainingLimit()` before making API calls
+1. **Coverage:** Must use `--source=src` and set `PYTHONPATH` for src-layout
+2. **WebSocket tests:** Unreliable, mostly skipped
+3. **Market filtering:** Some API responses include broken markets; tests filter these
+4. **VS Code debugging:** Disable `pytest-cov` extension to avoid conflicts
+5. **Rate limiting:** Always check before trading
 
-## When Making Changes
+## Key Files & References
 
-- **Add tests**: Follow the defensive testing pattern, skip risky operations
-- **Update types**: Maintain strict typing, update `type_aliases.py` if needed
-- **Consider API changes**: This wrapper mirrors Bitvavo's API structure closely
-- **Version bumps**: Update `CHANGELOG.md` first, then use `bump-my-version`
+- `AGENTS.md`: Full agent/component breakdown
+- `src/bitvavo_api_upgraded/bitvavo.py`: Legacy API class
+- `src/bitvavo_client/facade.py`: Modern client facade
+- `src/bitvavo_client/endpoints/`: Public/private endpoint agents
+- `src/bitvavo_client/auth/`: Rate limiting & signing
+- `src/bitvavo_api_upgraded/settings.py`, `src/bitvavo_client/core/settings.py`: Settings
+- `src/bitvavo_api_upgraded/dataframe_utils.py`: DataFrame conversion
+- `tests/`: Defensive, skip-heavy test suite
+
+---
+For more details, see `AGENTS.md` and in-code docstrings. When in doubt, mirror the structure and patterns of existing agents and tests.

@@ -357,9 +357,9 @@ class TestBitvavoClientErrorHandling:
         # Create settings with test values using api_keys
         settings = TestBitvavoSettings(api_keys=[{"key": "invalid_key", "secret": "test_secret"}])
 
-        client = BitvavoClient(settings)
+        # Should raise during initialization or rotate_key
         with pytest.raises(ValueError, match="Invalid API key format"):
-            client.rotate_key()
+            BitvavoClient(settings)
 
 
 class TestBitvavoClientRealWorldUsage:

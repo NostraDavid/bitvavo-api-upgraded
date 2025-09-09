@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v4.2.1 - 2025-09-09
 
 - fix rotate keys
 

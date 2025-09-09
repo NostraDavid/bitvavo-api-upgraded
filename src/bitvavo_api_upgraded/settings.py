@@ -28,7 +28,6 @@ class BitvavoApiUpgradedSettings(BaseSettings):
     RATE_LIMITING_BUFFER: int = Field(default=25)
 
     # Multi-API key settings
-    PREFER_KEYLESS: bool = Field(default=True, description="Prefer keyless requests over API key requests")
     DEFAULT_RATE_LIMIT: int = Field(default=1000, description="Default rate limit for new API keys")
 
     SSL_CERT_FILE: str | None = Field(
@@ -100,9 +99,6 @@ class BitvavoSettings(BaseSettings):
     DEBUGGING: bool = Field(default=False)
     RESTURL: str = Field(default="https://api.bitvavo.com/v2")
     WSURL: str = Field(default="wss://ws.bitvavo.com/v2/")
-
-    # Multi-key specific settings
-    PREFER_KEYLESS: bool = Field(default=True)
 
     # Configuration for Pydantic Settings
     model_config = SettingsConfigDict(

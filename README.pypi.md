@@ -105,7 +105,6 @@ BITVAVO_API_KEY=your-api-key-here
 BITVAVO_API_SECRET=your-api-secret-here
 
 # Client behavior
-BITVAVO_PREFER_KEYLESS=true          # Use keyless for public endpoints
 BITVAVO_DEFAULT_RATE_LIMIT=1000      # Rate limit per key
 BITVAVO_DEBUGGING=false              # Enable debug logging
 
@@ -128,7 +127,6 @@ client = BitvavoClient()
 settings = BitvavoSettings(
     api_key="your-key",
     api_secret="your-secret",
-    prefer_keyless=True
 )
 client = BitvavoClient(settings)
 ```
@@ -147,12 +145,11 @@ bitvavo = Bitvavo({
     'APIKEYS': [
         {'key': 'your-key-1', 'secret': 'your-secret-1'},
         {'key': 'your-key-2', 'secret': 'your-secret-2'}
-    ],
-    'PREFER_KEYLESS': True
+    ]
 })
 
 # Or keyless for public endpoints only
-bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+bitvavo = Bitvavo({})
 ```
 
 ## Multi-Key & Keyless API Access
@@ -186,7 +183,7 @@ Access public endpoints without authentication:
 from bitvavo_api_upgraded import Bitvavo
 
 # No API keys needed for public data
-bitvavo = Bitvavo({'PREFER_KEYLESS': True})
+bitvavo = Bitvavo({})
 
 # These work without authentication
 markets = bitvavo.markets({})

@@ -29,7 +29,6 @@ class BitvavoSettings(BaseSettings):
     access_window_ms: int = Field(default=10_000, description="API access window in milliseconds")
 
     # Client behavior
-    prefer_keyless: bool = Field(default=True, description="Prefer keyless requests when possible")
     default_rate_limit: int = Field(default=1_000, description="Default rate limit for new API keys")
     rate_limit_buffer: int = Field(default=0, description="Rate limit buffer to avoid hitting limits")
     lag_ms: int = Field(default=0, description="Artificial lag to add to requests in milliseconds")
@@ -41,7 +40,8 @@ class BitvavoSettings(BaseSettings):
 
     # Multiple API keys support
     api_keys: list[dict[str, str]] = Field(
-        default_factory=list, description="List of API key/secret pairs for multi-key support"
+        default_factory=list,
+        description="List of API key/secret pairs for multi-key support",
     )
 
     @model_validator(mode="after")

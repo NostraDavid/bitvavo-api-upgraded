@@ -148,8 +148,6 @@ public data without authentication.
   - Graceful fallback between keys when rate limits are reached
   - Enhanced `BitvavoSettings` class with multi-key validation
 - **🌐 Keyless API Access**: Public endpoint support without authentication
-  - `PREFER_KEYLESS` setting to prioritize public endpoints over authenticated
-    ones
   - Automatic detection of endpoints that don't require authentication
   - Improved rate limit handling for public vs. authenticated requests
 - **⚙️ Enhanced Settings System**:
@@ -197,9 +195,7 @@ bitvavo = Bitvavo(**bitvavo_settings.model_dump())
 
 ```env
 # .env file
-BITVAVO_PREFER_KEYLESS=true
 BITVAVO_API_UPGRADED_DEFAULT_RATE_LIMIT=750
-BITVAVO_API_UPGRADED_PREFER_KEYLESS=false
 ```
 
 ### Performance & Benefits

@@ -69,42 +69,24 @@ class BitvavoClient:
         for idx, (_key, _secret) in enumerate(self._api_keys):
             self.rate_limiter.ensure_key(idx)
 
-        if self._api_keys:
-            self.http.set_key_rotation_callback(self.rotate_key)
+        self.http.set_key_rotation_callback(self.rotate_key)
+        key, secret = self._api_keys[0]
+        self.http.configure_key(key, secret, 0)
+        self._current_key = 0
 
     def rotate_key(self) -> bool:
         """Rotate to the next configured API key if available."""
         if not self._api_keys:
             return False
 
+        next_idx = (self._current_key + 1) % len(self._api_keys)
         now = int(time.time() * 1000)
-
-        if self._current_key == -1:
-            idx = 0
-            if now < self.rate_limiter.get_reset_at(idx):
-                self.rate_limiter.sleep_until_reset(idx)
-            self.rate_limiter.reset_key(idx)
-            self._current_key = idx
-            key, secret = self._api_keys[idx]
-            self.http.configure_key(key, secret, idx)
-            return True
-
-        if self._current_key < len(self._api_keys) - 1:
-            idx = self._current_key + 1
-            if now < self.rate_limiter.get_reset_at(idx):
-                self.rate_limiter.sleep_until_reset(idx)
-            self.rate_limiter.reset_key(idx)
-            self._current_key = idx
-            key, secret = self._api_keys[idx]
-            self.http.configure_key(key, secret, idx)
-            return True
-
-        reset_at = self.rate_limiter.get_reset_at(-1)
-        if now < reset_at:
-            self.rate_limiter.sleep_until_reset(-1)
-        self.rate_limiter.reset_key(-1)
-        self._current_key = -1
-        self.http.configure_key("", "", -1)
+        if now < self.rate_limiter.get_reset_at(next_idx):
+            self.rate_limiter.sleep_until_reset(next_idx)
+        self.rate_limiter.reset_key(next_idx)
+        self._current_key = next_idx
+        key, secret = self._api_keys[next_idx]
+        self.http.configure_key(key, secret, next_idx)
         return True
 
     def select_key(self, index: int) -> None:

@@ -58,6 +58,20 @@ class RateLimitManager:
         self.ensure_key(idx)
         return (self.state[idx]["remaining"] - weight) >= self.buffer
 
+    def record_call(self, idx: int, weight: int) -> None:
+        """Record a request by decreasing the remaining budget.
+
+        This should be called whenever an API request is made to ensure
+        the local rate limit state reflects all outgoing calls, even when
+        the response doesn't include rate limit headers.
+
+        Args:
+            idx: API key index (-1 for keyless)
+            weight: Weight of the request
+        """
+        self.ensure_key(idx)
+        self.state[idx]["remaining"] = max(0, self.state[idx]["remaining"] - weight)
+
     def update_from_headers(self, idx: int, headers: dict[str, str]) -> None:
         """Update rate limit state from response headers.
 

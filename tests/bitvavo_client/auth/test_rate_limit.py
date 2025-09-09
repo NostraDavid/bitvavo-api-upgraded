@@ -160,6 +160,26 @@ class TestRateLimitManagerBudgetChecking:
         assert manager.has_budget(-1, 101) is False  # 100 - 101 = -1 < 0
 
 
+class TestRateLimitManagerCallRecording:
+    """Test recording calls decreases remaining budget."""
+
+    def test_record_call_updates_remaining(self) -> None:
+        """record_call should subtract the request weight from remaining."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Record a call and verify remaining budget decreased
+        manager.record_call(-1, 100)
+        assert manager.get_remaining(-1) == 900
+
+    def test_record_call_creates_key(self) -> None:
+        """record_call should ensure key exists before updating."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Record call for a new key index
+        manager.record_call(1, 200)
+        assert manager.get_remaining(1) == 800
+
+
 class TestRateLimitManagerHeaderUpdates:
     """Test updating rate limit state from HTTP headers."""
 

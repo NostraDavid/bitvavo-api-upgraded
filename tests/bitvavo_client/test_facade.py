@@ -143,8 +143,7 @@ class TestBitvavoClientAPIKeyConfiguration:
 
         BitvavoClient(settings)
 
-        # Should not configure key initially but set rotation callback
-        mock_configure_key.assert_not_called()
+        mock_configure_key.assert_called_once_with("test_key", "test_secret", 0)
         mock_ensure_key.assert_called_once_with(0)
         mock_set_cb.assert_called_once_with(ANY)
 
@@ -166,8 +165,7 @@ class TestBitvavoClientAPIKeyConfiguration:
         )
         BitvavoClient(settings)
 
-        # No key configured initially, but callback set and keys ensured
-        mock_configure_key.assert_not_called()
+        mock_configure_key.assert_called_once_with("key1", "secret1", 0)
         mock_ensure_key.assert_has_calls([call(0), call(1)])
         assert mock_ensure_key.call_count == 2
         mock_set_cb.assert_called_once_with(ANY)
@@ -204,11 +202,13 @@ class TestBitvavoClientAPIKeyConfiguration:
             ],
         )
         client = BitvavoClient(settings)
-        client.rotate_key()
         mock_configure_key.assert_called_once_with("key1", "secret1", 0)
         mock_configure_key.reset_mock()
         client.rotate_key()
         mock_configure_key.assert_called_once_with("key2", "secret2", 1)
+        mock_configure_key.reset_mock()
+        client.rotate_key()
+        mock_configure_key.assert_called_once_with("key1", "secret1", 0)
 
 
 class TestBitvavoClientComponentIntegration:

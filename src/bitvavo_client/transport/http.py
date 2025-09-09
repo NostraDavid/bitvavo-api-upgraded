@@ -77,6 +77,10 @@ class HTTPClient:
         Raises:
             HTTPError: On transport-level failures
         """
+        if self.key_index < 0 or not self.api_key or not self.api_secret:
+            msg = "API key and secret must be configured before making requests"
+            raise RuntimeError(msg)
+
         # Check rate limits
         if not self.rate_limiter.has_budget(self.key_index, weight):
             rotated = False
@@ -87,6 +91,9 @@ class HTTPClient:
 
         url = f"{self.settings.rest_url}{endpoint}"
         headers = self._create_auth_headers(method, endpoint, body)
+
+        # Update rate limit usage for this call
+        self.rate_limiter.record_call(self.key_index, weight)
 
         try:
             response = self._make_http_request(method, url, headers, body)

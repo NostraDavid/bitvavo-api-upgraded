@@ -128,10 +128,6 @@ class TestPrivateAPI_RAW(AbstractPrivateAPITests):  # noqa: N801
         )
         http = HTTPClient(settings, rate_limiter)
 
-        # Configure API credentials if available
-        if settings.api_key and settings.api_secret:
-            http.configure_key(settings.api_key, settings.api_secret, 0)
-
         return PrivateAPI(http, preferred_model=ModelPreference.RAW)
 
     def _validate_order_data(self, order_dict: dict) -> None:
@@ -1579,9 +1575,6 @@ class TestPrivateAPI_PYDANTIC(AbstractPrivateAPITests):  # noqa: N801
         )
         http = HTTPClient(settings, rate_limiter)
 
-        if settings.api_key and settings.api_secret:
-            http.configure_key(settings.api_key, settings.api_secret, 0)
-
         return PrivateAPI(http, preferred_model=ModelPreference.PYDANTIC)
 
     def test_account(self, private_api: PrivateAPI, expected_caps: set[str]) -> None:
@@ -2024,9 +2017,6 @@ class TestPrivateAPI_DATAFRAME(AbstractPrivateAPITests):  # noqa: N801
             settings.rate_limit_buffer,
         )
         http = HTTPClient(settings, rate_limiter)
-
-        if settings.api_key and settings.api_secret:
-            http.configure_key(settings.api_key, settings.api_secret, 0)
 
         return PrivateAPI(http, preferred_model=ModelPreference.POLARS)
 

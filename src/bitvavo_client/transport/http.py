@@ -15,8 +15,6 @@ from bitvavo_client.adapters.returns_adapter import (
 from bitvavo_client.auth.signing import create_signature
 
 if TYPE_CHECKING:  # pragma: no cover
-    from collections.abc import Callable
-
     from bitvavo_client.auth.rate_limit import RateLimitManager
     from bitvavo_client.core.settings import BitvavoSettings
     from bitvavo_client.core.types import AnyDict
@@ -34,11 +32,17 @@ class HTTPClient:
         """
         self.settings: BitvavoSettings = settings
         self.rate_limiter: RateLimitManager = rate_limiter
+        self._keys: list[tuple[str, str]] = [(item["key"], item["secret"]) for item in self.settings.api_keys]
         self.key_index: int = -1
         self.api_key: str = ""
         self.api_secret: str = ""
-        self.key_rotation_callback: Callable[[], bool] | None = None
         self._rate_limit_initialized: bool = False
+
+        if self._keys:
+            for idx in range(len(self._keys)):
+                self.rate_limiter.ensure_key(idx)
+            key, secret = self._keys[0]
+            self.configure_key(key, secret, 0)
 
     def configure_key(self, key: str, secret: str, index: int) -> None:
         """Configure API key for authenticated requests.
@@ -52,9 +56,25 @@ class HTTPClient:
         self.api_secret = secret
         self.key_index = index
 
-    def set_key_rotation_callback(self, callback: Callable[[], bool]) -> None:
-        """Set callback to rotate API keys when rate limit exceeded."""
-        self.key_rotation_callback = callback
+    def select_key(self, index: int) -> None:
+        """Select a specific API key by index."""
+        if not (0 <= index < len(self._keys)):
+            msg = "API key index out of range"
+            raise IndexError(msg)
+        key, secret = self._keys[index]
+        self.configure_key(key, secret, index)
+
+    def _rotate_key(self) -> bool:
+        """Rotate to the next configured API key if available."""
+        if not self._keys:
+            return False
+        next_idx = (self.key_index + 1) % len(self._keys)
+        now = int(time.time() * 1000)
+        if now < self.rate_limiter.get_reset_at(next_idx):
+            self.rate_limiter.sleep_until_reset(next_idx)
+        self.rate_limiter.reset_key(next_idx)
+        self.select_key(next_idx)
+        return True
 
     def request(
         self,
@@ -78,32 +98,37 @@ class HTTPClient:
         Raises:
             HTTPError: On transport-level failures
         """
-        if self.key_index < 0 or not self.api_key or not self.api_secret:
-            msg = "API key and secret must be configured before making requests"
-            raise RuntimeError(msg)
+        if self.key_index >= 0 and self.api_key and self.api_secret:
+            idx = self.key_index
+            self._ensure_rate_limit_initialized()
 
-        self._ensure_rate_limit_initialized()
-
-        # Check rate limits
-        if not self.rate_limiter.has_budget(self.key_index, weight):
-            rotated = False
-            if self.key_rotation_callback:
-                rotated = self.key_rotation_callback()
-            if not rotated or not self.rate_limiter.has_budget(self.key_index, weight):
-                self.rate_limiter.handle_limit(self.key_index, weight)
+            if not self.rate_limiter.has_budget(idx, weight):
+                for _ in range(len(self._keys)):
+                    if self.rate_limiter.has_budget(idx, weight):
+                        break
+                    rotated = self._rotate_key()
+                    idx = self.key_index
+                    if not rotated:
+                        break
+                if not self.rate_limiter.has_budget(idx, weight):
+                    self.rate_limiter.handle_limit(idx, weight)
+        else:
+            idx = -1
+            if not self.rate_limiter.has_budget(idx, weight):
+                self.rate_limiter.handle_limit(idx, weight)
 
         url = f"{self.settings.rest_url}{endpoint}"
         headers = self._create_auth_headers(method, endpoint, body)
 
         # Update rate limit usage for this call
-        self.rate_limiter.record_call(self.key_index, weight)
+        self.rate_limiter.record_call(idx, weight)
 
         try:
             response = self._make_http_request(method, url, headers, body)
         except httpx.HTTPError as exc:
             return Failure(exc)
 
-        self._update_rate_limits(response)
+        self._update_rate_limits(response, idx)
         # Always return raw data - let the caller handle model conversion
         return decode_response_result(response, model=Any)
 
@@ -129,7 +154,7 @@ class HTTPClient:
             except httpx.HTTPError:
                 return
 
-            self._update_rate_limits(response)
+            self._update_rate_limits(response, self.key_index)
 
             err_code = ""
             if response.status_code == httpx.codes.TOO_MANY_REQUESTS:
@@ -194,7 +219,7 @@ class HTTPClient:
                 msg = f"Unsupported HTTP method: {method}"
                 raise ValueError(msg)
 
-    def _update_rate_limits(self, response: httpx.Response) -> None:
+    def _update_rate_limits(self, response: httpx.Response, idx: int) -> None:
         """Update rate limits based on response."""
         try:
             json_data = response.json()
@@ -203,11 +228,11 @@ class HTTPClient:
 
         if isinstance(json_data, dict) and "error" in json_data:
             if self._is_rate_limit_error(response, json_data):
-                self.rate_limiter.update_from_error(self.key_index, json_data)
+                self.rate_limiter.update_from_error(idx, json_data)
             else:
-                self.rate_limiter.update_from_headers(self.key_index, dict(response.headers))
+                self.rate_limiter.update_from_headers(idx, dict(response.headers))
         else:
-            self.rate_limiter.update_from_headers(self.key_index, dict(response.headers))
+            self.rate_limiter.update_from_headers(idx, dict(response.headers))
 
     def _is_rate_limit_error(self, response: httpx.Response, json_data: dict[str, Any]) -> bool:
         """Check if response indicates a rate limit error."""

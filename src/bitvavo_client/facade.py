@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import time
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from bitvavo_client.auth.rate_limit import RateLimitManager
 from bitvavo_client.core.settings import BitvavoSettings
@@ -13,8 +12,6 @@ from bitvavo_client.transport.http import HTTPClient
 
 if TYPE_CHECKING:  # pragma: no cover
     from bitvavo_client.core.model_preferences import ModelPreference
-
-T = TypeVar("T")
 
 
 class BitvavoClient:
@@ -47,53 +44,13 @@ class BitvavoClient:
         self.http = HTTPClient(self.settings, self.rate_limiter)
 
         # Initialize API endpoint handlers with preferred model settings
-        self.public = PublicAPI(self.http, preferred_model=preferred_model, default_schema=default_schema)
-        self.private = PrivateAPI(self.http, preferred_model=preferred_model, default_schema=default_schema)
-
-        # Configure API keys if available
-        self._api_keys: list[tuple[str, str]] = []
-        self._current_key: int = -1
-        self._configure_api_keys()
-
-    def _configure_api_keys(self) -> None:
-        """Configure API keys for authentication."""
-        # Collect keys from settings
-        if self.settings.api_key and self.settings.api_secret:
-            self._api_keys.append((self.settings.api_key, self.settings.api_secret))
-        if self.settings.api_keys:
-            self._api_keys.extend((item["key"], item["secret"]) for item in self.settings.api_keys)
-
-        if not self._api_keys:
-            return
-
-        for idx, (_key, _secret) in enumerate(self._api_keys):
-            self.rate_limiter.ensure_key(idx)
-
-        self.http.set_key_rotation_callback(self.rotate_key)
-        key, secret = self._api_keys[0]
-        self.http.configure_key(key, secret, 0)
-        self._current_key = 0
-
-    def rotate_key(self) -> bool:
-        """Rotate to the next configured API key if available."""
-        if not self._api_keys:
-            return False
-
-        next_idx = (self._current_key + 1) % len(self._api_keys)
-        now = int(time.time() * 1000)
-        if now < self.rate_limiter.get_reset_at(next_idx):
-            self.rate_limiter.sleep_until_reset(next_idx)
-        self.rate_limiter.reset_key(next_idx)
-        self._current_key = next_idx
-        key, secret = self._api_keys[next_idx]
-        self.http.configure_key(key, secret, next_idx)
-        return True
-
-    def select_key(self, index: int) -> None:
-        """Select a specific API key by index."""
-        if not (0 <= index < len(self._api_keys)):
-            msg = "API key index out of range"
-            raise IndexError(msg)
-        self._current_key = index
-        key, secret = self._api_keys[index]
-        self.http.configure_key(key, secret, index)
+        self.public = PublicAPI(
+            self.http,
+            preferred_model=preferred_model,
+            default_schema=default_schema,
+        )
+        self.private = PrivateAPI(
+            self.http,
+            preferred_model=preferred_model,
+            default_schema=default_schema,
+        )

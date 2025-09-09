@@ -463,6 +463,16 @@ class TestRateLimitManagerGetters:
         assert 5 in manager.state
         assert reset_at == 0  # New keys always start with resetAt = 0
 
+    def test_reset_key(self) -> None:
+        """Test that reset_key restores default state."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+        manager.ensure_key(0)
+        manager.state[0]["remaining"] = 100
+        manager.state[0]["resetAt"] = 123
+        manager.reset_key(0)
+        assert manager.get_remaining(0) == 1000
+        assert manager.get_reset_at(0) == 0
+
 
 class TestRateLimitManagerIntegration:
     """Integration tests combining multiple rate limit operations."""

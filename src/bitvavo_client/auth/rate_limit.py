@@ -34,6 +34,7 @@ class RateLimitManager:
             buffer: Buffer to keep before hitting limit
             strategy: Optional strategy callback when rate limit exceeded
         """
+        self.default_remaining: int = default_remaining
         self.state: dict[int, dict[str, int]] = {-1: {"remaining": default_remaining, "resetAt": 0}}
         self.buffer: int = buffer
 
@@ -99,6 +100,12 @@ class RateLimitManager:
     def handle_limit(self, idx: int, weight: int) -> None:
         """Invoke the configured strategy when rate limit is exceeded."""
         self._strategy(self, idx, weight)
+
+    def reset_key(self, idx: int) -> None:
+        """Reset the remaining budget and reset time for a key index."""
+        self.ensure_key(idx)
+        self.state[idx]["remaining"] = self.default_remaining
+        self.state[idx]["resetAt"] = 0
 
     def get_remaining(self, idx: int) -> int:
         """Get remaining rate limit for key index.

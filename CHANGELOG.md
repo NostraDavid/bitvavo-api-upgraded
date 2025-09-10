@@ -1,5 +1,9 @@
 # Changelog
 
+## $UNRELEASED
+
+- remove the keyless feature, as I kept getting banned...
+
 ## v4.2.1 - 2025-09-09
 
 - fix rotate keys

@@ -70,13 +70,19 @@ class HTTPClient:
 
     def _rotate_key(self) -> bool:
         """Rotate to the next configured API key if available."""
-        if not self._keys:
+        if len(self._keys) <= 1:
             return False
+
         next_idx = (self.key_index + 1) % len(self._keys)
         now = int(time.time() * 1000)
-        if now < self.rate_limiter.get_reset_at(next_idx):
+        reset_at = self.rate_limiter.get_reset_at(next_idx)
+
+        if now < reset_at:
             self.rate_limiter.sleep_until_reset(next_idx)
-        self.rate_limiter.reset_key(next_idx)
+            self.rate_limiter.reset_key(next_idx)
+        elif self.rate_limiter.get_remaining(next_idx) <= self.rate_limiter.buffer:
+            self.rate_limiter.reset_key(next_idx)
+
         self.select_key(next_idx)
         return True
 

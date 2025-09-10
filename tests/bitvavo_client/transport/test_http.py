@@ -160,3 +160,39 @@ def test_request_rotates_keys_when_budget_exhausted(monkeypatch: pytest.MonkeyPa
 
     assert isinstance(result, Success)
     assert client.key_index == 1
+
+
+def test_rotate_key_does_not_reset_when_budget_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rotation should not reset key state if the key still has budget."""
+    settings = BitvavoSettings(
+        api_keys=[{"key": "k1", "secret": "s1"}, {"key": "k2", "secret": "s2"}],
+    )
+    manager = RateLimitManager(settings.default_rate_limit, settings.rate_limit_buffer)
+    client = HTTPClient(settings, manager)
+
+    manager.state[1]["remaining"] = 500
+    manager.state[1]["resetAt"] = 0
+
+    with patch.object(manager, "reset_key") as mock_reset:
+        client._rotate_key()  # noqa: SLF001
+
+    assert client.key_index == 1
+    mock_reset.assert_not_called()
+
+
+def test_rotate_key_resets_expired_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rotation should reset key if its budget is exhausted and reset time passed."""
+    settings = BitvavoSettings(
+        api_keys=[{"key": "k1", "secret": "s1"}, {"key": "k2", "secret": "s2"}],
+    )
+    manager = RateLimitManager(settings.default_rate_limit, settings.rate_limit_buffer)
+    client = HTTPClient(settings, manager)
+
+    manager.state[1]["remaining"] = 0
+    manager.state[1]["resetAt"] = 0
+
+    with patch.object(manager, "reset_key") as mock_reset, patch("time.time", return_value=1):
+        client._rotate_key()  # noqa: SLF001
+
+    assert client.key_index == 1
+    mock_reset.assert_called_once_with(1)

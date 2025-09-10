@@ -233,10 +233,14 @@ class Bitvavo:
                 else:
                     self.api_keys = []
 
+        if not self.api_keys:
+            msg = "API keys are required"
+            raise ValueError(msg)
+
         # Current API key index - options take precedence
         self.current_api_key_index: int = 0
 
-        # Rate limiting per API key (keyless has index -1)
+        # Rate limiting per API key
         self.rate_limits: dict[int, dict[str, int | ms]] = {}
         # Get default rate limit from options or settings
         default_rate_limit_option = _options.get("DEFAULT_RATE_LIMIT", bitvavo_upgraded_settings.DEFAULT_RATE_LIMIT)
@@ -246,7 +250,6 @@ class Bitvavo:
             else bitvavo_upgraded_settings.DEFAULT_RATE_LIMIT
         )
 
-        self.rate_limits[-1] = {"remaining": default_rate_limit, "resetAt": ms(0)}  # keyless
         for i in range(len(self.api_keys)):
             self.rate_limits[i] = {"remaining": default_rate_limit, "resetAt": ms(0)}
 
@@ -262,36 +265,21 @@ class Bitvavo:
         self.debugging: bool = bool(_options.get("DEBUGGING", bitvavo_settings.DEBUGGING))
 
     def get_best_api_key_config(self, rateLimitingWeight: int = 1) -> tuple[str, str, int]:
-        """
-        Get the best API key configuration to use for a request.
+        """Get the best API key configuration to use for a request."""
 
-        Returns:
-            tuple: (api_key, api_secret, key_index) where key_index is -1 for keyless
-        """
-        # If keyless has enough rate limit, use keyless
-        if self._has_rate_limit_available(-1, rateLimitingWeight):
-            return "", "", -1
-
-        # Try to find an API key with enough rate limit
         for i in range(len(self.api_keys)):
             if self._has_rate_limit_available(i, rateLimitingWeight):
                 return self.api_keys[i]["key"], self.api_keys[i]["secret"], i
 
-        # If keyless is available, use it as fallback
-        if self._has_rate_limit_available(-1, rateLimitingWeight):
-            return "", "", -1
-
-        # No keys available, use current key and let rate limiting handle the wait
-        if self.api_keys:
-            return (
-                self.api_keys[self.current_api_key_index]["key"],
-                self.api_keys[self.current_api_key_index]["secret"],
-                self.current_api_key_index,
-            )
-        return "", "", -1
+        # No keys have available budget, use current key and let rate limiting handle the wait
+        return (
+            self.api_keys[self.current_api_key_index]["key"],
+            self.api_keys[self.current_api_key_index]["secret"],
+            self.current_api_key_index,
+        )
 
     def _has_rate_limit_available(self, key_index: int, weight: int) -> bool:
-        """Check if a specific API key (or keyless) has enough rate limit."""
+        """Check if a specific API key has enough rate limit."""
         if key_index not in self.rate_limits:
             return False
         remaining = self.rate_limits[key_index]["remaining"]
@@ -317,7 +305,7 @@ class Bitvavo:
                 self.rate_limits[key_index]["resetAt"] = ms(time_ms() + 60000)
 
             timeToWait = time_to_wait(ms(self.rate_limits[key_index]["resetAt"]))
-            key_name = f"API_KEY_{key_index}" if key_index >= 0 else "KEYLESS"
+            key_name = f"API_KEY_{key_index}"
             logger.warning(
                 "api-key-banned",
                 info={
@@ -527,7 +515,7 @@ class Bitvavo:
         list[list[str]]
         ```
         """
-        # Get the best API key configuration (keyless preferred, then available keys)
+        # Get the best API key configuration
         api_key, api_secret, key_index = self.get_best_api_key_config(rateLimitingWeight)
 
         # Check if we need to wait for rate limit
@@ -535,38 +523,25 @@ class Bitvavo:
             self._sleep_for_key(key_index)
 
         # Update current API key for legacy compatibility
-        if api_key:
-            self._current_api_key = api_key
-            self._current_api_secret = api_secret
-            self.current_api_key_index = key_index
-        else:
-            # Using keyless
-            self._current_api_key = ""
-            self._current_api_secret = ""
+        self._current_api_key = api_key
+        self._current_api_secret = api_secret
+        self.current_api_key_index = key_index
 
         if self.debugging:
             logger.debug(
                 "api-request",
-                info={
-                    "url": url,
-                    "with_api_key": bool(api_key != ""),
-                    "public_or_private": "public",
-                    "key_index": key_index,
-                },
+                info={"url": url, "key_index": key_index},
             )
 
-        if api_key:
-            now = time_ms() + bitvavo_upgraded_settings.LAG
-            sig = create_signature(now, "GET", url.replace(self.base, ""), None, api_secret)
-            headers = {
-                "bitvavo-access-key": api_key,
-                "bitvavo-access-signature": sig,
-                "bitvavo-access-timestamp": str(now),
-                "bitvavo-access-window": str(self.ACCESSWINDOW),
-            }
-            r = get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000))
-        else:
-            r = get(url, timeout=(self.ACCESSWINDOW / 1000))
+        now = time_ms() + bitvavo_upgraded_settings.LAG
+        sig = create_signature(now, "GET", url.replace(self.base, ""), None, api_secret)
+        headers = {
+            "bitvavo-access-key": api_key,
+            "bitvavo-access-signature": sig,
+            "bitvavo-access-timestamp": str(now),
+            "bitvavo-access-window": str(self.ACCESSWINDOW),
+        }
+        r = get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000))
 
         # Update rate limit for the specific key used
         if "error" in r.json():
@@ -2368,7 +2343,7 @@ class Bitvavo:
                 # Update rate limit tracking indices (shift them down)
                 new_rate_limits = {}
                 for key_idx, limits in self.rate_limits.items():
-                    if key_idx == -1 or key_idx < i:  # keyless
+                    if key_idx < i:
                         new_rate_limits[key_idx] = limits
                     elif key_idx > i:
                         new_rate_limits[key_idx - 1] = limits
@@ -2386,19 +2361,10 @@ class Bitvavo:
         """Get the current status of all API keys including rate limits.
 
         Returns:
-            dict: Status information for keyless and all API keys
+            dict: Status information for all API keys
         """
         status = {}
 
-        # Keyless status
-        keyless_limits = self.rate_limits.get(-1, {"remaining": 0, "resetAt": ms(0)})
-        status["keyless"] = {
-            "remaining": int(keyless_limits["remaining"]),
-            "resetAt": int(keyless_limits["resetAt"]),
-            "available": self._has_rate_limit_available(-1, 1),
-        }
-
-        # API key status
         for i, key_data in enumerate(self.api_keys):
             key_limits = self.rate_limits.get(i, {"remaining": 0, "resetAt": ms(0)})
             KEY_LENGTH = 12

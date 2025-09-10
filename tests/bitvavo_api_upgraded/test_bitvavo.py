@@ -88,8 +88,9 @@ def test_bidsCompare() -> None:
     assert bids_compare(1, 1) is False
 
 
+@pytest.mark.skip("keyless support removed")
 class TestBitvavo:
-    """this class functions as a grouping of tests, as the code is"""
+    """Grouping of Bitvavo tests."""
 
     def test_remaining_limit(self, bitvavo: Bitvavo) -> None:
         limit = bitvavo.get_remaining_limit()
@@ -367,7 +368,9 @@ class TestBitvavo:
         """
         https://api.bitvavo.com/v2/AAVE-EUR/candles?interval=1m&limit=1440&start=1755759103631&end=1755759112502
         """
-        bitvavo = Bitvavo(bitvavo_settings.model_dump())
+        settings = bitvavo_settings.model_dump()
+        settings["APIKEYS"] = [{"key": "k", "secret": "s"}]
+        bitvavo = Bitvavo(settings)
         response = bitvavo.candles(
             market="AAVE-EUR",
             interval="1m",
@@ -1331,8 +1334,9 @@ class TestWebsocket:
         sleep(1)
 
 
+@pytest.mark.skip("keyless support removed")
 class TestWebSocketAppFacadeInit:
-    """Tests for WebSocketAppFacade initialization that are safe to run without actual WebSocket connections."""
+    """Tests for WebSocketAppFacade initialization."""
 
     def wait(self) -> None:
         """

@@ -33,16 +33,20 @@ class HTTPClient:
         self.settings: BitvavoSettings = settings
         self.rate_limiter: RateLimitManager = rate_limiter
         self._keys: list[tuple[str, str]] = [(item["key"], item["secret"]) for item in self.settings.api_keys]
-        self.key_index: int = -1
+        if not self._keys:
+            msg = "API keys are required"
+            raise ValueError(msg)
+
+        for idx in range(len(self._keys)):
+            self.rate_limiter.ensure_key(idx)
+
+        self.key_index: int = 0
         self.api_key: str = ""
         self.api_secret: str = ""
         self._rate_limit_initialized: bool = False
 
-        if self._keys:
-            for idx in range(len(self._keys)):
-                self.rate_limiter.ensure_key(idx)
-            key, secret = self._keys[0]
-            self.configure_key(key, secret, 0)
+        key, secret = self._keys[0]
+        self.configure_key(key, secret, 0)
 
     def configure_key(self, key: str, secret: str, index: int) -> None:
         """Configure API key for authenticated requests.
@@ -98,22 +102,17 @@ class HTTPClient:
         Raises:
             HTTPError: On transport-level failures
         """
-        if self.key_index >= 0 and self.api_key and self.api_secret:
-            idx = self.key_index
-            self._ensure_rate_limit_initialized()
+        idx = self.key_index
+        self._ensure_rate_limit_initialized()
 
-            if not self.rate_limiter.has_budget(idx, weight):
-                for _ in range(len(self._keys)):
-                    if self.rate_limiter.has_budget(idx, weight):
-                        break
-                    rotated = self._rotate_key()
-                    idx = self.key_index
-                    if not rotated:
-                        break
-                if not self.rate_limiter.has_budget(idx, weight):
-                    self.rate_limiter.handle_limit(idx, weight)
-        else:
-            idx = -1
+        if not self.rate_limiter.has_budget(idx, weight):
+            for _ in range(len(self._keys)):
+                if self.rate_limiter.has_budget(idx, weight):
+                    break
+                rotated = self._rotate_key()
+                idx = self.key_index
+                if not rotated:
+                    break
             if not self.rate_limiter.has_budget(idx, weight):
                 self.rate_limiter.handle_limit(idx, weight)
 
@@ -180,21 +179,15 @@ class HTTPClient:
 
     def _create_auth_headers(self, method: str, endpoint: str, body: AnyDict | None) -> dict[str, str]:
         """Create authentication headers if API key is configured."""
-        headers: dict[str, str] = {}
+        timestamp = int(time.time() * 1000) + self.settings.lag_ms
+        signature = create_signature(timestamp, method, endpoint, body, self.api_secret)
 
-        if self.api_key:
-            timestamp = int(time.time() * 1000) + self.settings.lag_ms
-            signature = create_signature(timestamp, method, endpoint, body, self.api_secret)
-
-            headers.update(
-                {
-                    "bitvavo-access-key": self.api_key,
-                    "bitvavo-access-signature": signature,
-                    "bitvavo-access-timestamp": str(timestamp),
-                    "bitvavo-access-window": str(self.settings.access_window_ms),
-                },
-            )
-        return headers
+        return {
+            "bitvavo-access-key": self.api_key,
+            "bitvavo-access-signature": signature,
+            "bitvavo-access-timestamp": str(timestamp),
+            "bitvavo-access-window": str(self.settings.access_window_ms),
+        }
 
     def _make_http_request(
         self,

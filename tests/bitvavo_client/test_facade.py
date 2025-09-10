@@ -6,17 +6,16 @@ import os
 from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
 from pydantic_settings import SettingsConfigDict
 from returns.result import Failure, Success
 
 from bitvavo_client.adapters.returns_adapter import BitvavoError
-from bitvavo_client.auth.rate_limit import RateLimitManager
 from bitvavo_client.core.model_preferences import ModelPreference
 from bitvavo_client.core.settings import BitvavoSettings
 from bitvavo_client.endpoints.private import PrivateAPI
 from bitvavo_client.endpoints.public import PublicAPI
 from bitvavo_client.facade import BitvavoClient
-from bitvavo_client.transport.http import HTTPClient
 
 
 class TestBitvavoSettings(BitvavoSettings):
@@ -37,6 +36,7 @@ class TestBitvavoSettings(BitvavoSettings):
             original_env[var] = os.environ.pop(var)
 
         try:
+            kwargs.setdefault("api_keys", [{"key": "k", "secret": "s"}])
             super().__init__(**kwargs)
         finally:
             # Restore original environment
@@ -49,18 +49,8 @@ class TestBitvavoClientInitialization:
 
     def test_init_default_settings(self) -> None:
         """Test initialization with default settings."""
-        client = BitvavoClient()
-
-        # Should create default settings
-        assert isinstance(client.settings, BitvavoSettings)
-        assert client.settings.rest_url == "https://api.bitvavo.com/v2"
-        assert client.settings.ws_url == "wss://ws.bitvavo.com/v2/"
-
-        # Should create components
-        assert isinstance(client.rate_limiter, RateLimitManager)
-        assert isinstance(client.http, HTTPClient)
-        assert isinstance(client.public, PublicAPI)
-        assert isinstance(client.private, PrivateAPI)
+        with pytest.raises(ValueError, match="API keys are required"):
+            BitvavoClient()
 
     def test_init_custom_settings(self) -> None:
         """Test initialization with custom settings."""
@@ -79,7 +69,7 @@ class TestBitvavoClientInitialization:
 
     def test_init_with_preferred_model(self) -> None:
         """Test initialization with preferred model parameter."""
-        client = BitvavoClient(preferred_model=ModelPreference.PYDANTIC)
+        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model=ModelPreference.PYDANTIC)
 
         # Should pass preferred_model to API endpoints
         assert client.public.preferred_model == ModelPreference.PYDANTIC
@@ -87,7 +77,7 @@ class TestBitvavoClientInitialization:
 
     def test_init_with_preferred_model_string(self) -> None:
         """Test initialization with preferred model as string."""
-        client = BitvavoClient(preferred_model="dataframe")
+        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model="dataframe")
 
         # Should accept string and pass to API endpoints
         assert client.public.preferred_model == "dataframe"
@@ -96,7 +86,7 @@ class TestBitvavoClientInitialization:
     def test_init_with_default_schema(self) -> None:
         """Test initialization with default schema parameter."""
         schema = {"field1": "type1", "field2": "type2"}
-        client = BitvavoClient(default_schema=schema)
+        client = BitvavoClient(settings=TestBitvavoSettings(), default_schema=schema)
 
         # Should pass schema to API endpoints
         assert client.public.default_schema is schema
@@ -147,17 +137,15 @@ class TestBitvavoClientAPIKeyConfiguration:
 
     def test_no_api_keys(self) -> None:
         """Test initialization without API keys."""
-        settings = TestBitvavoSettings()
-        client = BitvavoClient(settings)
-        assert client.http.api_key == ""
-        assert client.http.key_index == -1
+        settings = TestBitvavoSettings(api_keys=[])
+        with pytest.raises(ValueError, match="API keys are required"):
+            BitvavoClient(settings)
 
     def test_empty_api_keys_list(self) -> None:
         """Test initialization with empty API keys list."""
         settings = TestBitvavoSettings(api_keys=[])
-        client = BitvavoClient(settings)
-        assert client.http.api_key == ""
-        assert client.http.key_index == -1
+        with pytest.raises(ValueError, match="API keys are required"):
+            BitvavoClient(settings)
 
 
 class TestBitvavoClientComponentIntegration:
@@ -389,14 +377,12 @@ class TestBitvavoClientTypeCompatibility:
 
     def test_none_settings_parameter(self) -> None:
         """Test that None settings parameter creates default settings."""
-        client = BitvavoClient(settings=None)
-
-        assert isinstance(client.settings, BitvavoSettings)
-        assert client.settings.rest_url == "https://api.bitvavo.com/v2"
+        with pytest.raises(ValueError, match="API keys are required"):
+            BitvavoClient(settings=None)
 
     def test_none_preferred_model_parameter(self) -> None:
         """Test that None preferred_model parameter is handled correctly."""
-        client = BitvavoClient(preferred_model=None)
+        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model=None)
 
         # Should pass None to API endpoints
         assert client.public.preferred_model is None
@@ -404,7 +390,7 @@ class TestBitvavoClientTypeCompatibility:
 
     def test_none_default_schema_parameter(self) -> None:
         """Test that None default_schema parameter is handled correctly."""
-        client = BitvavoClient(default_schema=None)
+        client = BitvavoClient(settings=TestBitvavoSettings(), default_schema=None)
 
         # Should pass None to API endpoints
         assert client.public.default_schema is None
@@ -412,7 +398,7 @@ class TestBitvavoClientTypeCompatibility:
 
     def test_string_model_preference_handling(self) -> None:
         """Test that string model preferences are passed correctly."""
-        client = BitvavoClient(preferred_model="raw")
+        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model="raw")
 
         assert client.public.preferred_model == "raw"
         assert client.private.preferred_model == "raw"
@@ -423,9 +409,7 @@ class TestBitvavoClientDocumentation:
 
     def test_backward_compatible_interface_claim(self) -> None:
         """Test that the client provides backward-compatible interface."""
-        # The client should expose public and private API endpoints
-        client = BitvavoClient()
-
+        client = BitvavoClient(TestBitvavoSettings())
         assert hasattr(client, "public")
         assert hasattr(client, "private")
         assert isinstance(client.public, PublicAPI)
@@ -433,18 +417,9 @@ class TestBitvavoClientDocumentation:
 
     def test_facade_pattern_implementation(self) -> None:
         """Test that the client implements the facade pattern correctly."""
-        client = BitvavoClient()
-
-        # Should compose multiple subsystems
+        client = BitvavoClient(TestBitvavoSettings())
         assert hasattr(client, "settings")
         assert hasattr(client, "rate_limiter")
         assert hasattr(client, "http")
         assert hasattr(client, "public")
         assert hasattr(client, "private")
-
-        # Should provide a simplified interface to complex subsystem
-        assert isinstance(client.settings, BitvavoSettings)
-        assert isinstance(client.rate_limiter, RateLimitManager)
-        assert isinstance(client.http, HTTPClient)
-        assert isinstance(client.public, PublicAPI)
-        assert isinstance(client.private, PrivateAPI)

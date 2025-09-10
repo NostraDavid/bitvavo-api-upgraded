@@ -38,8 +38,8 @@ class BitvavoClient:
         """
         self.settings = settings or BitvavoSettings()
         self.rate_limiter = RateLimitManager(
-            self.settings.default_rate_limit,
-            self.settings.rate_limit_buffer,
+            default_remaining=self.settings.default_rate_limit,
+            buffer=self.settings.rate_limit_buffer,
         )
         self.http = HTTPClient(self.settings, self.rate_limiter)
 

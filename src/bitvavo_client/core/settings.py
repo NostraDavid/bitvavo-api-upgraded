@@ -30,7 +30,7 @@ class BitvavoSettings(BaseSettings):
 
     # Client behavior
     default_rate_limit: int = Field(default=1_000, description="Default rate limit for new API keys")
-    rate_limit_buffer: int = Field(default=0, description="Rate limit buffer to avoid hitting limits")
+    rate_limit_buffer: int = Field(default=50, description="Rate limit buffer to avoid hitting limits")
     lag_ms: int = Field(default=0, description="Artificial lag to add to requests in milliseconds")
     debugging: bool = Field(default=False, description="Enable debug logging")
 

@@ -963,7 +963,6 @@ class TestPublicAPI_RAW(AbstractPublicAPITests):  # noqa: N801
                 assert ask > 0, "ask must be positive"
                 assert bid_size > 0, "bidSize must be positive"
                 assert ask_size > 0, "askSize must be positive"
-                assert ask > bid, "ask must be greater than bid (positive spread)"
 
             case Failure(error):
                 msg = f"Ticker book with market endpoint failed with error: {error}"

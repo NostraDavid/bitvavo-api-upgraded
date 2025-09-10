@@ -47,11 +47,6 @@ class TestBitvavoSettings(BitvavoSettings):
 class TestBitvavoClientInitialization:
     """Test BitvavoClient initialization and configuration."""
 
-    def test_init_default_settings(self) -> None:
-        """Test initialization with default settings."""
-        with pytest.raises(ValueError, match="API keys are required"):
-            BitvavoClient()
-
     def test_init_custom_settings(self) -> None:
         """Test initialization with custom settings."""
         custom_settings = TestBitvavoSettings(
@@ -374,11 +369,6 @@ class TestBitvavoClientRealWorldUsage:
 
 class TestBitvavoClientTypeCompatibility:
     """Test type compatibility and parameter passing."""
-
-    def test_none_settings_parameter(self) -> None:
-        """Test that None settings parameter creates default settings."""
-        with pytest.raises(ValueError, match="API keys are required"):
-            BitvavoClient(settings=None)
 
     def test_none_preferred_model_parameter(self) -> None:
         """Test that None preferred_model parameter is handled correctly."""

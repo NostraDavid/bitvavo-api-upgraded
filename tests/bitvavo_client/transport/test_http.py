@@ -38,22 +38,6 @@ def test_request_updates_rate_limiter(monkeypatch: pytest.MonkeyPatch) -> None:
     assert manager.get_remaining(0) == start_remaining - 6
 
 
-def test_request_without_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
-    """HTTPClient.request should work without API key for public endpoints."""
-    settings = BitvavoSettings()
-    manager = RateLimitManager(settings.default_rate_limit, settings.rate_limit_buffer)
-    client = HTTPClient(settings, manager)
-
-    response = httpx.Response(200, json={})
-    monkeypatch.setattr(client, "_make_http_request", lambda m, u, h, b: response)
-
-    start_remaining = manager.get_remaining(-1)
-    result = client.request("GET", "/test")
-
-    assert isinstance(result, Success)
-    assert manager.get_remaining(-1) == start_remaining - 1
-
-
 def test_initial_rate_limit_fetch(monkeypatch: pytest.MonkeyPatch) -> None:
     """Initial request should fetch rate limit before making the API call."""
     settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])

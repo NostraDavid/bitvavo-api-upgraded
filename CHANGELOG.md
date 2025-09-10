@@ -1,5 +1,10 @@
 # Changelog
 
+## $UNRELEASED
+
+- add a ton of logging to HTTPClient and RateLimitManager
+- set the `rate_limit_buffer` to 50, instead of 0 >_>
+
 ## v4.4.0 - 2025-09-11
 
 - fix the RateLimitManager (again)

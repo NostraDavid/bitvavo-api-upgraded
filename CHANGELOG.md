@@ -1,5 +1,10 @@
 # Changelog
 
+## $UNRELEASED
+
+- fix the RateLimitManager (again)
+- improve the key-rotation logic
+
 ## v4.3.1 - 2025-09-10
 
 - fix the tests (again)

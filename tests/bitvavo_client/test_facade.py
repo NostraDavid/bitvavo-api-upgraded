@@ -45,8 +45,6 @@ class TestBitvavoSettings(BitvavoSettings):
 
 
 class TestBitvavoClientInitialization:
-    """Test BitvavoClient initialization and configuration."""
-
     def test_init_custom_settings(self) -> None:
         """Test initialization with custom settings."""
         custom_settings = TestBitvavoSettings(

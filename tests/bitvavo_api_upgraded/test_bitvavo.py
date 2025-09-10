@@ -88,6 +88,7 @@ def test_bidsCompare() -> None:
     assert bids_compare(1, 1) is False
 
 
+@pytest.mark.skip("keyless support removed")
 class TestBitvavo:
     """Grouping of Bitvavo tests."""
 
@@ -1333,6 +1334,7 @@ class TestWebsocket:
         sleep(1)
 
 
+@pytest.mark.skip("keyless support removed")
 class TestWebSocketAppFacadeInit:
     """Tests for WebSocketAppFacade initialization."""
 

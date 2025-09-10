@@ -114,10 +114,14 @@ class AbstractPrivateAPITests(ABC):
     def test_transaction_history(self, private_api: PrivateAPI) -> None: ...
 
 
+@pytest.mark.skipif(
+    not hasattr(BitvavoSettings(), "api_key") or not BitvavoSettings().api_key,
+    reason="API credentials required for private endpoints",
+)
 class TestPrivateAPI_RAW(AbstractPrivateAPITests):  # noqa: N801
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
-        settings = BitvavoSettings()
+        settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])
         rate_limiter = RateLimitManager(
             settings.default_rate_limit,
             settings.rate_limit_buffer,
@@ -1556,11 +1560,15 @@ class TestPrivateAPI_RAW(AbstractPrivateAPITests):  # noqa: N801
                     raise ValueError(msg)
 
 
+@pytest.mark.skipif(
+    not hasattr(BitvavoSettings(), "api_key") or not BitvavoSettings().api_key,
+    reason="API credentials required for private endpoints",
+)
 class TestPrivateAPI_PYDANTIC(AbstractPrivateAPITests):  # noqa: N801
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
         """Private API with default MODEL preference (pydantic models)."""
-        settings = BitvavoSettings()
+        settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])
         rate_limiter = RateLimitManager(
             settings.default_rate_limit,
             settings.rate_limit_buffer,
@@ -1993,13 +2001,17 @@ class TestPrivateAPI_PYDANTIC(AbstractPrivateAPITests):  # noqa: N801
             assert len(tx.fees_currency) > 0
 
 
+@pytest.mark.skipif(
+    not hasattr(BitvavoSettings(), "api_key") or not BitvavoSettings().api_key,
+    reason="API credentials required for private endpoints",
+)
 class TestPrivateAPI_DATAFRAME(AbstractPrivateAPITests):  # noqa: N801
     """Basic smoke tests for private endpoints."""
 
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
         """Private API with DATAFRAME preference (polars.DataFrame)."""
-        settings = BitvavoSettings()
+        settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])
         rate_limiter = RateLimitManager(
             settings.default_rate_limit,
             settings.rate_limit_buffer,

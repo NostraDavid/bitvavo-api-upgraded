@@ -16,25 +16,25 @@ class TestRateLimitManagerInitialization:
         """Test initialization creates correct default state."""
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
-        # Should initialize with keyless state (index -1)
-        assert -1 in manager.state
-        assert manager.state[-1]["remaining"] == 1000
-        assert manager.state[-1]["resetAt"] == 0
+        # Should initialize with empty state
+        assert manager.state == {}
+        assert manager.default_remaining == 1000
         assert manager.buffer == 50
 
     def test_init_with_different_values(self) -> None:
         """Test initialization with different parameter values."""
         manager = RateLimitManager(default_remaining=500, buffer=25)
 
-        assert manager.state[-1]["remaining"] == 500
-        assert manager.state[-1]["resetAt"] == 0
+        assert manager.state == {}
+        assert manager.default_remaining == 500
         assert manager.buffer == 25
 
     def test_init_with_zero_values(self) -> None:
         """Test initialization with zero values."""
         manager = RateLimitManager(default_remaining=0, buffer=0)
 
-        assert manager.state[-1]["remaining"] == 0
+        assert manager.state == {}
+        assert manager.default_remaining == 0
         assert manager.buffer == 0
 
 
@@ -45,14 +45,14 @@ class TestRateLimitManagerKeyManagement:
         """Test that ensure_key creates new key entries."""
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
-        # Initially only keyless (-1) exists
+        # Initially state is empty
         assert 0 not in manager.state
         assert 1 not in manager.state
 
         # Ensure key 0 exists
         manager.ensure_key(0)
         assert 0 in manager.state
-        assert manager.state[0]["remaining"] == 1000  # Inherits from keyless
+        assert manager.state[0]["remaining"] == 1000  # Uses default remaining
         assert manager.state[0]["resetAt"] == 0
 
         # Ensure key 1 exists
@@ -79,7 +79,7 @@ class TestRateLimitManagerKeyManagement:
         """Test ensure_key with negative indices."""
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
-        # Keyless (-1) already exists
+        # Create negative index key
         manager.ensure_key(-1)
         assert manager.state[-1]["remaining"] == 1000
 
@@ -88,17 +88,13 @@ class TestRateLimitManagerKeyManagement:
         assert -5 in manager.state
         assert manager.state[-5]["remaining"] == 1000
 
-    def test_ensure_key_inherits_from_keyless(self) -> None:
-        """Test that new keys inherit values from keyless state."""
+    def test_ensure_key_uses_default_remaining(self) -> None:
+        """Test that new keys use the default remaining value."""
         manager = RateLimitManager(default_remaining=800, buffer=30)
 
-        # Modify keyless state
-        manager.state[-1]["remaining"] = 600
-        manager.state[-1]["resetAt"] = 54321
-
-        # New key should inherit from keyless
+        # New key should use default remaining value
         manager.ensure_key(2)
-        assert manager.state[2]["remaining"] == 600
+        assert manager.state[2]["remaining"] == 800
         assert manager.state[2]["resetAt"] == 0  # resetAt is always initialized to 0
 
 
@@ -109,20 +105,20 @@ class TestRateLimitManagerBudgetChecking:
         """Test has_budget when there's sufficient remaining budget."""
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
-        # Keyless request with plenty of budget
-        assert manager.has_budget(-1, 100) is True
-        assert manager.has_budget(-1, 900) is True
+        # Request with plenty of budget (any key index)
+        assert manager.has_budget(0, 100) is True
+        assert manager.has_budget(0, 900) is True
 
         # Request right at the buffer boundary
-        assert manager.has_budget(-1, 950) is True  # 1000 - 950 = 50 (equals buffer)
+        assert manager.has_budget(0, 950) is True  # 1000 - 950 = 50 (equals buffer)
 
     def test_has_budget_insufficient_remaining(self) -> None:
         """Test has_budget when there's insufficient remaining budget."""
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
         # Request that would go below buffer
-        assert manager.has_budget(-1, 951) is False  # 1000 - 951 = 49 (less than buffer)
-        assert manager.has_budget(-1, 1000) is False
+        assert manager.has_budget(0, 951) is False  # 1000 - 951 = 49 (less than buffer)
+        assert manager.has_budget(0, 1000) is False
 
     def test_has_budget_creates_key_if_needed(self) -> None:
         """Test that has_budget creates key index if it doesn't exist."""
@@ -155,9 +151,9 @@ class TestRateLimitManagerBudgetChecking:
         """Test has_budget behavior with zero buffer."""
         manager = RateLimitManager(default_remaining=100, buffer=0)
 
-        assert manager.has_budget(-1, 99) is True  # 100 - 99 = 1 > 0
-        assert manager.has_budget(-1, 100) is True  # 100 - 100 = 0 = 0 (equals buffer)
-        assert manager.has_budget(-1, 101) is False  # 100 - 101 = -1 < 0
+        assert manager.has_budget(0, 99) is True  # 100 - 99 = 1 > 0
+        assert manager.has_budget(0, 100) is True  # 100 - 100 = 0 = 0 (equals buffer)
+        assert manager.has_budget(0, 101) is False  # 100 - 101 = -1 < 0
 
 
 class TestRateLimitManagerCallRecording:
@@ -168,8 +164,8 @@ class TestRateLimitManagerCallRecording:
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
         # Record a call and verify remaining budget decreased
-        manager.record_call(-1, 100)
-        assert manager.get_remaining(-1) == 900
+        manager.record_call(0, 100)
+        assert manager.get_remaining(0) == 900
 
     def test_record_call_creates_key(self) -> None:
         """record_call should ensure key exists before updating."""
@@ -431,12 +427,13 @@ class TestRateLimitManagerGetters:
         """Test getting remaining limit for existing key."""
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
-        # Test keyless
-        assert manager.get_remaining(-1) == 1000
+        # Test a key
+        assert manager.get_remaining(1) == 1000
 
         # Test after modification
-        manager.state[-1]["remaining"] = 750
-        assert manager.get_remaining(-1) == 750
+        manager.ensure_key(1)
+        manager.state[1]["remaining"] = 750
+        assert manager.get_remaining(1) == 750
 
         # Test specific key
         manager.ensure_key(0)
@@ -453,18 +450,19 @@ class TestRateLimitManagerGetters:
         remaining = manager.get_remaining(4)
 
         assert 4 in manager.state
-        assert remaining == 800  # Should inherit from keyless
+        assert remaining == 800  # Should use default remaining
 
     def test_get_reset_at_existing_key(self) -> None:
         """Test getting reset timestamp for existing key."""
         manager = RateLimitManager(default_remaining=1000, buffer=50)
 
-        # Test keyless (initially 0)
-        assert manager.get_reset_at(-1) == 0
+        # Test a key (initially 0)
+        assert manager.get_reset_at(1) == 0
 
         # Test after modification
-        manager.state[-1]["resetAt"] = 1693843200000
-        assert manager.get_reset_at(-1) == 1693843200000
+        manager.ensure_key(1)
+        manager.state[1]["resetAt"] = 1693843200000
+        assert manager.get_reset_at(1) == 1693843200000
 
         # Test specific key
         manager.ensure_key(0)
@@ -567,28 +565,27 @@ class TestRateLimitManagerIntegration:
         assert manager.get_remaining(0) == 0  # Affected by error
         assert manager.get_remaining(1) == 200  # Unaffected
 
-    def test_keyless_vs_keyed_requests(self) -> None:
-        """Test behavior differences between keyless and keyed requests."""
+    def test_independent_key_state_management(self) -> None:
+        """Test that different API keys have independent state."""
         manager = RateLimitManager(default_remaining=500, buffer=25)
 
-        # Initially both keyless and new keys have same state
-        assert manager.get_remaining(-1) == 500
-        assert manager.get_remaining(0) == 500  # Inherits from keyless
+        # Initially new keys use default remaining
+        assert manager.get_remaining(0) == 500
+        assert manager.get_remaining(1) == 500
 
-        # Update keyless state
-        headers_keyless = {"bitvavo-ratelimit-remaining": "300"}
-        manager.update_from_headers(-1, headers_keyless)
+        # Update different keys independently
+        headers_key0 = {"bitvavo-ratelimit-remaining": "300"}
+        manager.update_from_headers(0, headers_key0)
 
-        # Update keyed state
-        headers_keyed = {"bitvavo-ratelimit-remaining": "400"}
-        manager.update_from_headers(0, headers_keyed)
+        headers_key1 = {"bitvavo-ratelimit-remaining": "400"}
+        manager.update_from_headers(1, headers_key1)
 
-        # States should now be independent
-        assert manager.get_remaining(-1) == 300
-        assert manager.get_remaining(0) == 400
+        # States should be independent
+        assert manager.get_remaining(0) == 300
+        assert manager.get_remaining(1) == 400
 
-        # New keys should still inherit from keyless
-        assert manager.get_remaining(1) == 300  # Inherits current keyless state
+        # New keys should still use default remaining
+        assert manager.get_remaining(2) == 500  # Uses default remaining
 
     @patch("time.sleep")
     @patch("time.time")

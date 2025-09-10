@@ -20,10 +20,9 @@ class DefaultRateLimitStrategy(RateLimitStrategy):
 
 
 class RateLimitManager:
-    """Manages rate limiting for multiple API keys and keyless requests.
+    """Manages rate limiting for multiple API keys.
 
-    Each API key index has its own rate limit state. Index -1 is reserved
-    for keyless requests.
+    Each API key index has its own rate limit state.
     """
 
     def __init__(self, default_remaining: int, buffer: int, strategy: RateLimitStrategy | None = None) -> None:
@@ -35,7 +34,7 @@ class RateLimitManager:
             strategy: Optional strategy callback when rate limit exceeded
         """
         self.default_remaining: int = default_remaining
-        self.state: dict[int, dict[str, int]] = {-1: {"remaining": default_remaining, "resetAt": 0}}
+        self.state: dict[int, dict[str, int]] = {}
         self.buffer: int = buffer
 
         self._strategy: RateLimitStrategy = strategy or DefaultRateLimitStrategy()
@@ -43,13 +42,13 @@ class RateLimitManager:
     def ensure_key(self, idx: int) -> None:
         """Ensure a key index exists in the state."""
         if idx not in self.state:
-            self.state[idx] = {"remaining": self.state[-1]["remaining"], "resetAt": 0}
+            self.state[idx] = {"remaining": self.default_remaining, "resetAt": 0}
 
     def has_budget(self, idx: int, weight: int) -> bool:
         """Check if there's enough rate limit budget for a request.
 
         Args:
-            idx: API key index (-1 for keyless)
+            idx: API key index
             weight: Weight of the request
 
         Returns:
@@ -66,7 +65,7 @@ class RateLimitManager:
         the response doesn't include rate limit headers.
 
         Args:
-            idx: API key index (-1 for keyless)
+            idx: API key index
             weight: Weight of the request
         """
         self.ensure_key(idx)

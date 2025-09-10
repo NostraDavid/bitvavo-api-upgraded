@@ -1,6 +1,6 @@
 # Changelog
 
-## $UNRELEASED
+## v4.3.1 - 2025-09-10
 
 - fix the tests (again)
 

@@ -15,7 +15,9 @@ logger = logging.getLogger("conftest")
 
 @pytest.fixture(scope="session")
 def bitvavo() -> Bitvavo:
-    return Bitvavo(bitvavo_settings.model_dump())
+    settings = bitvavo_settings.model_dump()
+    settings["APIKEYS"] = [{"key": "k", "secret": "s"}]
+    return Bitvavo(settings)
 
 
 @pytest.fixture(scope="session")
@@ -24,7 +26,9 @@ def websocket(bitvavo: Bitvavo) -> Bitvavo.WebSocketAppFacade:
         msg = f"Error callback: {error}"
         logger.error(msg)
 
-    bitvavo = Bitvavo(bitvavo_settings.model_dump())
+    settings = bitvavo_settings.model_dump()
+    settings["APIKEYS"] = [{"key": "k", "secret": "s"}]
+    bitvavo = Bitvavo(settings)
 
     websocket: Bitvavo.WebSocketAppFacade = bitvavo.new_websocket()
     websocket.set_error_callback(error_callback)

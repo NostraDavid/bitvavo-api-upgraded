@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 from returns.result import Failure, Result
+from structlog.stdlib import get_logger
 
 from bitvavo_client.adapters.returns_adapter import (
     BitvavoError,
@@ -19,6 +20,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from bitvavo_client.core.settings import BitvavoSettings
     from bitvavo_client.core.types import AnyDict
 
+logger = get_logger(__name__)
+
 
 class HTTPClient:
     """HTTP client for Bitvavo REST API with rate limiting and authentication."""
@@ -30,11 +33,13 @@ class HTTPClient:
             settings: Bitvavo settings configuration
             rate_limiter: Rate limit manager instance
         """
+
         self.settings: BitvavoSettings = settings
         self.rate_limiter: RateLimitManager = rate_limiter
         self._keys: list[tuple[str, str]] = [(item["key"], item["secret"]) for item in self.settings.api_keys]
         if not self._keys:
             msg = "API keys are required"
+            logger.error("api-keys-required")
             raise ValueError(msg)
 
         for idx in range(len(self._keys)):
@@ -47,6 +52,7 @@ class HTTPClient:
 
         key, secret = self._keys[0]
         self.configure_key(key, secret, 0)
+        logger.info("http-client-initialized", key_count=len(self._keys))
 
     def configure_key(self, key: str, secret: str, index: int) -> None:
         """Configure API key for authenticated requests.
@@ -59,18 +65,23 @@ class HTTPClient:
         self.api_key = key
         self.api_secret = secret
         self.key_index = index
+        key_suffix = key[-4:] if len(key) >= 4 else "short"
+        logger.debug("api-key-configured", index=index, key_suffix=key_suffix)
 
     def select_key(self, index: int) -> None:
         """Select a specific API key by index."""
         if not (0 <= index < len(self._keys)):
             msg = "API key index out of range"
+            logger.error("api-key-index-out-of-range", index=index, available_keys=len(self._keys))
             raise IndexError(msg)
         key, secret = self._keys[index]
         self.configure_key(key, secret, index)
+        logger.debug("api-key-selected", index=index)
 
     def _rotate_key(self) -> bool:
         """Rotate to the next configured API key if available."""
         if len(self._keys) <= 1:
+            logger.debug("key-rotation-skipped", reason="only-one-key")
             return False
 
         next_idx = (self.key_index + 1) % len(self._keys)
@@ -78,12 +89,15 @@ class HTTPClient:
         reset_at = self.rate_limiter.get_reset_at(next_idx)
 
         if now < reset_at:
+            logger.info("rotating-to-key-with-sleep", next_index=next_idx)
             self.rate_limiter.sleep_until_reset(next_idx)
             self.rate_limiter.reset_key(next_idx)
         elif self.rate_limiter.get_remaining(next_idx) <= self.rate_limiter.buffer:
+            logger.debug("rotating-to-key-with-reset", next_index=next_idx, reason="low-remaining-budget")
             self.rate_limiter.reset_key(next_idx)
 
         self.select_key(next_idx)
+        logger.info("key-rotated", from_index=self.key_index, to_index=next_idx)
         return True
 
     def _find_available_key(self, weight: int) -> int | None:
@@ -96,7 +110,12 @@ class HTTPClient:
             Best key index or None if all keys are rate limited
         """
         available_keys = list(range(len(self._keys)))
-        return self.rate_limiter.find_best_available_key(available_keys, weight)
+        best_key = self.rate_limiter.find_best_available_key(available_keys, weight)
+        if best_key is not None:
+            logger.debug("available-key-found", key_index=best_key, weight=weight)
+        else:
+            logger.warning("no-available-keys", weight=weight)
+        return best_key
 
     def _handle_rate_limit_exhaustion(self, weight: int) -> None:
         """Handle situation when all API keys are rate limited.
@@ -106,6 +125,7 @@ class HTTPClient:
         Args:
             weight: Weight of the original request
         """
+        logger.warning("all-keys-rate-limited", weight=weight)
         all_keys = list(range(len(self._keys)))
         earliest_reset = self.rate_limiter.get_earliest_reset_time(all_keys)
 
@@ -116,12 +136,16 @@ class HTTPClient:
                 if self.rate_limiter.get_reset_at(idx) == earliest_reset:
                     if now < earliest_reset:
                         # Sleep until this key resets
+                        sleep_ms = earliest_reset - now
+                        logger.info("sleeping-until-key-reset", key_index=idx, sleep_ms=sleep_ms)
                         self.rate_limiter.sleep_until_reset(idx)
                     self.rate_limiter.reset_key(idx)
                     self.select_key(idx)
+                    logger.info("key-reset-after-exhaustion", key_index=idx)
                     return
 
         # Fallback to current key's rate limit strategy
+        logger.debug("fallback-to-current-key", key_index=self.key_index)
         self.rate_limiter.handle_limit(self.key_index, weight)
 
     def request(
@@ -146,17 +170,20 @@ class HTTPClient:
         Raises:
             HTTPError: On transport-level failures
         """
+        logger.debug("making-request", method=method, endpoint=endpoint, weight=weight)
         idx = self.key_index
         self._ensure_rate_limit_initialized()
 
         # Try to find the best available key for this request
         best_key = self._find_available_key(weight)
         if best_key is not None and best_key != idx:
+            logger.debug("switching-to-best-key", from_index=idx, to_index=best_key)
             self.select_key(best_key)
             idx = best_key
 
         # If current key doesn't have budget, try rotation
         if not self.rate_limiter.has_budget(idx, weight):
+            logger.debug("key-lacks-budget", key_index=idx, weight=weight)
             for _ in range(len(self._keys)):
                 if self.rate_limiter.has_budget(idx, weight):
                     break
@@ -167,6 +194,7 @@ class HTTPClient:
 
             # If still no budget after trying all keys, handle exhaustion smartly
             if not self.rate_limiter.has_budget(idx, weight):
+                logger.warning("no-budget-after-rotation", weight=weight)
                 self._handle_rate_limit_exhaustion(weight)
                 idx = self.key_index  # Update idx after potential key change
 
@@ -175,10 +203,13 @@ class HTTPClient:
 
         # Update rate limit usage for this call
         self.rate_limiter.record_call(idx, weight)
+        logger.debug("weight-recorded", weight=weight, key_index=idx)
 
         try:
             response = self._make_http_request(method, url, headers, body)
+            logger.debug("request-completed", status_code=response.status_code)
         except httpx.HTTPError as exc:
+            logger.error("http-request-failed", error=str(exc))
             return Failure(exc)
 
         self._update_rate_limits(response, idx)
@@ -189,6 +220,7 @@ class HTTPClient:
         """Ensure the initial rate limit state is fetched from the API."""
         if self._rate_limit_initialized:
             return
+        logger.info("initializing-rate-limit-state")
         self._rate_limit_initialized = True
         self._initialize_rate_limit()
 
@@ -196,6 +228,7 @@ class HTTPClient:
         """Fetch initial rate limit and handle potential rate limit errors."""
         endpoint = "/account"
         url = f"{self.settings.rest_url}{endpoint}"
+        logger.debug("fetching-initial-rate-limit")
 
         while True:
             headers = self._create_auth_headers("GET", endpoint, None)
@@ -204,7 +237,8 @@ class HTTPClient:
 
             try:
                 response = self._make_http_request("GET", url, headers, None)
-            except httpx.HTTPError:
+            except httpx.HTTPError as exc:
+                logger.warning("rate-limit-init-failed", error=str(exc))
                 return
 
             self._update_rate_limits(response, self.key_index)
@@ -220,15 +254,19 @@ class HTTPClient:
                     if isinstance(err, dict):
                         err_code = str(err.get("code", ""))
             if response.status_code == httpx.codes.TOO_MANY_REQUESTS and err_code == "101":
+                logger.info("rate-limited-during-init", error_code=err_code)
                 self.rate_limiter.sleep_until_reset(self.key_index)
                 self.rate_limiter.reset_key(self.key_index)
                 continue
 
             if self.rate_limiter.get_remaining(self.key_index) < self.rate_limiter.buffer:
+                remaining = self.rate_limiter.get_remaining(self.key_index)
+                logger.info("low-budget-during-init", remaining=remaining)
                 self.rate_limiter.sleep_until_reset(self.key_index)
                 self.rate_limiter.reset_key(self.key_index)
                 continue
 
+            logger.info("rate-limit-initialization-completed")
             break
 
     def _create_auth_headers(self, method: str, endpoint: str, body: AnyDict | None) -> dict[str, str]:
@@ -264,6 +302,7 @@ class HTTPClient:
                 return httpx.delete(url, headers=headers, timeout=timeout)
             case _:
                 msg = f"Unsupported HTTP method: {method}"
+                logger.error("unsupported-http-method", method=method)
                 raise ValueError(msg)
 
     def _update_rate_limits(self, response: httpx.Response, idx: int) -> None:
@@ -275,10 +314,13 @@ class HTTPClient:
 
         if isinstance(json_data, dict) and "error" in json_data:
             if self._is_rate_limit_error(response, json_data):
+                logger.warning("rate-limit-error-detected", key_index=idx)
                 self.rate_limiter.update_from_error(idx, json_data)
             else:
+                logger.debug("non-rate-limit-error", key_index=idx)
                 self.rate_limiter.update_from_headers(idx, dict(response.headers))
         else:
+            logger.debug("successful-response", key_index=idx)
             self.rate_limiter.update_from_headers(idx, dict(response.headers))
 
     def _is_rate_limit_error(self, response: httpx.Response, json_data: dict[str, Any]) -> bool:

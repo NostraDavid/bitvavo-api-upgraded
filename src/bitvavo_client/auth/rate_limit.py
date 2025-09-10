@@ -5,6 +5,10 @@ from __future__ import annotations
 import time
 from typing import Protocol
 
+from structlog.stdlib import get_logger
+
+logger = get_logger()
+
 
 class RateLimitStrategy(Protocol):
     """Protocol for custom rate limit handling strategies."""
@@ -39,10 +43,22 @@ class RateLimitManager:
 
         self._strategy: RateLimitStrategy = strategy or DefaultRateLimitStrategy()
 
+        logger.info(
+            "rate-limit-manager-initialized",
+            default_remaining=default_remaining,
+            buffer=buffer,
+            strategy=type(self._strategy).__name__,
+        )
+
     def ensure_key(self, idx: int) -> None:
         """Ensure a key index exists in the state."""
         if idx not in self.state:
             self.state[idx] = {"remaining": self.default_remaining, "resetAt": 0}
+            logger.debug(
+                "rate-limit-key-initialized",
+                key_idx=idx,
+                default_remaining=self.default_remaining,
+            )
 
     def has_budget(self, idx: int, weight: int) -> bool:
         """Check if there's enough rate limit budget for a request.
@@ -55,7 +71,18 @@ class RateLimitManager:
             True if request can be made within rate limits
         """
         self.ensure_key(idx)
-        return (self.state[idx]["remaining"] - weight) >= self.buffer
+        has_budget = (self.state[idx]["remaining"] - weight) >= self.buffer
+
+        logger.debug(
+            "rate-limit-budget-check",
+            key_idx=idx,
+            weight=weight,
+            remaining=self.state[idx]["remaining"],
+            buffer=self.buffer,
+            has_budget=has_budget,
+        )
+
+        return has_budget
 
     def record_call(self, idx: int, weight: int) -> None:
         """Record a request by decreasing the remaining budget.
@@ -69,7 +96,16 @@ class RateLimitManager:
             weight: Weight of the request
         """
         self.ensure_key(idx)
+        old_remaining = self.state[idx]["remaining"]
         self.state[idx]["remaining"] = max(0, self.state[idx]["remaining"] - weight)
+
+        logger.debug(
+            "rate-limit-call-recorded",
+            key_idx=idx,
+            weight=weight,
+            old_remaining=old_remaining,
+            new_remaining=self.state[idx]["remaining"],
+        )
 
     def update_from_headers(self, idx: int, headers: dict[str, str]) -> None:
         """Update rate limit state from response headers.
@@ -83,10 +119,23 @@ class RateLimitManager:
         remaining = headers.get("bitvavo-ratelimit-remaining")
         reset_at = headers.get("bitvavo-ratelimit-resetat")
 
+        old_state = dict(self.state[idx])
+
         if remaining is not None:
             self.state[idx]["remaining"] = int(remaining)
         if reset_at is not None:
             self.state[idx]["resetAt"] = int(reset_at)
+
+        logger.debug(
+            "rate-limit-updated-from-headers",
+            key_idx=idx,
+            old_remaining=old_state["remaining"],
+            new_remaining=self.state[idx]["remaining"],
+            old_reset_at=old_state["resetAt"],
+            new_reset_at=self.state[idx]["resetAt"],
+            has_remaining_header=remaining is not None,
+            has_reset_header=reset_at is not None,
+        )
 
     def update_from_error(self, idx: int, _err: dict[str, object]) -> None:
         """Update rate limit state from API error response.
@@ -96,8 +145,19 @@ class RateLimitManager:
             _err: Error response from API (unused but kept for interface compatibility)
         """
         self.ensure_key(idx)
+        old_remaining = self.state[idx]["remaining"]
+        old_reset_at = self.state[idx]["resetAt"]
+
         self.state[idx]["remaining"] = 0
         self.state[idx]["resetAt"] = int(time.time() * 1000) + 60_000
+
+        logger.warning(
+            "rate-limit-updated-from-error",
+            key_idx=idx,
+            old_remaining=old_remaining,
+            old_reset_at=old_reset_at,
+            new_reset_at=self.state[idx]["resetAt"],
+        )
 
     def sleep_until_reset(self, idx: int) -> None:
         """Sleep until rate limit resets for given key index.
@@ -105,20 +165,52 @@ class RateLimitManager:
         Args:
             idx: API key index
         """
+
         self.ensure_key(idx)
         now = int(time.time() * 1000)
         ms_left = max(0, self.state[idx]["resetAt"] - now)
-        time.sleep(ms_left / 1000 + 1)
+        sleep_seconds = ms_left / 1000 + 1
+
+        logger.info(
+            "rate-limit-exceeded",
+            key_idx=idx,
+            sleep_seconds=sleep_seconds,
+            reset_at=self.state[idx]["resetAt"],
+        )
+        time.sleep(sleep_seconds)
+
+        logger.info(
+            "rate-limit-sleep-completed",
+            key_idx=idx,
+            slept_seconds=sleep_seconds,
+        )
 
     def handle_limit(self, idx: int, weight: int) -> None:
         """Invoke the configured strategy when rate limit is exceeded."""
+        logger.info(
+            "rate-limit-handling-strategy",
+            key_idx=idx,
+            weight=weight,
+            strategy=type(self._strategy).__name__,
+        )
         self._strategy(self, idx, weight)
 
     def reset_key(self, idx: int) -> None:
         """Reset the remaining budget and reset time for a key index."""
         self.ensure_key(idx)
+        old_remaining = self.state[idx]["remaining"]
+        old_reset_at = self.state[idx]["resetAt"]
+
         self.state[idx]["remaining"] = self.default_remaining
         self.state[idx]["resetAt"] = 0
+
+        logger.info(
+            "rate-limit-key-reset",
+            key_idx=idx,
+            old_remaining=old_remaining,
+            old_reset_at=old_reset_at,
+            new_remaining=self.default_remaining,
+        )
 
     def get_remaining(self, idx: int) -> int:
         """Get remaining rate limit for key index.
@@ -160,6 +252,7 @@ class RateLimitManager:
             Best key index or None if no keys are suitable
         """
         if not available_keys:
+            logger.debug("rate-limit-no-keys-available", weight=weight)
             return None
 
         suitable_keys = []
@@ -174,12 +267,29 @@ class RateLimitManager:
 
         # Return key with most remaining budget if any have sufficient budget
         if suitable_keys:
-            return max(suitable_keys, key=lambda x: x[1])[0]
+            best_key = max(suitable_keys, key=lambda x: x[1])[0]
+            logger.debug(
+                "rate-limit-best-key-found",
+                key_idx=best_key,
+                weight=weight,
+                remaining=self.state[best_key]["remaining"],
+                suitable_keys_count=len(suitable_keys),
+            )
+            return best_key
 
         # If no keys have budget, return the one that resets earliest
         if fallback_keys:
-            return min(fallback_keys, key=lambda x: x[1])[0]
+            fallback_key = min(fallback_keys, key=lambda x: x[1])[0]
+            logger.warning(
+                "rate-limit-using-fallback-key",
+                key_idx=fallback_key,
+                weight=weight,
+                reset_at=self.state[fallback_key]["resetAt"],
+                fallback_keys_count=len(fallback_keys),
+            )
+            return fallback_key
 
+        logger.warning("rate-limit-no-suitable-keys", weight=weight, available_keys=available_keys)
         return None
 
     def get_earliest_reset_time(self, key_indices: list[int]) -> int:
@@ -192,6 +302,7 @@ class RateLimitManager:
             Earliest reset timestamp in milliseconds, or 0 if no keys have reset times
         """
         if not key_indices:
+            logger.debug("rate-limit-no-keys-for-reset-time")
             return 0
 
         reset_times = []
@@ -201,4 +312,13 @@ class RateLimitManager:
             if reset_at > 0:  # Only consider keys that actually have a reset time
                 reset_times.append(reset_at)
 
-        return min(reset_times) if reset_times else 0
+        earliest_reset = min(reset_times) if reset_times else 0
+
+        logger.debug(
+            "rate-limit-earliest-reset-time",
+            key_indices=key_indices,
+            keys_with_reset=len(reset_times),
+            earliest_reset=earliest_reset,
+        )
+
+        return earliest_reset

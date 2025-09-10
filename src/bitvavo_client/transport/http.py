@@ -86,6 +86,44 @@ class HTTPClient:
         self.select_key(next_idx)
         return True
 
+    def _find_available_key(self, weight: int) -> int | None:
+        """Find the best available API key for a request with given weight.
+
+        Args:
+            weight: Weight of the request
+
+        Returns:
+            Best key index or None if all keys are rate limited
+        """
+        available_keys = list(range(len(self._keys)))
+        return self.rate_limiter.find_best_available_key(available_keys, weight)
+
+    def _handle_rate_limit_exhaustion(self, weight: int) -> None:
+        """Handle situation when all API keys are rate limited.
+
+        Sleeps until the earliest key reset time and then resets that key.
+
+        Args:
+            weight: Weight of the original request
+        """
+        all_keys = list(range(len(self._keys)))
+        earliest_reset = self.rate_limiter.get_earliest_reset_time(all_keys)
+
+        if earliest_reset > 0:
+            # Find which key has the earliest reset time
+            now = int(time.time() * 1000)
+            for idx in all_keys:
+                if self.rate_limiter.get_reset_at(idx) == earliest_reset:
+                    if now < earliest_reset:
+                        # Sleep until this key resets
+                        self.rate_limiter.sleep_until_reset(idx)
+                    self.rate_limiter.reset_key(idx)
+                    self.select_key(idx)
+                    return
+
+        # Fallback to current key's rate limit strategy
+        self.rate_limiter.handle_limit(self.key_index, weight)
+
     def request(
         self,
         method: str,
@@ -111,6 +149,13 @@ class HTTPClient:
         idx = self.key_index
         self._ensure_rate_limit_initialized()
 
+        # Try to find the best available key for this request
+        best_key = self._find_available_key(weight)
+        if best_key is not None and best_key != idx:
+            self.select_key(best_key)
+            idx = best_key
+
+        # If current key doesn't have budget, try rotation
         if not self.rate_limiter.has_budget(idx, weight):
             for _ in range(len(self._keys)):
                 if self.rate_limiter.has_budget(idx, weight):
@@ -119,8 +164,11 @@ class HTTPClient:
                 idx = self.key_index
                 if not rotated:
                     break
+
+            # If still no budget after trying all keys, handle exhaustion smartly
             if not self.rate_limiter.has_budget(idx, weight):
-                self.rate_limiter.handle_limit(idx, weight)
+                self._handle_rate_limit_exhaustion(weight)
+                idx = self.key_index  # Update idx after potential key change
 
         url = f"{self.settings.rest_url}{endpoint}"
         headers = self._create_auth_headers(method, endpoint, body)

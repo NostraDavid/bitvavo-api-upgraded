@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -586,6 +587,250 @@ class TestRateLimitManagerIntegration:
 
         # New keys should still use default remaining
         assert manager.get_remaining(2) == 500  # Uses default remaining
+
+    @patch("time.sleep")
+    @patch("time.time")
+    def test_multi_key_rotation_and_recovery_workflow(self, mock_time: MagicMock, mock_sleep: MagicMock) -> None:
+        """Test key rotation workflow when multiple keys hit rate limits sequentially.
+
+        Scenario:
+        1. Key 0 hits limit, set resetAt to T+60s
+        2. Key 1 hits limit, set resetAt to T+120s
+        3. Key 2 hits limit, set resetAt to T+180s
+        4. Should sleep until T+60s (earliest reset)
+        5. Key 0 should be available again
+        6. Subsequent keys should recover at their respective times
+        """
+        # Start at T=0
+        mock_time.return_value = 1000.0
+
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Simulate all 3 keys starting with full budget
+        for key_idx in range(3):
+            manager.ensure_key(key_idx)
+            assert manager.has_budget(key_idx, 100) is True
+
+        # T=0: Key 0 hits rate limit
+        mock_time.return_value = 1000.0
+        manager.update_from_error(0, {"error": "Rate limit exceeded"})
+        key0_reset_at = 1000 * 1000 + 60_000  # T+60s
+
+        assert manager.get_remaining(0) == 0
+        assert manager.get_reset_at(0) == key0_reset_at
+        assert manager.has_budget(0, 1) is False
+
+        # T+30s: Key 1 hits rate limit
+        mock_time.return_value = 1030.0
+        manager.update_from_error(1, {"error": "Rate limit exceeded"})
+        key1_reset_at = 1030 * 1000 + 60_000  # T+90s
+
+        assert manager.get_remaining(1) == 0
+        assert manager.get_reset_at(1) == key1_reset_at
+        assert manager.has_budget(1, 1) is False
+
+        # T+60s: Key 2 hits rate limit
+        mock_time.return_value = 1060.0
+        manager.update_from_error(2, {"error": "Rate limit exceeded"})
+        key2_reset_at = 1060 * 1000 + 60_000  # T+120s
+
+        assert manager.get_remaining(2) == 0
+        assert manager.get_reset_at(2) == key2_reset_at
+        assert manager.has_budget(2, 1) is False
+
+        # T+65s: Try to sleep until earliest reset (key 0 at T+60s)
+        mock_time.return_value = 1065.0  # 5 seconds after key 0 should reset
+        manager.sleep_until_reset(0)
+
+        # Should sleep for 0 + 1 second (past reset time, so minimum sleep)
+        mock_sleep.assert_called_with(1.0)
+
+        # T+65s: Key 0 should be available again after reset
+        manager.reset_key(0)
+        assert manager.get_remaining(0) == 1000
+        assert manager.get_reset_at(0) == 0
+        assert manager.has_budget(0, 100) is True
+
+        # Keys 1 and 2 should still be rate limited
+        assert manager.has_budget(1, 1) is False  # Resets at T+90s
+        assert manager.has_budget(2, 1) is False  # Resets at T+120s
+
+        # T+95s: Key 1 should be ready to reset
+        mock_time.return_value = 1095.0
+        manager.sleep_until_reset(1)
+        mock_sleep.assert_called_with(1.0)  # Past reset time
+
+        manager.reset_key(1)
+        assert manager.get_remaining(1) == 1000
+        assert manager.has_budget(1, 100) is True
+
+        # Key 2 should still be rate limited until T+120s
+        assert manager.has_budget(2, 1) is False
+
+        # T+125s: Key 2 should be ready to reset
+        mock_time.return_value = 1125.0
+        manager.sleep_until_reset(2)
+        mock_sleep.assert_called_with(1.0)  # Past reset time
+
+        manager.reset_key(2)
+        assert manager.get_remaining(2) == 1000
+        assert manager.has_budget(2, 100) is True
+
+        # All keys should now be available
+        for key_idx in range(3):
+            assert manager.has_budget(key_idx, 100) is True
+
+    def test_key_rotation_prevents_burning_through_first_key(self) -> None:
+        """Test that after key rotation and recovery, we don't immediately burn through the first key again."""
+        manager = RateLimitManager(default_remaining=100, buffer=10)
+
+        # Set up scenario where key 0 has recovered but has limited budget
+        manager.ensure_key(0)
+        manager.ensure_key(1)
+
+        # Key 0 has some remaining budget but not much
+        manager.state[0]["remaining"] = 50
+        manager.state[0]["resetAt"] = 0  # Already reset
+
+        # Key 1 is rate limited
+        manager.state[1]["remaining"] = 0
+        manager.state[1]["resetAt"] = int(time.time() * 1000) + 60_000
+
+        # Request that would use most of key 0's budget
+        assert manager.has_budget(0, 35) is True  # 50 - 35 = 15 > 10 (buffer)
+        assert manager.has_budget(0, 45) is False  # 50 - 45 = 5 < 10 (buffer)
+
+        # Key 1 should not have budget
+        assert manager.has_budget(1, 1) is False
+
+        # After using key 0's budget, it should be preserved
+        manager.record_call(0, 35)
+        assert manager.get_remaining(0) == 15
+
+        # Should still have minimal budget for small requests
+        assert manager.has_budget(0, 5) is True  # 15 - 5 = 10 = 10 (buffer)
+        assert manager.has_budget(0, 6) is False  # 15 - 6 = 9 < 10 (buffer)
+
+
+class TestRateLimitManagerImprovedKeySelection:
+    """Test improved key selection and rotation functionality."""
+
+    def test_find_best_available_key_with_sufficient_budget(self) -> None:
+        """Test finding the best key when multiple keys have sufficient budget."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Set up keys with different remaining amounts
+        manager.ensure_key(0)
+        manager.ensure_key(1)
+        manager.ensure_key(2)
+
+        manager.state[0]["remaining"] = 300
+        manager.state[1]["remaining"] = 600  # This should be selected (most remaining)
+        manager.state[2]["remaining"] = 400
+
+        available_keys = [0, 1, 2]
+        best_key = manager.find_best_available_key(available_keys, 100)
+
+        assert best_key == 1  # Key with most remaining budget
+
+    def test_find_best_available_key_no_sufficient_budget(self) -> None:
+        """Test finding the best key when no keys have sufficient budget."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Set up keys where none have enough budget
+        manager.ensure_key(0)
+        manager.ensure_key(1)
+        manager.ensure_key(2)
+
+        # All keys have insufficient budget for weight 100 (need 150+ with buffer 50)
+        manager.state[0]["remaining"] = 30
+        manager.state[1]["remaining"] = 20
+        manager.state[2]["remaining"] = 40
+
+        # Set different reset times
+        manager.state[0]["resetAt"] = 2000  # Latest reset
+        manager.state[1]["resetAt"] = 1000  # Earliest reset (should be selected)
+        manager.state[2]["resetAt"] = 1500  # Middle reset
+
+        available_keys = [0, 1, 2]
+        best_key = manager.find_best_available_key(available_keys, 100)
+
+        assert best_key == 1  # Key with earliest reset time
+
+    def test_find_best_available_key_empty_list(self) -> None:
+        """Test finding best key with empty available keys list."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        best_key = manager.find_best_available_key([], 100)
+        assert best_key is None
+
+    def test_find_best_available_key_mixed_budget_status(self) -> None:
+        """Test finding best key when some have budget and some don't."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Set up keys with mixed budget status
+        manager.ensure_key(0)
+        manager.ensure_key(1)
+        manager.ensure_key(2)
+
+        manager.state[0]["remaining"] = 30  # Insufficient budget
+        manager.state[1]["remaining"] = 200  # Sufficient budget
+        manager.state[2]["remaining"] = 150  # Sufficient budget
+
+        manager.state[0]["resetAt"] = 1000  # Earliest reset (but has no budget)
+
+        available_keys = [0, 1, 2]
+        best_key = manager.find_best_available_key(available_keys, 100)
+
+        # Should prefer key 1 (has budget and more remaining than key 2)
+        assert best_key == 1
+
+    def test_get_earliest_reset_time(self) -> None:
+        """Test getting the earliest reset time among multiple keys."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Set up keys with different reset times
+        manager.ensure_key(0)
+        manager.ensure_key(1)
+        manager.ensure_key(2)
+
+        manager.state[0]["resetAt"] = 3000  # Latest
+        manager.state[1]["resetAt"] = 1000  # Earliest
+        manager.state[2]["resetAt"] = 2000  # Middle
+
+        earliest = manager.get_earliest_reset_time([0, 1, 2])
+        assert earliest == 1000
+
+    def test_get_earliest_reset_time_with_zero_resets(self) -> None:
+        """Test getting earliest reset time when some keys have no reset time."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Set up keys where some have reset times and some don't
+        manager.ensure_key(0)
+        manager.ensure_key(1)
+        manager.ensure_key(2)
+
+        manager.state[0]["resetAt"] = 0  # No reset time (should be ignored)
+        manager.state[1]["resetAt"] = 2000  # Has reset time
+        manager.state[2]["resetAt"] = 1500  # Earliest with reset time
+
+        earliest = manager.get_earliest_reset_time([0, 1, 2])
+        assert earliest == 1500  # Should ignore keys with resetAt = 0
+
+    def test_get_earliest_reset_time_empty_or_no_resets(self) -> None:
+        """Test getting earliest reset time with edge cases."""
+        manager = RateLimitManager(default_remaining=1000, buffer=50)
+
+        # Empty list
+        assert manager.get_earliest_reset_time([]) == 0
+
+        # Keys with no reset times
+        manager.ensure_key(0)
+        manager.ensure_key(1)
+        manager.state[0]["resetAt"] = 0
+        manager.state[1]["resetAt"] = 0
+
+        assert manager.get_earliest_reset_time([0, 1]) == 0
 
     @patch("time.sleep")
     @patch("time.time")

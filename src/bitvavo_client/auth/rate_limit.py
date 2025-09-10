@@ -143,3 +143,62 @@ class RateLimitManager:
         """
         self.ensure_key(idx)
         return self.state[idx]["resetAt"]
+
+    def find_best_available_key(self, available_keys: list[int], weight: int) -> int | None:
+        """Find the best API key for a request with given weight.
+
+        Prioritizes keys by:
+        1. Keys with sufficient budget (remaining - weight >= buffer)
+        2. Keys with the most remaining budget
+        3. Keys with the earliest reset time (if all are rate limited)
+
+        Args:
+            available_keys: List of available key indices
+            weight: Weight of the request
+
+        Returns:
+            Best key index or None if no keys are suitable
+        """
+        if not available_keys:
+            return None
+
+        suitable_keys = []
+        fallback_keys = []
+
+        for idx in available_keys:
+            self.ensure_key(idx)
+            if self.has_budget(idx, weight):
+                suitable_keys.append((idx, self.state[idx]["remaining"]))
+            else:
+                fallback_keys.append((idx, self.state[idx]["resetAt"]))
+
+        # Return key with most remaining budget if any have sufficient budget
+        if suitable_keys:
+            return max(suitable_keys, key=lambda x: x[1])[0]
+
+        # If no keys have budget, return the one that resets earliest
+        if fallback_keys:
+            return min(fallback_keys, key=lambda x: x[1])[0]
+
+        return None
+
+    def get_earliest_reset_time(self, key_indices: list[int]) -> int:
+        """Get the earliest reset time among the given keys.
+
+        Args:
+            key_indices: List of key indices to check
+
+        Returns:
+            Earliest reset timestamp in milliseconds, or 0 if no keys have reset times
+        """
+        if not key_indices:
+            return 0
+
+        reset_times = []
+        for idx in key_indices:
+            self.ensure_key(idx)
+            reset_at = self.state[idx]["resetAt"]
+            if reset_at > 0:  # Only consider keys that actually have a reset time
+                reset_times.append(reset_at)
+
+        return min(reset_times) if reset_times else 0

@@ -114,7 +114,6 @@ class AbstractPrivateAPITests(ABC):
     def test_transaction_history(self, private_api: PrivateAPI) -> None: ...
 
 
-@pytest.mark.skip("API credentials required for private endpoints")
 class TestPrivateAPI_RAW(AbstractPrivateAPITests):  # noqa: N801
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
@@ -1557,7 +1556,6 @@ class TestPrivateAPI_RAW(AbstractPrivateAPITests):  # noqa: N801
                     raise ValueError(msg)
 
 
-@pytest.mark.skip("API credentials required for private endpoints")
 class TestPrivateAPI_PYDANTIC(AbstractPrivateAPITests):  # noqa: N801
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
@@ -1995,7 +1993,6 @@ class TestPrivateAPI_PYDANTIC(AbstractPrivateAPITests):  # noqa: N801
             assert len(tx.fees_currency) > 0
 
 
-@pytest.mark.skip("API credentials required for private endpoints")
 class TestPrivateAPI_DATAFRAME(AbstractPrivateAPITests):  # noqa: N801
     """Basic smoke tests for private endpoints."""
 

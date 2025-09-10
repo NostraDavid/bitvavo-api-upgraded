@@ -13,6 +13,8 @@ from bitvavo_client.core.model_preferences import ModelPreference
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from bitvavo_client.transport.http import HTTPClient
+
 T = TypeVar("T")
 
 
@@ -214,7 +216,7 @@ class BaseAPI:
 
     def __init__(
         self,
-        http_client: Any,
+        http_client: HTTPClient,
         *,
         preferred_model: ModelPreference | str | None = None,
         default_schema: Mapping[str, object] | None = None,

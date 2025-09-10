@@ -121,7 +121,7 @@ class AbstractPrivateAPITests(ABC):
 class TestPrivateAPI_RAW(AbstractPrivateAPITests):  # noqa: N801
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
-        settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])
+        settings = BitvavoSettings()
         rate_limiter = RateLimitManager(
             settings.default_rate_limit,
             settings.rate_limit_buffer,
@@ -1568,7 +1568,7 @@ class TestPrivateAPI_PYDANTIC(AbstractPrivateAPITests):  # noqa: N801
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
         """Private API with default MODEL preference (pydantic models)."""
-        settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])
+        settings = BitvavoSettings()
         rate_limiter = RateLimitManager(
             settings.default_rate_limit,
             settings.rate_limit_buffer,
@@ -2011,7 +2011,7 @@ class TestPrivateAPI_DATAFRAME(AbstractPrivateAPITests):  # noqa: N801
     @pytest.fixture(scope="module")
     def private_api(self) -> PrivateAPI:
         """Private API with DATAFRAME preference (polars.DataFrame)."""
-        settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])
+        settings = BitvavoSettings()
         rate_limiter = RateLimitManager(
             settings.default_rate_limit,
             settings.rate_limit_buffer,

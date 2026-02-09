@@ -1,6 +1,6 @@
 # https://docs.astral.sh/uv/concepts/projects/layout/
 [build-system]
-requires = ["uv_build>=0.8.7,<0.9.0"]
+requires = ["uv_build>=0.8.7,<0.11.0"]
 build-backend = "uv_build"
 
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html

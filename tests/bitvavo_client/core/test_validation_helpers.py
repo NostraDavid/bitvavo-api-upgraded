@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """Tests for bitvavo_client.core.validation_helpers module."""
 
 from __future__ import annotations
@@ -8,7 +11,7 @@ from pydantic import BaseModel, ValidationError, field_validator
 from bitvavo_client.core.validation_helpers import format_validation_error, safe_validate
 
 
-class TestModel(BaseModel):
+class ValidationModel(BaseModel):
     """Test model for validation testing."""
 
     name: str
@@ -49,11 +52,11 @@ class TestFormatValidationError:
         """Test formatting a single validation error."""
 
         try:
-            TestModel(name="John", age="not_an_int", price="10.50")  # type: ignore[arg-type]
+            ValidationModel(name="John", age="not_an_int", price="10.50")  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e)
 
-            assert "🚫 Validation failed for TestModel:" in result
+            assert "🚫 Validation failed for ValidationModel:" in result
             assert "📍 Field 'age':" in result
             assert "Type: int_parsing" in result
             assert "Input: 'not_an_int'" in result
@@ -61,11 +64,11 @@ class TestFormatValidationError:
     def test_format_multiple_validation_errors(self) -> None:
         """Test formatting multiple validation errors."""
         try:
-            TestModel(name=123, age="not_an_int", price="invalid_price")  # type: ignore[arg-type]
+            ValidationModel(name=123, age="not_an_int", price="invalid_price")  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e)
 
-            assert "🚫 Validation failed for TestModel:" in result
+            assert "🚫 Validation failed for ValidationModel:" in result
             assert "📍 Field 'name':" in result
             assert "📍 Field 'age':" in result
             assert "📍 Field 'price':" in result
@@ -73,11 +76,11 @@ class TestFormatValidationError:
     def test_format_missing_field_error(self) -> None:
         """Test formatting missing field validation error."""
         try:
-            TestModel(name="John", age=25)  # type: ignore[call-arg] # Missing 'price' field
+            ValidationModel(name="John", age=25)  # type: ignore[call-arg] # Missing 'price' field
         except ValidationError as e:
             result = format_validation_error(e)
 
-            assert "🚫 Validation failed for TestModel:" in result
+            assert "🚫 Validation failed for ValidationModel:" in result
             assert "📍 Field 'price':" in result
             assert "Type: missing" in result
             assert "💡 This field is required" in result
@@ -87,7 +90,7 @@ class TestFormatValidationError:
         input_data = {"name": "John", "age": "not_an_int", "price": "10.50"}
 
         try:
-            TestModel(**input_data)  # type: ignore[arg-type]
+            ValidationModel(**input_data)  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e, input_data)
 
@@ -107,7 +110,7 @@ class TestFormatValidationError:
         }
 
         try:
-            TestModel(**large_data)  # type: ignore[arg-type]
+            ValidationModel(**large_data)  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e, large_data)
             assert "📋 Original input data:" in result
@@ -123,7 +126,7 @@ class TestFormatValidationError:
         input_data = {"name": "John", "age": NonSerializable(), "price": "10.50"}
 
         try:
-            TestModel(**input_data)  # type: ignore[arg-type]
+            ValidationModel(**input_data)  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e, input_data)
             assert "📋 Original input data:" in result
@@ -139,7 +142,7 @@ class TestFormatValidationError:
         input_data = {"name": "John", "age": LargeNonSerializable(), "price": "10.50"}
 
         try:
-            TestModel(**input_data)  # type: ignore[arg-type]
+            ValidationModel(**input_data)  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e, input_data)
             assert "📋 Original input data:" in result
@@ -147,7 +150,7 @@ class TestFormatValidationError:
     def test_format_string_type_error_suggestion(self) -> None:
         """Test that string type errors get helpful suggestions."""
         try:
-            TestModel(name=123, age=25, price="10.50")  # type: ignore[arg-type]
+            ValidationModel(name=123, age=25, price="10.50")  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e)
             assert "💡 Expected a string value" in result
@@ -155,7 +158,7 @@ class TestFormatValidationError:
     def test_format_decimal_error_suggestion(self) -> None:
         """Test that decimal/numeric errors get helpful suggestions."""
         try:
-            TestModel(name="John", age=25, price="invalid_decimal")
+            ValidationModel(name="John", age=25, price="invalid_decimal")
         except ValidationError as e:
             result = format_validation_error(e)
             # Should detect decimal-related error and provide suggestion
@@ -172,17 +175,17 @@ class TestFormatValidationError:
     def test_format_error_no_input_data(self) -> None:
         """Test formatting error without input data."""
         try:
-            TestModel(name="John", age="not_an_int", price="10.50")  # type: ignore[arg-type]
+            ValidationModel(name="John", age="not_an_int", price="10.50")  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e, None)
 
-            assert "🚫 Validation failed for TestModel:" in result
+            assert "🚫 Validation failed for ValidationModel:" in result
             assert "📋 Original input data:" not in result
 
     def test_format_error_empty_input_data(self) -> None:
         """Test formatting error with empty input data."""
         try:
-            TestModel(name="John", age="not_an_int", price="10.50")  # type: ignore[arg-type]
+            ValidationModel(name="John", age="not_an_int", price="10.50")  # type: ignore[arg-type]
         except ValidationError as e:
             result = format_validation_error(e, {})
 
@@ -193,7 +196,7 @@ class TestFormatValidationError:
         """Test formatting error with nested field paths."""
 
         class NestedModel(BaseModel):
-            user: TestModel
+            user: ValidationModel
 
         try:
             NestedModel(user={"name": 123, "age": 25, "price": "10.50"})  # type: ignore[arg-type]
@@ -209,9 +212,9 @@ class TestSafeValidate:
     def test_safe_validate_success(self) -> None:
         """Test successful validation with safe_validate."""
         data = {"name": "John", "age": 25, "price": "10.50"}
-        result = safe_validate(TestModel, data)
+        result = safe_validate(ValidationModel, data)
 
-        assert isinstance(result, TestModel)
+        assert isinstance(result, ValidationModel)
         assert result.name == "John"
         assert result.age == 25
         assert result.price == "10.50"
@@ -221,25 +224,25 @@ class TestSafeValidate:
         data = {"name": "John", "age": "not_an_int", "price": "10.50"}
 
         with pytest.raises(ValueError, match="❌ Validation failed:"):
-            safe_validate(TestModel, data)  # type: ignore[arg-type]
+            safe_validate(ValidationModel, data)  # type: ignore[arg-type]
 
     def test_safe_validate_failure_custom_operation_name(self) -> None:
         """Test validation failure with custom operation name."""
         data = {"name": "John", "age": "not_an_int", "price": "10.50"}
 
         with pytest.raises(ValueError, match="❌ Order Creation failed:"):
-            safe_validate(TestModel, data, "order creation")  # type: ignore[arg-type]
+            safe_validate(ValidationModel, data, "order creation")  # type: ignore[arg-type]
 
     def test_safe_validate_enhanced_error_message(self) -> None:
         """Test that safe_validate provides enhanced error messages."""
         data = {"name": "John", "age": "not_an_int", "price": "10.50"}
 
         with pytest.raises(ValueError) as exc_info:  # noqa: PT011
-            safe_validate(TestModel, data, "test operation")  # type: ignore[arg-type]
+            safe_validate(ValidationModel, data, "test operation")  # type: ignore[arg-type]
 
         error_message = str(exc_info.value)
         assert "❌ Test Operation failed:" in error_message
-        assert "🚫 Validation failed for TestModel:" in error_message
+        assert "🚫 Validation failed for ValidationModel:" in error_message
         assert "📍 Field 'age':" in error_message
         assert "Type: int_parsing" in error_message
 
@@ -248,7 +251,7 @@ class TestSafeValidate:
         data = {"name": "John", "age": "not_an_int", "price": "10.50"}
 
         with pytest.raises(ValueError) as exc_info:  # noqa: PT011
-            safe_validate(TestModel, data)  # type: ignore[arg-type]
+            safe_validate(ValidationModel, data)  # type: ignore[arg-type]
 
         assert isinstance(exc_info.value.__cause__, ValidationError)
 
@@ -257,7 +260,7 @@ class TestSafeValidate:
         data = {"name": "John"}  # Missing age and price
 
         with pytest.raises(ValueError) as exc_info:  # noqa: PT011
-            safe_validate(TestModel, data, "incomplete data test")  # type: ignore[arg-type]
+            safe_validate(ValidationModel, data, "incomplete data test")  # type: ignore[arg-type]
 
         error_message = str(exc_info.value)
         assert "❌ Incomplete Data Test failed:" in error_message
@@ -291,13 +294,13 @@ class TestValidationHelpersIntegration:
 
         # Test that safe_validate fails appropriately
         with pytest.raises(ValueError) as exc_info:  # noqa: PT011
-            safe_validate(TestModel, invalid_data, "comprehensive test")  # type: ignore[arg-type]
+            safe_validate(ValidationModel, invalid_data, "comprehensive test")  # type: ignore[arg-type]
 
         error_message = str(exc_info.value)
 
         # Verify all expected elements are in the error message
         assert "❌ Comprehensive Test failed:" in error_message
-        assert "🚫 Validation failed for TestModel:" in error_message
+        assert "🚫 Validation failed for ValidationModel:" in error_message
         assert "📍 Field 'name':" in error_message
         assert "📍 Field 'age':" in error_message
         assert "📍 Field 'price':" in error_message
@@ -305,7 +308,7 @@ class TestValidationHelpersIntegration:
 
         # Test that format_validation_error can be used independently
         try:
-            TestModel(**invalid_data)
+            ValidationModel(**invalid_data)
         except ValidationError as e:
             formatted = format_validation_error(e, invalid_data)
             assert "📋 Original input data:" in formatted

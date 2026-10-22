@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """
 Some helper functions that should make my life a lot easier
 """
@@ -49,7 +52,7 @@ def configure_loggers() -> None:
         "exception_formatter": structlog.dev.rich_traceback,
         "level_styles": structlog.dev.ConsoleRenderer.get_default_level_styles(colors=True),
         "sort_keys": True,
-        "pad_event": 10,
+        "pad_event_to": 10,
     }
 
     dictConfig(

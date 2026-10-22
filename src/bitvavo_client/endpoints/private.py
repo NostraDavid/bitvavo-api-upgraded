@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """Private API endpoints that require authentication."""
 
 from __future__ import annotations
@@ -85,7 +88,7 @@ class PrivateAPI(BaseAPI):
             }
         """
         # Check if DataFrame is requested - not supported for this endpoint
-        effective_model, effective_schema = self._get_effective_model("account", model, schema)
+        effective_model, _effective_schema = self._get_effective_model("account", model, schema)
         if effective_model in _DATAFRAME_LIBRARY_MAP:
             msg = "DataFrame model is not supported due to the shape of data"
             return Failure(TypeError(msg))
@@ -143,7 +146,7 @@ class PrivateAPI(BaseAPI):
         Returns:
             Order placement result
         """
-        effective_model, effective_schema = self._get_effective_model("order", model, schema)
+        _effective_model, _effective_schema = self._get_effective_model("order", model, schema)
         payload = {
             "market": market,
             "side": side,
@@ -240,7 +243,7 @@ class PrivateAPI(BaseAPI):
             )
             return Failure(error)
 
-        effective_model, effective_schema = self._get_effective_model("order", model, schema)
+        _effective_model, _effective_schema = self._get_effective_model("order", model, schema)
         payload = self._build_update_order_payload(
             market,
             operator_id,
@@ -259,7 +262,8 @@ class PrivateAPI(BaseAPI):
 
         return self.http.request("PUT", "/order", body=payload, weight=1)
 
-    def _build_update_order_payload(
+    # Keep update_order's existing positional payload mapping.
+    def _build_update_order_payload(  # noqa: PLR0917
         self,
         market: str,
         operator_id: int,
@@ -304,7 +308,7 @@ class PrivateAPI(BaseAPI):
                     "responseRequired": response_required,
                 }.items()
                 if value is not None
-            }
+            },
         )
 
         return payload
@@ -354,7 +358,7 @@ class PrivateAPI(BaseAPI):
         # Create query string
         postfix = create_postfix(params)
 
-        effective_model, effective_schema = self._get_effective_model("cancel_order", model, schema)
+        _effective_model, _effective_schema = self._get_effective_model("cancel_order", model, schema)
         return self.http.request(
             "DELETE",
             f"/order{postfix}",
@@ -450,7 +454,7 @@ class PrivateAPI(BaseAPI):
                 }
             ]
         """
-        effective_model, effective_schema = self._get_effective_model("orders", model, schema)
+        _effective_model, _effective_schema = self._get_effective_model("orders", model, schema)
 
         # Build query parameters
         params: dict[str, Any] = {"operatorId": operator_id}
@@ -656,7 +660,10 @@ class PrivateAPI(BaseAPI):
         if effective_model in _DATAFRAME_LIBRARY_MAP and isinstance(effective_model, ModelPreference):
             # Convert items to DataFrame using the specific preference
             return _create_dataframe_from_data(
-                items_data, effective_model, items_key=None, empty_schema=effective_schema
+                items_data,
+                effective_model,
+                items_key=None,
+                empty_schema=effective_schema,
             )
 
         if effective_model is Any or effective_model is None:

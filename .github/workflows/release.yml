@@ -15,16 +15,10 @@ jobs:
       id-token: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7.0.1
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v10.3.2
       - name: Build Wheel
         run: uv build
-      - name: Publish Release on GitHub
-        uses: actions/download-artifact@v4
-        with:
-          pattern: wheels-*
-          path: wheels
-          merge-multiple: true
       - name: Publish to PyPI
         run: uv publish --verbose dist/*

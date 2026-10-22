@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """
 Most of these tests check the keys of the response, the size of the response,
 the types of the response, which type those values can be cast to (as quite a
@@ -461,10 +464,10 @@ class TestBitvavo:
         # convertable types
         for ticker_book in response:
             if not ticker_book["market"].endswith("BTC"):
-                assert float(ticker_book["bid"] if ticker_book["bid"] else 1) >= 0
-                assert float(ticker_book["ask"] if ticker_book["ask"] else 1) >= 0
-                assert float(ticker_book["bidSize"] if ticker_book["bidSize"] else 1) >= 0
-                assert float(ticker_book["askSize"] if ticker_book["askSize"] else 1) >= 0
+                assert float(ticker_book["bid"] or 1) >= 0
+                assert float(ticker_book["ask"] or 1) >= 0
+                assert float(ticker_book["bidSize"] or 1) >= 0
+                assert float(ticker_book["askSize"] or 1) >= 0
             else:
                 assert float(ticker_book["ask"]) >= 0
                 assert float(ticker_book["askSize"]) >= 0
@@ -568,17 +571,17 @@ class TestBitvavo:
         for ticker_24h in response:
             # test unused -BTC markets
             if not ticker_24h["market"].endswith("BTC"):
-                assert float(ticker_24h["open"] if ticker_24h["open"] else 1) >= 0  # else 1, because 1 is truthy
-                assert float(ticker_24h["high"] if ticker_24h["high"] else 1) >= 0
-                assert float(ticker_24h["low"] if ticker_24h["low"] else 1) >= 0
+                assert float(ticker_24h["open"] or 1) >= 0  # else 1, because 1 is truthy
+                assert float(ticker_24h["high"] or 1) >= 0
+                assert float(ticker_24h["low"] or 1) >= 0
                 if "last" in ticker_24h:
-                    assert float(ticker_24h["last"] if ticker_24h["last"] else 1) >= 0
-                assert float(ticker_24h["volume"] if ticker_24h["volume"] else 1) >= 0
-                assert float(ticker_24h["volumeQuote"] if ticker_24h["volumeQuote"] else 1) >= 0
-                assert float(ticker_24h["bid"] if ticker_24h["bid"] else 1) >= 0
-                assert float(ticker_24h["bidSize"] if ticker_24h["bidSize"] else 1) >= 0
-                assert float(ticker_24h["ask"] if ticker_24h["ask"] else 1) >= 0
-                assert float(ticker_24h["askSize"] if ticker_24h["askSize"] else 1) >= 0
+                    assert float(ticker_24h["last"] or 1) >= 0
+                assert float(ticker_24h["volume"] or 1) >= 0
+                assert float(ticker_24h["volumeQuote"] or 1) >= 0
+                assert float(ticker_24h["bid"] or 1) >= 0
+                assert float(ticker_24h["bidSize"] or 1) >= 0
+                assert float(ticker_24h["ask"] or 1) >= 0
+                assert float(ticker_24h["askSize"] or 1) >= 0
                 assert int(ticker_24h["timestamp"])
                 # these three were added late 2024
                 if "startTimestamp" in ticker_24h:
@@ -627,12 +630,12 @@ class TestBitvavo:
 
         # test unused -BTC markets
         if not response["market"].endswith("BTC"):
-            assert float(response["open"] if response["open"] else 1) >= 0  # else 1, because 1 is truthy
-            assert float(response["high"] if response["high"] else 1) >= 0
-            assert float(response["low"] if response["low"] else 1) >= 0
-            assert float(response["last"] if response["last"] else 1) >= 0
-            assert float(response["volume"] if response["volume"] else 1) >= 0
-            assert float(response["volumeQuote"] if response["volumeQuote"] else 1) >= 0
+            assert float(response["open"] or 1) >= 0  # else 1, because 1 is truthy
+            assert float(response["high"] or 1) >= 0
+            assert float(response["low"] or 1) >= 0
+            assert float(response["last"] or 1) >= 0
+            assert float(response["volume"] or 1) >= 0
+            assert float(response["volumeQuote"] or 1) >= 0
             assert float(response["bid"]) >= 0
             assert float(response["bidSize"]) >= 0
             assert float(response["ask"]) >= 0
@@ -797,9 +800,9 @@ class TestBitvavo:
                 assert isinstance(item["updatedNs"], int)
 
             for item in response:
-                assert item["status"] in ["new"]
+                assert item["status"] == "new"
                 assert item["side"] in ["sell", "buy"]
-                assert item["orderType"] in ["limit"]
+                assert item["orderType"] == "limit"
                 assert float(item["amount"]) >= 0
                 assert float(item["amountRemaining"]) >= 0
                 assert float(item["price"]) >= 0
@@ -807,8 +810,8 @@ class TestBitvavo:
                 assert float(item["filledAmount"]) >= 0
                 assert float(item["filledAmountQuote"]) >= 0
                 assert float(item["feePaid"]) >= 0
-                assert item["selfTradePrevention"] in ["decrementAndCancel"]
-                assert item["timeInForce"] in ["GTC"]
+                assert item["selfTradePrevention"] == "decrementAndCancel"
+                assert item["timeInForce"] == "GTC"
 
     def test_orders_open_list_single(self, bitvavo: Bitvavo) -> None:  # noqa: PLR0915
         response = bitvavo.orders_open(options={"market": "DIA-EUR"})
@@ -869,9 +872,9 @@ class TestBitvavo:
                 assert isinstance(item["updatedNs"], int)
 
             for item in response:
-                assert item["status"] in ["new"]
+                assert item["status"] == "new"
                 assert item["side"] in ["sell", "buy"]
-                assert item["orderType"] in ["limit"]
+                assert item["orderType"] == "limit"
                 assert float(item["amount"]) >= 0
                 assert float(item["amountRemaining"]) >= 0
                 assert float(item["price"]) >= 0
@@ -879,8 +882,8 @@ class TestBitvavo:
                 assert float(item["filledAmount"]) >= 0
                 assert float(item["filledAmountQuote"]) >= 0
                 assert float(item["feePaid"]) >= 0
-                assert item["selfTradePrevention"] in ["decrementAndCancel"]
-                assert item["timeInForce"] in ["GTC"]
+                assert item["selfTradePrevention"] == "decrementAndCancel"
+                assert item["timeInForce"] == "GTC"
 
     def test_trades(self, bitvavo: Bitvavo) -> None:
         response = bitvavo.trades(market="BTC-EUR", options={})

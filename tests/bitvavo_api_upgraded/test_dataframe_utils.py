@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """
 Tests for dataframe utilities.
 
@@ -615,13 +618,9 @@ class TestLibraryAvailability:
 
     def test_is_library_available_unavailable_library(self) -> None:
         """Test is_library_available with library that's not installed."""
-        # Test with libraries that are unlikely to be installed or might fail to import
-        # Note: cudf might be installed but fail due to CUDA driver issues, so we catch that
-        assert is_library_available("nonexistent_library_xyz") is False
-
-        # For actually available libraries in our test environment
-        assert is_library_available("pyspark") is True  # Actually available in our test env
-        assert is_library_available("sqlframe") is True  # Actually available in our test env
+        with patch("builtins.__import__", side_effect=ImportError("Optional library not installed")):
+            assert is_library_available("pyspark") is False
+            assert is_library_available("sqlframe") is False
 
     def test_is_narwhals_unavailable(self) -> None:
         """Test narwhals availability check when import fails."""
@@ -647,9 +646,9 @@ class TestAdvancedValidation:
             OutputFormat.SQLFRAME,
         ]
 
-        for fmt in formats:
-            # Should not raise for any supported format
-            validate_output_format(fmt)
+        with patch("bitvavo_api_upgraded.dataframe_utils.is_library_available", return_value=True):
+            for fmt in formats:
+                validate_output_format(fmt)
 
     def test_validate_format_without_narwhals(self) -> None:
         """Test validation when narwhals is not available."""

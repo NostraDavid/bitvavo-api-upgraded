@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """
 This file contains all type aliases that I use within the lib,
 to clearify the intention or semantics/meaning/unit of a variable
@@ -14,11 +17,6 @@ else:
 
     class StrEnum(str, Enum):
         """String enumeration for Python < 3.11 compatibility."""
-
-        def __new__(cls, value: str) -> "StrEnum":
-            obj = str.__new__(cls, value)
-            obj._value_ = value
-            return obj
 
 
 # type simplification

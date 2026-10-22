@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """HTTP client for Bitvavo API."""
 
 from __future__ import annotations
@@ -21,6 +24,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from bitvavo_client.core.types import AnyDict
 
 logger = get_logger(__name__)
+_KEY_LOG_SUFFIX_LENGTH = 4
 
 
 class HTTPClient:
@@ -65,7 +69,7 @@ class HTTPClient:
         self.api_key = key
         self.api_secret = secret
         self.key_index = index
-        key_suffix = key[-4:] if len(key) >= 4 else "short"
+        key_suffix = key[-_KEY_LOG_SUFFIX_LENGTH:] if len(key) >= _KEY_LOG_SUFFIX_LENGTH else "short"
         logger.debug("api-key-configured", index=index, key_suffix=key_suffix)
 
     def select_key(self, index: int) -> None:

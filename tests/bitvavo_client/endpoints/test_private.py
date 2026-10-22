@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """
 `case Failure(error):` must always `raise ValueError(error)`, as the Failure case should never be reached.
 """
@@ -2358,7 +2361,7 @@ class TestGetOrdersValidation:
         private_api = PrivateAPI(http_client)
 
         # Test start > end
-        with pytest.raises(ValueError, match="Start timestamp .* cannot be greater than end timestamp"):
+        with pytest.raises(ValueError, match=r"Start timestamp .* cannot be greater than end timestamp"):
             private_api.get_orders("BTC-EUR", {"start": 1000000, "end": 999999})
 
 

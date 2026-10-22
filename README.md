@@ -14,7 +14,7 @@ pip install bitvavo_api_upgraded
 # Option 1: Original Bitvavo interface (legacy)
 from bitvavo_api_upgraded import Bitvavo
 
-bitvavo = Bitvavo({'APIKEY': 'your-key', 'APISECRET': 'your-secret'})
+bitvavo = Bitvavo({"APIKEY": "your-key", "APISECRET": "your-secret"})
 balance = bitvavo.balance({})
 
 # Option 2: New modular BitvavoClient interface (recommended)
@@ -170,11 +170,7 @@ from bitvavo_client import BitvavoClient, BitvavoSettings
 client = BitvavoClient()
 
 # Option 2: Custom settings
-settings = BitvavoSettings(
-    api_key="your-key",
-    api_secret="your-secret",
-    debugging=True
-)
+settings = BitvavoSettings(api_key="your-key", api_secret="your-secret", debugging=True)
 client = BitvavoClient(settings)
 
 # Option 3: Manual settings override
@@ -195,22 +191,14 @@ account_result = client.private.account()
 from bitvavo_api_upgraded import Bitvavo, BitvavoSettings
 
 # Option 1: Manual configuration
-bitvavo = Bitvavo({
-    'APIKEY': 'your-key',
-    'APISECRET': 'your-secret'
-})
+bitvavo = Bitvavo({"APIKEY": "your-key", "APISECRET": "your-secret"})
 
 # Option 2: Auto-load from .env
 settings = BitvavoSettings()
 bitvavo = Bitvavo(settings.model_dump())
 
 # Option 3: Multiple API keys
-bitvavo = Bitvavo({
-    'APIKEYS': [
-        {'key': 'key1', 'secret': 'secret1'},
-        {'key': 'key2', 'secret': 'secret2'}
-    ]
-})
+bitvavo = Bitvavo({"APIKEYS": [{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]})
 
 # Option 4: Keyless (public endpoints only)
 bitvavo = Bitvavo({})
@@ -251,10 +239,12 @@ raw_data = client.public.markets()
 # Override to get Polars DataFrame for this request
 import polars as pl
 from bitvavo_client.core.model_preferences import ModelPreference
+
 df_data = client.public.markets(model=ModelPreference.POLARS)
 
 # Override to get Pydantic model
 from bitvavo_client.core.public_models import Markets
+
 validated_data = client.public.markets(model=Markets)
 ```
 
@@ -284,14 +274,17 @@ match result:
 ```python
 from bitvavo_api_upgraded import Bitvavo
 
+
 def handle_ticker(data):
     print(f"Ticker update: {data}")
+
 
 def handle_error(error):
     print(f"Error: {error}")
 
+
 # Initialize WebSocket
-bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+bitvavo = Bitvavo({"APIKEY": "key", "APISECRET": "secret"})
 ws = bitvavo.newWebsocket()
 ws.setErrorCallback(handle_error)
 
@@ -314,18 +307,20 @@ except KeyboardInterrupt:
 from bitvavo_api_upgraded import Bitvavo
 
 # Configure multiple API keys
-bitvavo = Bitvavo({
-    'APIKEYS': [
-        {'key': 'key1', 'secret': 'secret1'},
-        {'key': 'key2', 'secret': 'secret2'},
-        {'key': 'key3', 'secret': 'secret3'}
-    ]
-})
+bitvavo = Bitvavo(
+    {
+        "APIKEYS": [
+            {"key": "key1", "secret": "secret1"},
+            {"key": "key2", "secret": "secret2"},
+            {"key": "key3", "secret": "secret3"},
+        ]
+    }
+)
 
 # API automatically balances load across keys
 balance = bitvavo.balance({})  # Uses least-used key
-orders = bitvavo.getOrders('BTC-EUR', {})  # May use different key
-trades = bitvavo.getTrades('BTC-EUR', {})  # Automatic failover if rate limit reached
+orders = bitvavo.getOrders("BTC-EUR", {})  # May use different key
+trades = bitvavo.getTrades("BTC-EUR", {})  # Automatic failover if rate limit reached
 ```
 
 ### Keyless Access (Public Endpoints)
@@ -338,10 +333,10 @@ bitvavo = Bitvavo({})
 
 # These work without authentication and don't count against your rate limits
 markets = bitvavo.markets({})
-ticker = bitvavo.ticker24h({'market': 'BTC-EUR'})
-trades = bitvavo.publicTrades('BTC-EUR', {})
-book = bitvavo.book('BTC-EUR', {})
-candles = bitvavo.candles('BTC-EUR', '1h', {})
+ticker = bitvavo.ticker24h({"market": "BTC-EUR"})
+trades = bitvavo.publicTrades("BTC-EUR", {})
+book = bitvavo.book("BTC-EUR", {})
+candles = bitvavo.candles("BTC-EUR", "1h", {})
 
 # Private endpoints will still require authentication
 # account = bitvavo.account()  # This would fail without API keys
@@ -351,12 +346,7 @@ candles = bitvavo.candles('BTC-EUR', '1h', {})
 
 ```python
 # Combine keyless access with API keys for optimal performance
-bitvavo = Bitvavo({
-    'APIKEYS': [
-        {'key': 'key1', 'secret': 'secret1'},
-        {'key': 'key2', 'secret': 'secret2'}
-    ]
-})
+bitvavo = Bitvavo({"APIKEYS": [{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]})
 
 # Public calls use keyless (no rate limit impact)
 markets = bitvavo.markets({})
@@ -383,19 +373,19 @@ time_result = client.public.time()
 markets_result = client.public.markets()
 
 # Get specific market
-btc_market = client.public.markets(market='BTC-EUR')
+btc_market = client.public.markets(market="BTC-EUR")
 
 # Get order book
-book_result = client.public.book('BTC-EUR')
+book_result = client.public.book("BTC-EUR")
 
 # Get recent trades
-trades_result = client.public.trades('BTC-EUR')
+trades_result = client.public.trades("BTC-EUR")
 
 # Get 24h ticker
-ticker_result = client.public.ticker_24h(market='BTC-EUR')
+ticker_result = client.public.ticker_24h(market="BTC-EUR")
 
 # Get candlestick data
-candles_result = client.public.candles('BTC-EUR', '1h')
+candles_result = client.public.candles("BTC-EUR", "1h")
 ```
 
 #### Legacy Bitvavo Interface
@@ -412,16 +402,16 @@ time_resp = bitvavo.time()
 markets = bitvavo.markets({})
 
 # Get specific market
-btc_market = bitvavo.markets({'market': 'BTC-EUR'})
+btc_market = bitvavo.markets({"market": "BTC-EUR"})
 
 # Get order book
-book = bitvavo.book('BTC-EUR', {})
+book = bitvavo.book("BTC-EUR", {})
 
 # Get recent trades
-trades = bitvavo.publicTrades('BTC-EUR', {})
+trades = bitvavo.publicTrades("BTC-EUR", {})
 
 # Get 24h ticker
-ticker = bitvavo.ticker24h({'market': 'BTC-EUR'})
+ticker = bitvavo.ticker24h({"market": "BTC-EUR"})
 ```
 
 ### Private Endpoints (Authentication Required)
@@ -443,24 +433,17 @@ balance_result = client.private.balance()
 
 # Place order
 order_result = client.private.place_order(
-    market="BTC-EUR",
-    side="buy",
-    order_type="limit",
-    amount="0.01",
-    price="45000"
+    market="BTC-EUR", side="buy", order_type="limit", amount="0.01", price="45000"
 )
 
 # Get order history
-orders_result = client.private.orders('BTC-EUR')
+orders_result = client.private.orders("BTC-EUR")
 
 # Cancel order
-cancel_result = client.private.cancel_order(
-    market="BTC-EUR",
-    order_id="order-id-here"
-)
+cancel_result = client.private.cancel_order(market="BTC-EUR", order_id="order-id-here")
 
 # Get trades
-trades_result = client.private.trades('BTC-EUR')
+trades_result = client.private.trades("BTC-EUR")
 ```
 
 #### Legacy Bitvavo Interface
@@ -468,7 +451,7 @@ trades_result = client.private.trades('BTC-EUR')
 ```python
 from bitvavo_api_upgraded import Bitvavo
 
-bitvavo = Bitvavo({'APIKEY': 'your-key', 'APISECRET': 'your-secret'})
+bitvavo = Bitvavo({"APIKEY": "your-key", "APISECRET": "your-secret"})
 
 # Get account info
 account = bitvavo.account()
@@ -478,22 +461,14 @@ balance = bitvavo.balance({})
 
 # Place order (requires operatorId for MiCA compliance)
 order = bitvavo.placeOrder(
-    market="BTC-EUR",
-    side="buy",
-    orderType="limit",
-    body={"amount": "0.01", "price": "45000"},
-    operatorId=12345
+    market="BTC-EUR", side="buy", orderType="limit", body={"amount": "0.01", "price": "45000"}, operatorId=12345
 )
 
 # Get order history
-orders = bitvavo.getOrders('BTC-EUR', {})
+orders = bitvavo.getOrders("BTC-EUR", {})
 
 # Cancel order
-cancel_result = bitvavo.cancelOrder(
-    market="BTC-EUR",
-    orderId="order-id-here",
-    operatorId=12345
-)
+cancel_result = bitvavo.cancelOrder(market="BTC-EUR", orderId="order-id-here", operatorId=12345)
 ```
 
 ### MiCA Compliance Features
@@ -501,20 +476,12 @@ cancel_result = bitvavo.cancelOrder(
 ```python
 # Generate trade report
 trade_report = bitvavo.reportTrades(
-    market="BTC-EUR",
-    options={
-        "startDate": "2025-01-01T00:00:00.000Z",
-        "endDate": "2025-01-31T23:59:59.999Z"
-    }
+    market="BTC-EUR", options={"startDate": "2025-01-01T00:00:00.000Z", "endDate": "2025-01-31T23:59:59.999Z"}
 )
 
 # Generate order book report
 book_report = bitvavo.reportBook(
-    market="BTC-EUR",
-    options={
-        "startDate": "2025-01-01T00:00:00.000Z",
-        "endDate": "2025-01-31T23:59:59.999Z"
-    }
+    market="BTC-EUR", options={"startDate": "2025-01-01T00:00:00.000Z", "endDate": "2025-01-31T23:59:59.999Z"}
 )
 
 # Get account history
@@ -528,39 +495,39 @@ The library supports multiple dataframe formats for tabular data like market dat
 ```python
 from bitvavo_api_upgraded import Bitvavo
 
-bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+bitvavo = Bitvavo({"APIKEY": "key", "APISECRET": "secret"})
 
 # Get markets as different dataframe types
-markets_dict = bitvavo.markets({}, output_format='dict')         # Default dict format
-markets_pandas = bitvavo.markets({}, output_format='pandas')     # Pandas DataFrame
-markets_polars = bitvavo.markets({}, output_format='polars')     # Polars DataFrame
-markets_pyarrow = bitvavo.markets({}, output_format='pyarrow')   # PyArrow Table
+markets_dict = bitvavo.markets({}, output_format="dict")  # Default dict format
+markets_pandas = bitvavo.markets({}, output_format="pandas")  # Pandas DataFrame
+markets_polars = bitvavo.markets({}, output_format="polars")  # Polars DataFrame
+markets_pyarrow = bitvavo.markets({}, output_format="pyarrow")  # PyArrow Table
 
 # Get assets information as dataframes
 assets_cudf = bitvavo.assets(
     {},
-    output_format='cudf'  # GPU-accelerated with cuDF
+    output_format="cudf",  # GPU-accelerated with cuDF
 )
 
 # Get candlestick data with distributed processing
 candles_dask = bitvavo.candles(
-    'BTC-EUR',
-    '1h',
-    {'limit': 100},
-    output_format='dask'  # Distributed with Dask
+    "BTC-EUR",
+    "1h",
+    {"limit": 100},
+    output_format="dask",  # Distributed with Dask
 )
 
 # Get public trades with analytical databases
 trades_duckdb = bitvavo.publicTrades(
-    'BTC-EUR',
-    {'limit': 1000},
-    output_format='duckdb'  # DuckDB relation
+    "BTC-EUR",
+    {"limit": 1000},
+    output_format="duckdb",  # DuckDB relation
 )
 
 # Account balance with PySpark for big data processing
 balance_spark = bitvavo.balance(
     {},
-    output_format='pyspark'  # PySpark DataFrame
+    output_format="pyspark",  # PySpark DataFrame
 )
 ```
 
@@ -569,23 +536,27 @@ balance_spark = bitvavo.balance(
 ```python
 # Pandas example - most common
 import pandas as pd
-df = bitvavo.markets({}, output_format='pandas')
+
+df = bitvavo.markets({}, output_format="pandas")
 print(df.describe())
-df.to_csv('markets.csv')
+df.to_csv("markets.csv")
 
 # Polars example - faster for large datasets
 import polars as pl
-df = bitvavo.candles('BTC-EUR', '1h', {'limit': 1000}, output_format='polars')
-result = df.filter(pl.col('close') > 50000).select(['timestamp', 'close'])
+
+df = bitvavo.candles("BTC-EUR", "1h", {"limit": 1000}, output_format="polars")
+result = df.filter(pl.col("close") > 50000).select(["timestamp", "close"])
 
 # DuckDB example - analytical queries
 import duckdb
-rel = bitvavo.publicTrades('BTC-EUR', {'limit': 10000}, output_format='duckdb')
+
+rel = bitvavo.publicTrades("BTC-EUR", {"limit": 10000}, output_format="duckdb")
 high_volume_trades = duckdb.query("SELECT * FROM rel WHERE amount > 1.0")
 
 # PyArrow example - columnar data
 import pyarrow as pa
-table = bitvavo.assets({}, output_format='pyarrow')
+
+table = bitvavo.assets({}, output_format="pyarrow")
 df = table.to_pandas()  # Convert to pandas when needed
 ```
 
@@ -594,18 +565,14 @@ df = table.to_pandas()  # Convert to pandas when needed
 ```python
 from bitvavo_api_upgraded import Bitvavo
 
-bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+bitvavo = Bitvavo({"APIKEY": "key", "APISECRET": "secret"})
 
 response = bitvavo.placeOrder(
-    market="BTC-EUR",
-    side="buy",
-    orderType="limit",
-    body={"amount": "0.01", "price": "45000"},
-    operatorId=12345
+    market="BTC-EUR", side="buy", orderType="limit", body={"amount": "0.01", "price": "45000"}, operatorId=12345
 )
 
 # Check for errors
-if isinstance(response, dict) and 'errorCode' in response:
+if isinstance(response, dict) and "errorCode" in response:
     print(f"Error {response['errorCode']}: {response['error']}")
 else:
     print(f"Order placed successfully: {response['orderId']}")
@@ -625,12 +592,7 @@ if remaining > 10:
     response = bitvavo.balance({})
 
 # With multiple API keys, rate limits are distributed
-bitvavo_multi = Bitvavo({
-    'APIKEYS': [
-        {'key': 'key1', 'secret': 'secret1'},
-        {'key': 'key2', 'secret': 'secret2'}
-    ]
-})
+bitvavo_multi = Bitvavo({"APIKEYS": [{"key": "key1", "secret": "secret1"}, {"key": "key2", "secret": "secret2"}]})
 
 # Each key gets its own rate limit pool
 # Automatic failover when one key hits limits
@@ -750,7 +712,7 @@ For existing users migrating from the official SDK:
 from bitvavo_api_upgraded import Bitvavo
 
 # Drop-in replacement for python_bitvavo_api.bitvavo
-bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+bitvavo = Bitvavo({"APIKEY": "key", "APISECRET": "secret"})
 balance = bitvavo.balance({})
 ```
 
@@ -806,23 +768,23 @@ result = client.private.balance()
 
    ```python
    # Legacy style
-   bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+   bitvavo = Bitvavo({"APIKEY": "key", "APISECRET": "secret"})
 
    # Modern style
-   client = BitvavoClient(BitvavoSettings(api_key='key', api_secret='secret'))
+   client = BitvavoClient(BitvavoSettings(api_key="key", api_secret="secret"))
    ```
 
 4. **Optional: Use new features**
 
    ```python
    # Multi-key support
-   bitvavo = Bitvavo({'APIKEYS': [{'key': 'k1', 'secret': 's1'}, {'key': 'k2', 'secret': 's2'}]})
+   bitvavo = Bitvavo({"APIKEYS": [{"key": "k1", "secret": "s1"}, {"key": "k2", "secret": "s2"}]})
 
    # Keyless for public endpoints
    bitvavo = Bitvavo({})
 
    # DataFrame support
-   markets_df = bitvavo.markets({}, output_format='pandas')
+   markets_df = bitvavo.markets({}, output_format="pandas")
    ```
 
 ### Choosing an Interface
@@ -924,6 +886,7 @@ install --upgrade  requests`.
    import json
    import time
 
+
    # Use this class to connect to Bitvavo and make your first calls.
    # Add trading strategies to implement your business logic.
    class BitvavoImplementation:
@@ -934,17 +897,14 @@ install --upgrade  requests`.
 
        # Connect securely to Bitvavo, create the WebSocket and error callbacks.
        def __init__(self):
-           self.bitvavo_engine = Bitvavo({
-               'APIKEY': self.api_key,
-               'APISECRET': self.api_secret
-           })
+           self.bitvavo_engine = Bitvavo({"APIKEY": self.api_key, "APISECRET": self.api_secret})
            self.bitvavo_socket = self.bitvavo_engine.newWebsocket()
            self.bitvavo_socket.setErrorCallback(self.error_callback)
 
        # Handle errors.
        def error_callback(self, error):
            print("Add your error message.")
-           #print("Errors:", json.dumps(error, indent=2))
+           # print("Errors:", json.dumps(error, indent=2))
 
        # Retrieve the data you need from Bitvavo in order to implement your
        # trading logic. Use multiple workflows to return data to your
@@ -957,10 +917,9 @@ install --upgrade  requests`.
        def a_trading_strategy_callback(self, response):
            # Iterate through the markets
            for market in response:
-
                match market["market"]:
-                  case "ZRX-EUR":
-                       print("Eureka, the latest bid for ZRX-EUR is: ", market["bid"] )
+                   case "ZRX-EUR":
+                       print("Eureka, the latest bid for ZRX-EUR is: ", market["bid"])
                        # Implement calculations for your trading logic.
                        # If they are positive, place an order: For example:
                        # self.bitvavo_socket.placeOrder("ZRX-EUR",
@@ -968,18 +927,15 @@ install --upgrade  requests`.
                        #                               'limit',
                        #                               { 'amount': '1', 'price': '00001' },
                        #                               self.order_placed_callback)
-                  case "a different market":
+                   case "a different market":
                        print("do something else")
-                  case _:
+                   case _:
                        print("Not this one: ", market["market"])
-
-
 
        def order_placed_callback(self, response):
            # The order return parameters explain the quote and the fees for this trade.
            print("Order placed:", json.dumps(response, indent=2))
            # Add your business logic.
-
 
        # Sockets are fast, but asynchronous. Keep the socket open while you are
        # trading.
@@ -990,7 +946,7 @@ install --upgrade  requests`.
            # your IP or API key is banned.
            limit = self.bitvavo_engine.getRemainingLimit()
            try:
-               while (limit > 0):
+               while limit > 0:
                    time.sleep(0.5)
                    limit = self.bitvavo_engine.getRemainingLimit()
            except KeyboardInterrupt:
@@ -998,7 +954,7 @@ install --upgrade  requests`.
 
 
    # Shall I re-explain main? Naaaaaaaaaa.
-   if __name__ == '__main__':
+   if __name__ == "__main__":
        bvavo = BitvavoImplementation()
        bvavo.a_trading_strategy()
        bvavo.wait_and_close()
@@ -1059,3 +1015,23 @@ place an order.
 
 You must set your API key and secret for authenticated endpoints, public
 endpoints do not require authentication.
+
+## Local development
+
+Install devenv and direnv, then run `direnv allow`, `just sync` and `just check`.
+The development shell uses Python 3.13. `just test` runs mocked unit tests from a
+temporary working directory so repository `.env` files are not loaded. It clears
+inherited `BITVAVO_` settings and blocks network connections. Live API endpoint
+tests are excluded. Synthetic endpoint tests cover Pandas, Polars, PyArrow and
+Dask using an explicit string schema.
+
+`just check` runs the format check, offline tests and package builds.
+`just update` refreshes Python and Nix locks. `just lint` runs the full Ruff
+policy separately and still fails on remaining copyright-notice and positional-
+argument policy findings. Changed Python files retain the existing ISC notice
+from `LICENSE.txt` with explicit provenance. One payload-mapping helper has a
+documented exception to preserve the public positional calling convention.
+
+The backend tests use an explicit string schema. Default dtype conversion remains
+backend-specific: Pandas and Polars apply schema casts, while PyArrow and Dask
+retain the input types.

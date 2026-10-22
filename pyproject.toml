@@ -1,6 +1,6 @@
 # https://docs.astral.sh/uv/concepts/projects/layout/
 [build-system]
-requires = ["uv_build>=0.8.7,<0.9.0"]
+requires = ["uv_build>=0.13.5,<0.14.0"]
 build-backend = "uv_build"
 
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
@@ -41,7 +41,7 @@ dependencies = [
     "pydantic-settings >=2.6", # to handle settings
     "requests >=2.26",         # to make http requests
     "returns>=0.23.0",         # for functional programming
-    "structlog>=21.5",         # for logging
+    "structlog>=25.5.0",         # for logging
     "websocket-client >=1.2",  # something something websocket
 ]
 
@@ -80,8 +80,8 @@ repository = "https://github.com/Thaumatorium/bitvavo-api-upgraded"
 changelog = "https://github.com/Thaumatorium/bitvavo-api-upgraded/blob/master/CHANGELOG.md"
 
 # https://docs.astral.sh/uv/
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "bump-my-version>=0.28.1",   # for version management of the lib
     "coverage[toml]>=7.6.9",     # for checking coverage; use this in tox vs pytest-cov, since pytest-cov does NOT play well with vscode
     "duckdb>=1.0.0",             # DuckDB for testing (lightweight)
@@ -341,7 +341,6 @@ ignore = [
     "D",      # pydocstyle
     "S101",   # (assert)
     "TRY400", # (error-instead-of-exception)
-    "PD901",  # (pandas-df-variable-name
     "RET504", # (unnecessary-assign) - true, but handy when I need to debug and inspect.
     "FIX001", # (line-contains-fixme)
     "FIX002", # (line-contains-todo)

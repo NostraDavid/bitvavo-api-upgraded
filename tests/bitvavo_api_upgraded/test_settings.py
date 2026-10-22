@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 import os
 import tempfile
 from unittest.mock import patch
@@ -76,8 +79,8 @@ class TestSSLCertificateConfiguration:
                 # Set up the mock to return a specific Path object that has exists() return True
                 # for the first certificate path
                 mock_path_instance = mock_path_class.return_value
-                mock_path_instance.exists.side_effect = (
-                    lambda: str(mock_path_class.call_args[0][0]) == "/etc/ssl/certs/ca-certificates.crt"
+                mock_path_instance.exists.side_effect = lambda: (
+                    str(mock_path_class.call_args[0][0]) == "/etc/ssl/certs/ca-certificates.crt"
                 )
 
                 settings = BitvavoApiUpgradedSettings()
@@ -120,10 +123,13 @@ class TestSSLCertificateConfiguration:
                 # Set up the mock to return a specific Path object that has exists() return True
                 # for both Debian and CentOS certificate paths
                 mock_path_instance = mock_path_class.return_value
-                mock_path_instance.exists.side_effect = lambda: str(mock_path_class.call_args[0][0]) in [
-                    "/etc/ssl/certs/ca-certificates.crt",
-                    "/etc/ssl/certs/ca-bundle.crt",
-                ]
+                mock_path_instance.exists.side_effect = lambda: (
+                    str(mock_path_class.call_args[0][0])
+                    in [
+                        "/etc/ssl/certs/ca-certificates.crt",
+                        "/etc/ssl/certs/ca-bundle.crt",
+                    ]
+                )
 
                 settings = BitvavoApiUpgradedSettings()
                 # Should pick the first one in the list (Debian/Ubuntu/NixOS)

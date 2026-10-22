@@ -28,3 +28,17 @@
 __pycache__
 *.egg-info
 *.pyc
+
+!.envrc
+!devenv.nix
+!devenv.yaml
+!devenv.lock
+!Justfile
+
+# Local development and verification artifacts
+/.venv*/
+/dist/
+/.ruff_cache/
+/.pytest_cache/
+/.devenv/
+/.direnv/

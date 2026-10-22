@@ -1,3 +1,6 @@
+# License notice from LICENSE.txt:
+# Copyright (c) 2024, Bitvavo B.V.
+
 """Tests for BitvavoClient facade class."""
 
 from __future__ import annotations
@@ -6,6 +9,7 @@ import os
 from typing import Any
 from unittest.mock import Mock, patch
 
+import narwhals as nw
 import pytest
 from pydantic_settings import SettingsConfigDict
 from returns.result import Failure, Success
@@ -18,7 +22,7 @@ from bitvavo_client.endpoints.public import PublicAPI
 from bitvavo_client.facade import BitvavoClient
 
 
-class TestBitvavoSettings(BitvavoSettings):
+class IsolatedBitvavoSettings(BitvavoSettings):
     """Test-specific BitvavoSettings that disables ALL environment loading."""
 
     model_config = SettingsConfigDict(
@@ -47,7 +51,7 @@ class TestBitvavoSettings(BitvavoSettings):
 class TestBitvavoClientInitialization:
     def test_init_custom_settings(self) -> None:
         """Test initialization with custom settings."""
-        custom_settings = TestBitvavoSettings(
+        custom_settings = IsolatedBitvavoSettings(
             rest_url="https://custom.api.com/v2",
             debugging=True,
             default_rate_limit=500,
@@ -62,7 +66,7 @@ class TestBitvavoClientInitialization:
 
     def test_init_with_preferred_model(self) -> None:
         """Test initialization with preferred model parameter."""
-        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model=ModelPreference.PYDANTIC)
+        client = BitvavoClient(settings=IsolatedBitvavoSettings(), preferred_model=ModelPreference.PYDANTIC)
 
         # Should pass preferred_model to API endpoints
         assert client.public.preferred_model == ModelPreference.PYDANTIC
@@ -70,7 +74,7 @@ class TestBitvavoClientInitialization:
 
     def test_init_with_preferred_model_string(self) -> None:
         """Test initialization with preferred model as string."""
-        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model="dataframe")
+        client = BitvavoClient(settings=IsolatedBitvavoSettings(), preferred_model="dataframe")
 
         # Should accept string and pass to API endpoints
         assert client.public.preferred_model == "dataframe"
@@ -79,7 +83,7 @@ class TestBitvavoClientInitialization:
     def test_init_with_default_schema(self) -> None:
         """Test initialization with default schema parameter."""
         schema = {"field1": "type1", "field2": "type2"}
-        client = BitvavoClient(settings=TestBitvavoSettings(), default_schema=schema)
+        client = BitvavoClient(settings=IsolatedBitvavoSettings(), default_schema=schema)
 
         # Should pass schema to API endpoints
         assert client.public.default_schema is schema
@@ -88,7 +92,7 @@ class TestBitvavoClientInitialization:
     def test_init_with_all_parameters(self) -> None:
         """Test initialization with all optional parameters."""
         # Create settings with test values using api_keys
-        settings = TestBitvavoSettings(api_keys=[{"key": "test_key", "secret": "test_secret"}])
+        settings = IsolatedBitvavoSettings(api_keys=[{"key": "test_key", "secret": "test_secret"}])
         schema = {"market": str, "price": float}
 
         client = BitvavoClient(
@@ -109,14 +113,14 @@ class TestBitvavoClientAPIKeyConfiguration:
 
     def test_configure_single_api_key(self) -> None:
         """Test configuration with a single API key."""
-        settings = TestBitvavoSettings(api_keys=[{"key": "test_key", "secret": "test_secret"}])
+        settings = IsolatedBitvavoSettings(api_keys=[{"key": "test_key", "secret": "test_secret"}])
         client = BitvavoClient(settings)
         assert client.http.api_key == "test_key"
         assert client.http.key_index == 0
 
     def test_configure_multiple_api_keys(self) -> None:
         """Test configuration with multiple API keys."""
-        settings = TestBitvavoSettings(
+        settings = IsolatedBitvavoSettings(
             api_keys=[
                 {"key": "key1", "secret": "secret1"},
                 {"key": "key2", "secret": "secret2"},
@@ -130,13 +134,13 @@ class TestBitvavoClientAPIKeyConfiguration:
 
     def test_no_api_keys(self) -> None:
         """Test initialization without API keys."""
-        settings = TestBitvavoSettings(api_keys=[])
+        settings = IsolatedBitvavoSettings(api_keys=[])
         with pytest.raises(ValueError, match="API keys are required"):
             BitvavoClient(settings)
 
     def test_empty_api_keys_list(self) -> None:
         """Test initialization with empty API keys list."""
-        settings = TestBitvavoSettings(api_keys=[])
+        settings = IsolatedBitvavoSettings(api_keys=[])
         with pytest.raises(ValueError, match="API keys are required"):
             BitvavoClient(settings)
 
@@ -146,7 +150,7 @@ class TestBitvavoClientComponentIntegration:
 
     def test_http_client_receives_settings_and_rate_limiter(self) -> None:
         """Test that HTTPClient is initialized with correct dependencies."""
-        settings = TestBitvavoSettings(rest_url="https://test.api.com")
+        settings = IsolatedBitvavoSettings(rest_url="https://test.api.com")
         client = BitvavoClient(settings)
 
         # HTTPClient should have references to settings and rate limiter
@@ -155,7 +159,7 @@ class TestBitvavoClientComponentIntegration:
 
     def test_api_endpoints_receive_http_client(self) -> None:
         """Test that API endpoints are initialized with HTTPClient."""
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
 
         # Both API endpoints should receive the same HTTP client
         assert client.public.http is client.http
@@ -165,7 +169,7 @@ class TestBitvavoClientComponentIntegration:
         """Test that API endpoints receive preference parameters."""
         schema = {"test": "schema"}
         client = BitvavoClient(
-            settings=TestBitvavoSettings(),
+            settings=IsolatedBitvavoSettings(),
             preferred_model=ModelPreference.POLARS,
             default_schema=schema,
         )
@@ -185,7 +189,7 @@ class TestBitvavoClientPublicAPIAccess:
         """Test accessing time endpoint through client."""
         mock_time.return_value = Success({"time": 1234567890, "timeNs": 1234567890123456})
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.public.time()
 
         mock_time.assert_called_once()
@@ -196,7 +200,7 @@ class TestBitvavoClientPublicAPIAccess:
         """Test accessing markets endpoint through client."""
         mock_markets.return_value = Success([{"market": "BTC-EUR", "status": "trading"}])
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.public.markets()
 
         mock_markets.assert_called_once()
@@ -207,7 +211,7 @@ class TestBitvavoClientPublicAPIAccess:
         """Test accessing ticker price with parameters through client."""
         mock_ticker.return_value = Success([{"market": "BTC-EUR", "price": "50000"}])
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.public.ticker_price({"market": "BTC-EUR"})
 
         mock_ticker.assert_called_once_with({"market": "BTC-EUR"})
@@ -222,7 +226,7 @@ class TestBitvavoClientPrivateAPIAccess:
         """Test accessing account endpoint through client."""
         mock_account.return_value = Success({"fees": {"taker": "0.0025", "maker": "0.0015"}})
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.private.account()
 
         mock_account.assert_called_once()
@@ -233,7 +237,7 @@ class TestBitvavoClientPrivateAPIAccess:
         """Test accessing balance endpoint through client."""
         mock_balance.return_value = Success([{"symbol": "EUR", "available": "1000.00"}])
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.private.balance()
 
         mock_balance.assert_called_once()
@@ -244,7 +248,7 @@ class TestBitvavoClientPrivateAPIAccess:
         """Test accessing get_order endpoint with parameters through client."""
         mock_get_order.return_value = Success({"orderId": "12345", "status": "filled"})
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.private.get_order("BTC-EUR", "67890")
 
         mock_get_order.assert_called_once_with("BTC-EUR", "67890")
@@ -260,7 +264,7 @@ class TestBitvavoClientErrorHandling:
         error = BitvavoError(http_status=500, error_code=1000, reason="Server Error", message="Internal error", raw={})
         mock_time.return_value = Failure(error)
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.public.time()
 
         assert isinstance(result, Failure)
@@ -272,7 +276,7 @@ class TestBitvavoClientErrorHandling:
         error = BitvavoError(http_status=401, error_code=1001, reason="Unauthorized", message="Auth failed", raw={})
         mock_account.return_value = Failure(error)
 
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         result = client.private.account()
 
         assert isinstance(result, Failure)
@@ -290,7 +294,7 @@ class TestBitvavoClientRealWorldUsage:
             markets=Mock(return_value=Success([{"market": "BTC-EUR"}])),
             ticker_price=Mock(return_value=Success([{"market": "BTC-EUR", "price": "50000"}])),
         ):
-            client = BitvavoClient(TestBitvavoSettings())
+            client = BitvavoClient(IsolatedBitvavoSettings())
 
             # Get server time
             time_result = client.public.time()
@@ -312,7 +316,7 @@ class TestBitvavoClientRealWorldUsage:
             balance=Mock(return_value=Success([{"symbol": "EUR", "available": "1000"}])),
         ):
             # Create client with API credentials using api_keys
-            settings = TestBitvavoSettings(
+            settings = IsolatedBitvavoSettings(
                 api_keys=[{"key": "test_key", "secret": "test_secret"}],
             )
             client = BitvavoClient(settings)
@@ -333,7 +337,7 @@ class TestBitvavoClientRealWorldUsage:
         ):
             # Create client with Pydantic model preference
             client = BitvavoClient(
-                settings=TestBitvavoSettings(),
+                settings=IsolatedBitvavoSettings(),
                 preferred_model=ModelPreference.PYDANTIC,
             )
 
@@ -347,8 +351,8 @@ class TestBitvavoClientRealWorldUsage:
     def test_multiple_clients_independence(self) -> None:
         """Test that multiple client instances are independent."""
         # Create two clients with different settings
-        settings1 = TestBitvavoSettings(default_rate_limit=500)
-        settings2 = TestBitvavoSettings(default_rate_limit=1000)
+        settings1 = IsolatedBitvavoSettings(default_rate_limit=500)
+        settings2 = IsolatedBitvavoSettings(default_rate_limit=1000)
 
         client1 = BitvavoClient(settings1, preferred_model=ModelPreference.RAW)
         client2 = BitvavoClient(settings2, preferred_model=ModelPreference.PYDANTIC)
@@ -370,7 +374,7 @@ class TestBitvavoClientTypeCompatibility:
 
     def test_none_preferred_model_parameter(self) -> None:
         """Test that None preferred_model parameter is handled correctly."""
-        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model=None)
+        client = BitvavoClient(settings=IsolatedBitvavoSettings(), preferred_model=None)
 
         # Should pass None to API endpoints
         assert client.public.preferred_model is None
@@ -378,7 +382,7 @@ class TestBitvavoClientTypeCompatibility:
 
     def test_none_default_schema_parameter(self) -> None:
         """Test that None default_schema parameter is handled correctly."""
-        client = BitvavoClient(settings=TestBitvavoSettings(), default_schema=None)
+        client = BitvavoClient(settings=IsolatedBitvavoSettings(), default_schema=None)
 
         # Should pass None to API endpoints
         assert client.public.default_schema is None
@@ -386,7 +390,7 @@ class TestBitvavoClientTypeCompatibility:
 
     def test_string_model_preference_handling(self) -> None:
         """Test that string model preferences are passed correctly."""
-        client = BitvavoClient(settings=TestBitvavoSettings(), preferred_model="raw")
+        client = BitvavoClient(settings=IsolatedBitvavoSettings(), preferred_model="raw")
 
         assert client.public.preferred_model == "raw"
         assert client.private.preferred_model == "raw"
@@ -397,7 +401,7 @@ class TestBitvavoClientDocumentation:
 
     def test_backward_compatible_interface_claim(self) -> None:
         """Test that the client provides backward-compatible interface."""
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         assert hasattr(client, "public")
         assert hasattr(client, "private")
         assert isinstance(client.public, PublicAPI)
@@ -405,9 +409,29 @@ class TestBitvavoClientDocumentation:
 
     def test_facade_pattern_implementation(self) -> None:
         """Test that the client implements the facade pattern correctly."""
-        client = BitvavoClient(TestBitvavoSettings())
+        client = BitvavoClient(IsolatedBitvavoSettings())
         assert hasattr(client, "settings")
         assert hasattr(client, "rate_limiter")
         assert hasattr(client, "http")
         assert hasattr(client, "public")
         assert hasattr(client, "private")
+
+
+@pytest.mark.parametrize(
+    "preference",
+    [ModelPreference.PANDAS, ModelPreference.POLARS, ModelPreference.PYARROW, ModelPreference.DASK],
+)
+def test_offline_ticker_dataframe_backends(preference: ModelPreference) -> None:
+    """Installed backends preserve synthetic endpoint rows without HTTP access."""
+    payload = [{"market": "EXAMPLE-A", "price": "1.25"}, {"market": "EXAMPLE-B", "price": "2.50"}]
+    http = Mock(spec=["request"])
+    http.request.return_value = Success(payload)
+    endpoint = PublicAPI(http, preferred_model=preference)
+
+    result = endpoint.ticker_price(schema={"market": str, "price": str})
+    assert isinstance(result, Success)
+    frame = nw.from_native(result.unwrap())
+    if isinstance(frame, nw.LazyFrame):
+        frame = frame.collect()
+    assert frame.to_dict(as_series=False) == {"market": ["EXAMPLE-A", "EXAMPLE-B"], "price": ["1.25", "2.50"]}
+    http.request.assert_called_once_with("GET", "/ticker/price", weight=1)

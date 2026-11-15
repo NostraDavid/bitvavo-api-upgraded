@@ -1,6 +1,6 @@
 ---
 name: Publish to PyPI and TestPyPI
-on:
+"on":
   push:
     branches:
       - master
@@ -11,7 +11,8 @@ jobs:
     environment:
       name: release
     permissions:
-      # For PyPI's trusted publishing.
+      contents: read
+      # For Trusted Publishing and release attestations.
       id-token: write
     steps:
       - name: Checkout Repository
@@ -20,5 +21,8 @@ jobs:
         uses: astral-sh/setup-uv@v10.3.2
       - name: Build Wheel
         run: uv build
+      - name: Generate PyPI attestations
+        # v0.0.7
+        uses: astral-sh/attest-action@39b6ce43875c196a579e31635b11aa2a2036384a
       - name: Publish to PyPI
-        run: uv publish --verbose dist/*
+        run: uv publish --trusted-publishing always --verbose

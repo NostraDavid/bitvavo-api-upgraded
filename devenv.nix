@@ -4,9 +4,9 @@
   ...
 }: {
   dotenv.enable = false;
-  packages = [pkgs.python313 pkgs.uv pkgs.just pkgs.git];
+  packages = [pkgs.python315 pkgs.uv pkgs.just pkgs.git];
   env = {
-    UV_PYTHON = "3.13";
+    UV_PYTHON = "3.15";
     UV_PYTHON_PREFERENCE = "only-system";
     UV_PYTHON_DOWNLOADS = "never";
     PYTHONNOUSERSITE = "1";

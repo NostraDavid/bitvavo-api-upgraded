@@ -1,6 +1,6 @@
 ---
 repos:
-  # update the rev versions with a `pre-commit autoupdate`
+  # update the rev versions with a `prek autoupdate`
   - repo: https://github.com/asottile/add-trailing-comma
     rev: v4.0.0
     hooks:

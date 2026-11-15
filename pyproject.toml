@@ -33,16 +33,23 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python",
     "Typing :: Typed",
 ]
 dependencies = [
-    "niquests>=3.21.3",
+    "niquests>=3.21.0",
     "pydantic-settings >=2.6", # to handle settings
-    "requests >=2.26",         # to make http requests
     "returns>=0.23.0",         # for functional programming
     "structlog>=25.5.0",         # for logging
     "websocket-client >=1.2",  # something something websocket
+]
+
+[tool.uv]
+# These optional backends require dataframe versions that predate Python 3.15 support.
+conflicts = [
+    [{ group = "dev" }, { extra = "cudf" }],
+    [{ group = "dev" }, { extra = "modin" }],
 ]
 
 [tool.uv.build-backend]
@@ -84,6 +91,7 @@ changelog = "https://github.com/Thaumatorium/bitvavo-api-upgraded/blob/master/CH
 dev = [
     "bump-my-version>=0.28.1",   # for version management of the lib
     "coverage[toml]>=7.6.9",     # for checking coverage; use this in tox vs pytest-cov, since pytest-cov does NOT play well with vscode
+    "deptry>=0.21.0",
     "duckdb>=1.0.0",             # DuckDB for testing (lightweight)
     "eval-type-backport>=0.2.2", # eval type for mypy
     "mdformat>=0.7.11",          # for formatting markdown (.md) documents
@@ -91,10 +99,12 @@ dev = [
     "mypy>=1.13",                # amazing linter
     "narwhals[dask,duckdb,pandas,polars,pyarrow]>=2.0.0", # unified dataframe API with all integrations for testing
     "pandas-stubs>=2.2.2.0",     # pandas typing for mypy
-    "pandas>=2.0.0",             # pandas support for testing
+    "pandas>=2.0.0; python_version < '3.15'", # pandas support for testing
+    "pandas>=3.0.6; python_version >= '3.15'",
     "polars>=1.0.0",             # polars support for testing
-    "pre-commit>=2.15.0",        # for running hooks before committing code
-    "pyarrow>=7.0.0",            # Arrow tables for testing
+    "prek>=0.2.0",
+    "pyarrow>=7.0.0; python_version < '3.15'", # Arrow tables for testing
+    "pyarrow>=26.0.0; python_version >= '3.15'",
     "pytest-cov>=1",             # though this was the initial choice over coverage.py, turns out it fucks with vscode debugging, so now it only exists so we can still run tests with coverage within vscode
     "pytest-dotenv>=0.5.2",      # for loading environment variables from .env files in tests
     "pytest-integration>=0.2.2", # for @mark additions
@@ -103,8 +113,7 @@ dev = [
     "ruff>=0.7.3",               # replaces auotflake, black, flake8, isort, pyupgrade
     "tox-uv>=1.16.0",            # to ensure tox can use uv
     "tox>=3.24.4",               # run `tox` to test everything
-    "types-requests>=2.26.2",    # typing for mypy
-    "uv>=0.8.0",                 # project manager (building, version bump, etc.)
+    "uv>=0.13.4",                # project manager (building, version bump, etc.)
 ]
 
 [tool.bumpversion]
@@ -285,7 +294,6 @@ verbosity = 0
 # module = [
 #     "setuptools",
 #     "structlog",
-#     "requests",
 #     "websocket",
 #     "dotenv.main",
 #     "pytest",

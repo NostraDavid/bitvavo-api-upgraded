@@ -35,4 +35,4 @@ build:
 check: format-check test build
 
 hooks:
-    uv run --locked pre-commit install
+    uv run --locked prek install

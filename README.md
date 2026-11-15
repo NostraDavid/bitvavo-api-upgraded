@@ -105,7 +105,7 @@ This wrapper improves upon the official Bitvavo SDK with:
 - **Configuration via environment variables** or Pydantic settings
 - **Detailed changelog** tracking all changes and improvements
 - **Enhanced documentation** with examples and clear usage patterns
-- **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
+- **Developer-friendly tooling** (ruff, mypy, deptry, prek hooks)
 
 ## Features
 
@@ -1019,11 +1019,14 @@ endpoints do not require authentication.
 ## Local development
 
 Install devenv and direnv, then run `direnv allow`, `just sync` and `just check`.
-The development shell uses Python 3.13. `just test` runs mocked unit tests from a
+The development shell uses Python 3.15. `just test` runs mocked unit tests from a
 temporary working directory so repository `.env` files are not loaded. It clears
 inherited `BITVAVO_` settings and blocks network connections. Live API endpoint
 tests are excluded. Synthetic endpoint tests cover Pandas, Polars, PyArrow and
 Dask using an explicit string schema.
+
+Modin and cuDF require older dataframe versions. Their extras cannot be combined
+with the development group.
 
 `just check` runs the format check, offline tests and package builds.
 `just update` refreshes Python and Nix locks. `just lint` runs the full Ruff

@@ -28,7 +28,7 @@ A **typed, tested, and enhanced** Python wrapper for the Bitvavo cryptocurrency 
 - **Modern Python support** (3.9+, dropped EOL versions)
 - **Configuration via environment variables** or Pydantic settings
 - **Enhanced documentation** with comprehensive examples
-- **Developer-friendly tooling** (ruff, mypy, pre-commit hooks)
+- **Developer-friendly tooling** (ruff, mypy, deptry, prek hooks)
 
 ## Quick Start
 
@@ -55,7 +55,7 @@ markets_result = client.public.markets()
 
 # Access private endpoints (auth required)
 balance_result = client.private.balance()
-orders_result = client.private.orders('BTC-EUR')
+orders_result = client.private.orders("BTC-EUR")
 ```
 
 #### Option 2: Legacy Bitvavo (Backward Compatibility)
@@ -65,7 +65,7 @@ Drop-in replacement for the official SDK:
 ```python
 from bitvavo_api_upgraded import Bitvavo
 
-bitvavo = Bitvavo({'APIKEY': 'your-key', 'APISECRET': 'your-secret'})
+bitvavo = Bitvavo({"APIKEY": "your-key", "APISECRET": "your-secret"})
 balance = bitvavo.balance({})
 ```
 
@@ -141,12 +141,9 @@ settings = BitvavoSettings()
 bitvavo = Bitvavo(settings.model_dump())
 
 # Or manual configuration with multiple keys
-bitvavo = Bitvavo({
-    'APIKEYS': [
-        {'key': 'your-key-1', 'secret': 'your-secret-1'},
-        {'key': 'your-key-2', 'secret': 'your-secret-2'}
-    ]
-})
+bitvavo = Bitvavo(
+    {"APIKEYS": [{"key": "your-key-1", "secret": "your-secret-1"}, {"key": "your-key-2", "secret": "your-secret-2"}]}
+)
 
 # Or keyless for public endpoints only
 bitvavo = Bitvavo({})
@@ -162,17 +159,19 @@ Distribute API calls across multiple keys for better rate limit management:
 from bitvavo_api_upgraded import Bitvavo
 
 # Multiple keys automatically balance load
-bitvavo = Bitvavo({
-    'APIKEYS': [
-        {'key': 'key1', 'secret': 'secret1'},
-        {'key': 'key2', 'secret': 'secret2'},
-        {'key': 'key3', 'secret': 'secret3'}
-    ]
-})
+bitvavo = Bitvavo(
+    {
+        "APIKEYS": [
+            {"key": "key1", "secret": "secret1"},
+            {"key": "key2", "secret": "secret2"},
+            {"key": "key3", "secret": "secret3"},
+        ]
+    }
+)
 
 # API automatically switches between keys when rate limits are reached
 balance = bitvavo.balance({})  # Uses least-used key
-orders = bitvavo.getOrders('BTC-EUR', {})  # May use different key
+orders = bitvavo.getOrders("BTC-EUR", {})  # May use different key
 ```
 
 ### Keyless (Public) Access
@@ -187,9 +186,9 @@ bitvavo = Bitvavo({})
 
 # These work without authentication
 markets = bitvavo.markets({})
-ticker = bitvavo.ticker24h({'market': 'BTC-EUR'})
-trades = bitvavo.publicTrades('BTC-EUR', {})
-book = bitvavo.book('BTC-EUR', {})
+ticker = bitvavo.ticker24h({"market": "BTC-EUR"})
+trades = bitvavo.publicTrades("BTC-EUR", {})
+book = bitvavo.book("BTC-EUR", {})
 ```
 
 ## WebSocket Support
@@ -199,6 +198,7 @@ Real-time data streaming with automatic reconnection:
 ```python
 def handle_ticker(data):
     print(f"BTC-EUR: {data['price']}")
+
 
 ws = bitvavo.newWebsocket()
 ws.subscriptionTicker("BTC-EUR", handle_ticker)
@@ -228,11 +228,13 @@ For new projects or when refactoring:
 ```python
 # Old
 from python_bitvavo_api.bitvavo import Bitvavo
-bitvavo = Bitvavo({'APIKEY': 'key', 'APISECRET': 'secret'})
+
+bitvavo = Bitvavo({"APIKEY": "key", "APISECRET": "secret"})
 
 # New
 from bitvavo_client import BitvavoClient, BitvavoSettings
-client = BitvavoClient(BitvavoSettings(api_key='key', api_secret='secret'))
+
+client = BitvavoClient(BitvavoSettings(api_key="key", api_secret="secret"))
 ```
 
 ### Breaking Changes in v2.0.0

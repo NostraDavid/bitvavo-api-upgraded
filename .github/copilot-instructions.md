@@ -52,7 +52,7 @@ This project is a **typed, modular, and tested Python SDK** for the Bitvavo cryp
 ## Integration Points
 
 - **Bitvavo API:** REST (`api.bitvavo.com/v2`), WebSocket (`ws.bitvavo.com/v2/`)
-- **Key libraries:** `requests`, `websocket-client`, `pydantic-settings`, `returns`, `tox`, `uv`, `ruff`, `mypy`
+- **Key libraries:** `niquests`, `websocket-client`, `pydantic-settings`, `returns`, `tox`, `uv`, `ruff`, `mypy`, `deptry`, `prek`
 - **Settings loading:** `.env` file or environment, validated by Pydantic
 
 ## Common Gotchas

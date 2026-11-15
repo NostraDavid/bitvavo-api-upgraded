@@ -16,7 +16,7 @@ import pytest
 from returns.result import Failure, Success
 
 if TYPE_CHECKING:  # pragma: no cover
-    import httpx
+    import niquests as http
 
 from bitvavo_client.adapters.returns_adapter import BitvavoError
 from bitvavo_client.auth.rate_limit import RateLimitManager
@@ -40,7 +40,7 @@ def optional_length(obj: Any) -> int | None:
         return None
 
 
-def is_auth_error(error: BitvavoError | httpx.HTTPError) -> bool:
+def is_auth_error(error: BitvavoError | http.exceptions.RequestException) -> bool:
     """Check if error is an authentication error."""
     if isinstance(error, BitvavoError) and hasattr(error, "http_status"):
         return error.http_status in (401, 403)

@@ -37,7 +37,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "httpx>=0.28.1",           # for making http requests
+    "niquests>=3.21.3",
     "pydantic-settings >=2.6", # to handle settings
     "requests >=2.26",         # to make http requests
     "returns>=0.23.0",         # for functional programming

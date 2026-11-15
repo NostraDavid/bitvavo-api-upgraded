@@ -24,7 +24,7 @@ MAX_BOOK_REPORT_DEPTH = 1000  # Maximum depth for order book report
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Mapping
 
-    import httpx
+    import niquests as http
     from returns.result import Result
 
     from bitvavo_client.adapters.returns_adapter import BitvavoError
@@ -69,7 +69,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get server time.
 
         Args:
@@ -90,7 +90,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get market information.
 
         Args:
@@ -113,7 +113,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get asset information.
 
         Returns information about the specified assets including deposit/withdrawal
@@ -162,7 +162,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get order book for a market.
 
         Returns the list of up to 1000 bids and asks per request for the specified
@@ -209,7 +209,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get public trades for a market.
 
         Returns the list of trades from the specified market and time period made by all Bitvavo users.
@@ -254,7 +254,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get candlestick data for a market.
 
         Args:
@@ -309,7 +309,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get ticker prices for markets.
 
         Returns prices of the latest trades on Bitvavo for all markets or a single market.
@@ -355,7 +355,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get ticker book.
 
         Args:
@@ -376,7 +376,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get 24h ticker statistics.
 
         Rate limit weight points:
@@ -405,7 +405,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get MiCA-compliant order book report for a market.
 
         Returns the list of all bids and asks for the specified market, sorted by price.
@@ -475,7 +475,7 @@ class PublicAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get MiCA-compliant trades report for a market.
 
         Returns trades from the specified market and time period made by all Bitvavo users.

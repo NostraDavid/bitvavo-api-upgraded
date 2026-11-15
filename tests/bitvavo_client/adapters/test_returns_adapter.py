@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import Mock, patch
 
-import httpx
+import niquests as http
 import pytest
 from pydantic import BaseModel, ValidationError
 from returns.result import Failure, Success
@@ -109,7 +109,7 @@ class TestJsonFromResponse:
 
     def test_valid_json_response(self) -> None:
         """Test parsing valid JSON response."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.json.return_value = {"key": "value", "number": 42}
 
         result = _json_from_response(mock_response)
@@ -119,7 +119,7 @@ class TestJsonFromResponse:
 
     def test_invalid_json_response(self) -> None:
         """Test handling invalid JSON response."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.json.side_effect = ValueError("Invalid JSON")
         mock_response.text = "Not valid JSON"
 
@@ -129,7 +129,7 @@ class TestJsonFromResponse:
 
     def test_non_dict_json_response(self) -> None:
         """Test handling JSON response that's not a dictionary."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.json.return_value = ["array", "response"]
         mock_response.text = '["array", "response"]'
 
@@ -142,7 +142,7 @@ class TestMapError:
 
     def test_map_error_with_known_error_code(self) -> None:
         """Test mapping error with known error code and status."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 400
         mock_response.json.return_value = {"errorCode": 205, "error": "Invalid parameter value."}
 
@@ -156,7 +156,7 @@ class TestMapError:
 
     def test_map_error_with_unknown_error_code(self) -> None:
         """Test mapping error with unknown error code."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 400
         mock_response.json.return_value = {"errorCode": 999, "error": "Unknown error"}
 
@@ -169,7 +169,7 @@ class TestMapError:
 
     def test_map_error_with_unknown_status_code(self) -> None:
         """Test mapping error with unknown HTTP status code."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 999
         mock_response.json.return_value = {"errorCode": 205, "error": "Some error"}
 
@@ -182,7 +182,7 @@ class TestMapError:
 
     def test_map_error_missing_error_fields(self) -> None:
         """Test mapping error with missing error fields."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 500
         mock_response.json.return_value = {}
 
@@ -195,7 +195,7 @@ class TestMapError:
 
     def test_map_error_with_message_field(self) -> None:
         """Test mapping error that uses 'message' instead of 'error'."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 500
         mock_response.json.return_value = {"errorCode": 101, "message": "Server error"}
 
@@ -207,7 +207,7 @@ class TestMapError:
 
     def test_map_error_invalid_json_response(self) -> None:
         """Test mapping error when response is not valid JSON."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 500
         mock_response.json.side_effect = ValueError("Invalid JSON")
         mock_response.text = "Internal Server Error"
@@ -321,7 +321,7 @@ class TestDecodeResponseResult:
             name: str
             value: int
 
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"name": "test", "value": 42}
 
@@ -335,7 +335,7 @@ class TestDecodeResponseResult:
 
     def test_decode_successful_response_with_any_model(self) -> None:
         """Test decoding successful response with Any model."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"arbitrary": "data", "number": 123}
 
@@ -347,7 +347,7 @@ class TestDecodeResponseResult:
 
     def test_decode_successful_response_with_any_model_error_like_data(self) -> None:
         """Test decoding response with Any model but error-like data."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"errorCode": 205, "error": "Some error"}
 
@@ -359,7 +359,7 @@ class TestDecodeResponseResult:
 
     def test_decode_error_response(self) -> None:
         """Test decoding error response."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 400
         mock_response.json.return_value = {"errorCode": 205, "error": "Invalid parameter"}
 
@@ -372,7 +372,7 @@ class TestDecodeResponseResult:
 
     def test_decode_response_invalid_json(self) -> None:
         """Test decoding response with invalid JSON."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.side_effect = ValueError("Invalid JSON")
 
@@ -388,7 +388,7 @@ class TestDecodeResponseResult:
         class TestModel(BaseModel):
             required_field: str
 
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"wrong_field": "value"}
 
@@ -405,7 +405,7 @@ class TestDecodeResponseResult:
         class TestModel(BaseModel):
             required_field: str
 
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"errorCode": 205, "error": "Some error"}
 
@@ -422,7 +422,7 @@ class TestDecodeResponseResult:
         def custom_constructor(data: dict[str, Any]) -> dict[str, str]:
             return {k: str(v) for k, v in data.items()}
 
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"number": 42, "bool": True}
 
@@ -434,7 +434,7 @@ class TestDecodeResponseResult:
 
     def test_decode_response_with_schema_parameter(self) -> None:
         """Test decoding response with schema parameter."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = [{"price": "50000", "volume": "1.5"}]
 
@@ -459,7 +459,7 @@ class TestDecodeResponseResult:
         mock_polars_dataframe.configure_mock(__name__="DataFrame", __module__="polars.dataframe")
         mock_polars_dataframe.return_value = mock_df
 
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = [{"price": 50000, "volume": 1.5}]
 
@@ -472,7 +472,7 @@ class TestDecodeResponseResult:
 
     def test_decode_response_with_polars_import_error(self) -> None:
         """Test decoding response when Polars import fails."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = [{"price": 50000, "volume": 1.5}]
 
@@ -494,7 +494,7 @@ class TestDecodeResponseResult:
         class DataFrameSchemaMismatchError(Exception):
             """Custom exception for DataFrame schema mismatch tests."""
 
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = [{"wrong_field": "value"}]
 
@@ -515,7 +515,7 @@ class TestDecodeResponseResult:
 
     def test_decode_response_assert_model_not_none(self) -> None:
         """Test that assertion fails when model is None but not Any."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"data": "value"}
 
@@ -524,7 +524,7 @@ class TestDecodeResponseResult:
 
     def test_decode_response_assert_data_is_dict_or_list(self) -> None:
         """Test that assertion fails when JSON data is not dict or list."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = "string_data"
 
@@ -541,8 +541,8 @@ class TestGetJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 15.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "success"}
         mock_client.get.return_value = mock_response
@@ -556,6 +556,7 @@ class TestGetJsonResult:
         mock_client.get.assert_called_once_with(
             "https://api.example.com/v2/test",
             timeout=15.0,
+            allow_redirects=False,
         )
 
     @patch("bitvavo_client.adapters.returns_adapter.settings")
@@ -564,8 +565,8 @@ class TestGetJsonResult:
         mock_settings.base_url = "https://api.example.com/v2/"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {}
         mock_client.get.return_value = mock_response
@@ -575,6 +576,7 @@ class TestGetJsonResult:
         mock_client.get.assert_called_once_with(
             "https://api.example.com/v2/test/endpoint",
             timeout=10.0,
+            allow_redirects=False,
         )
 
     @patch("bitvavo_client.adapters.returns_adapter.settings")
@@ -583,8 +585,8 @@ class TestGetJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_client.get.side_effect = httpx.ConnectError("Connection failed")
+        mock_client = Mock(spec=http.Session)
+        mock_client.get.side_effect = http.exceptions.ConnectionError("Connection failed")
 
         result = get_json_result(mock_client, "/test", model=dict)
 
@@ -601,8 +603,8 @@ class TestGetJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 400
         mock_response.json.return_value = {"errorCode": 205, "error": "Invalid parameter"}
         mock_client.get.return_value = mock_response
@@ -624,8 +626,8 @@ class TestGetJsonResult:
             name: str
             value: int
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"name": "test", "value": 42}
         mock_client.get.return_value = mock_response
@@ -648,8 +650,8 @@ class TestPostJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 15.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "created"}
         mock_client.post.return_value = mock_response
@@ -665,6 +667,7 @@ class TestPostJsonResult:
             "https://api.example.com/v2/create",
             json=payload,
             timeout=15.0,
+            allow_redirects=False,
         )
 
     @patch("bitvavo_client.adapters.returns_adapter.settings")
@@ -673,8 +676,8 @@ class TestPostJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "ok"}
         mock_client.post.return_value = mock_response
@@ -687,6 +690,7 @@ class TestPostJsonResult:
             "https://api.example.com/v2/create",
             json={},
             timeout=10.0,
+            allow_redirects=False,
         )
 
     @patch("bitvavo_client.adapters.returns_adapter.settings")
@@ -695,8 +699,8 @@ class TestPostJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "ok"}
         mock_client.post.return_value = mock_response
@@ -709,6 +713,7 @@ class TestPostJsonResult:
             "https://api.example.com/v2/create",
             json={},
             timeout=10.0,
+            allow_redirects=False,
         )
 
     @patch("bitvavo_client.adapters.returns_adapter.settings")
@@ -717,8 +722,8 @@ class TestPostJsonResult:
         mock_settings.base_url = "https://api.example.com/v2/"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {}
         mock_client.post.return_value = mock_response
@@ -729,6 +734,7 @@ class TestPostJsonResult:
             "https://api.example.com/v2/create/order",
             json={},
             timeout=10.0,
+            allow_redirects=False,
         )
 
     @patch("bitvavo_client.adapters.returns_adapter.settings")
@@ -737,8 +743,8 @@ class TestPostJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_client.post.side_effect = httpx.TimeoutException("Request timeout")
+        mock_client = Mock(spec=http.Session)
+        mock_client.post.side_effect = http.exceptions.Timeout("Request timeout")
 
         payload = {"key": "value"}
         result = post_json_result(mock_client, "/create", payload, model=dict)
@@ -757,8 +763,8 @@ class TestPostJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 403
         mock_response.json.return_value = {"errorCode": 300, "error": "Authentication required"}
         mock_client.post.return_value = mock_response
@@ -776,8 +782,8 @@ class TestPostJsonResult:
         mock_settings.base_url = "https://api.example.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "ok"}
         mock_client.post.return_value = mock_response
@@ -798,8 +804,8 @@ class TestPostJsonResult:
             order_id: str
             status: str
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {"order_id": "12345", "status": "created"}
         mock_client.post.return_value = mock_response
@@ -819,7 +825,7 @@ class TestErrorCodeDirectory:
 
     def test_known_error_codes_400_status(self) -> None:
         """Test mapping of known 400 status error codes."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 400
         mock_response.json.return_value = {"errorCode": 205, "error": "Invalid parameter value."}
 
@@ -829,7 +835,7 @@ class TestErrorCodeDirectory:
 
     def test_known_error_codes_403_status(self) -> None:
         """Test mapping of known 403 status error codes."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 403
         mock_response.json.return_value = {"errorCode": 300, "error": "Authentication required"}
 
@@ -839,7 +845,7 @@ class TestErrorCodeDirectory:
 
     def test_known_error_codes_429_status(self) -> None:
         """Test mapping of known 429 status error codes."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 429
         mock_response.json.return_value = {"errorCode": 105, "error": "Rate limit exceeded"}
 
@@ -849,7 +855,7 @@ class TestErrorCodeDirectory:
 
     def test_known_error_codes_500_status(self) -> None:
         """Test mapping of known 500 status error codes."""
-        mock_response = Mock(spec=httpx.Response)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 500
         mock_response.json.return_value = {"errorCode": 101, "error": "Server error"}
 
@@ -873,8 +879,8 @@ class TestIntegrationScenarios:
             base: str
             quote: str
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 200
         mock_response.json.return_value = {
             "market": "BTC-EUR",
@@ -898,8 +904,8 @@ class TestIntegrationScenarios:
         mock_settings.base_url = "https://api.bitvavo.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_response = Mock(spec=httpx.Response)
+        mock_client = Mock(spec=http.Session)
+        mock_response = Mock(spec=http.Response)
         mock_response.status_code = 400
         mock_response.json.return_value = {"errorCode": 205, "error": "Invalid parameter value."}
         mock_client.post.return_value = mock_response
@@ -925,8 +931,8 @@ class TestIntegrationScenarios:
         mock_settings.base_url = "https://api.bitvavo.com/v2"
         mock_settings.timeout_seconds = 10.0
 
-        mock_client = Mock(spec=httpx.Client)
-        mock_client.get.side_effect = httpx.ConnectError("DNS resolution failed")
+        mock_client = Mock(spec=http.Session)
+        mock_client.get.side_effect = http.exceptions.ConnectionError("DNS resolution failed")
 
         result = get_json_result(mock_client, "time", model=dict)
 

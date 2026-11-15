@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from decimal import Decimal
 from typing import Any
 
-import httpx
+import niquests as http
 import polars as pl
 import pytest
 from returns.result import Failure, Success
@@ -721,7 +721,7 @@ class TestPublicAPI_RAW(AbstractPublicAPITests):  # noqa: N801
             if "limit must be" in str(e) or "must be a unix timestamp" in str(e):
                 msg = f"Valid parameters should not cause validation errors: {e}"
                 raise AssertionError(msg) from e
-        except (httpx.HTTPError, ConnectionError, TimeoutError):
+        except (http.exceptions.RequestException, ConnectionError, TimeoutError):
             # Network or API errors are acceptable for this test
             pass
 
@@ -756,7 +756,7 @@ class TestPublicAPI_RAW(AbstractPublicAPITests):  # noqa: N801
             # Validation errors should not occur with valid intervals
             msg = f"Valid interval '{interval}' should not cause validation error: {e}"
             raise AssertionError(msg) from e
-        except (httpx.HTTPError, ConnectionError, TimeoutError):
+        except (http.exceptions.RequestException, ConnectionError, TimeoutError):
             # Network or API errors are acceptable for this test
             pass
 
@@ -831,7 +831,7 @@ class TestPublicAPI_RAW(AbstractPublicAPITests):  # noqa: N801
         except ValueError as e:
             msg = f"Valid market 'BTC-EUR' should not cause validation error: {e}"
             raise AssertionError(msg) from e
-        except (httpx.HTTPError, ConnectionError, TimeoutError):
+        except (http.exceptions.RequestException, ConnectionError, TimeoutError):
             # Network or API errors are acceptable for this validation test
             pass
 
@@ -841,7 +841,7 @@ class TestPublicAPI_RAW(AbstractPublicAPITests):  # noqa: N801
         except ValueError as e:
             msg = f"ticker_price() with no parameters should not cause validation error: {e}"
             raise AssertionError(msg) from e
-        except (httpx.HTTPError, ConnectionError, TimeoutError):
+        except (http.exceptions.RequestException, ConnectionError, TimeoutError):
             # Network or API errors are acceptable for this validation test
             pass
 

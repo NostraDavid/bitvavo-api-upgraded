@@ -2,18 +2,37 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
+from io import BytesIO
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
-import httpx
-from returns.result import Success
+import niquests as http
+import pytest
+from returns.result import Failure, Success
 
+from bitvavo_api_upgraded.bitvavo import Bitvavo
 from bitvavo_client.auth.rate_limit import RateLimitManager
 from bitvavo_client.core.settings import BitvavoSettings
 from bitvavo_client.transport.http import HTTPClient
 
 if TYPE_CHECKING:  # pragma: no cover
-    import pytest
+    from collections.abc import Callable
+
+
+def _response(
+    status_code: int,
+    *,
+    headers: dict[str, str] | None = None,
+    json_body: object = None,
+) -> http.Response:
+    response = http.Response()
+    response.status_code = status_code
+    response.headers.update(headers or {})
+    response._content = json.dumps(json_body).encode()  # noqa: SLF001
+    return response
 
 
 def test_request_updates_rate_limiter(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -23,9 +42,9 @@ def test_request_updates_rate_limiter(monkeypatch: pytest.MonkeyPatch) -> None:
     client = HTTPClient(settings, manager)
 
     # Provide dummy HTTP response
-    response = httpx.Response(200, json={})
+    response = _response(200, json_body={})
 
-    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> httpx.Response:
+    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> http.Response:
         return response
 
     monkeypatch.setattr(client, "_make_http_request", fake_request)
@@ -45,12 +64,12 @@ def test_initial_rate_limit_fetch(monkeypatch: pytest.MonkeyPatch) -> None:
     client = HTTPClient(settings, manager)
 
     responses = [
-        httpx.Response(200, headers={"bitvavo-ratelimit-remaining": "1000"}, json={}),
-        httpx.Response(200, headers={"bitvavo-ratelimit-remaining": "995"}, json={}),
+        _response(200, headers={"bitvavo-ratelimit-remaining": "1000"}, json_body={}),
+        _response(200, headers={"bitvavo-ratelimit-remaining": "995"}, json_body={}),
     ]
     called_urls: list[str] = []
 
-    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> httpx.Response:
+    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> http.Response:
         called_urls.append(url)
         return responses.pop(0)
 
@@ -70,13 +89,13 @@ def test_initial_rate_limit_handles_429(monkeypatch: pytest.MonkeyPatch) -> None
     client = HTTPClient(settings, manager)
 
     responses = [
-        httpx.Response(429, json={"error": {"code": 101}}),
-        httpx.Response(200, headers={"bitvavo-ratelimit-remaining": "1000"}, json={}),
-        httpx.Response(200, headers={"bitvavo-ratelimit-remaining": "995"}, json={}),
+        _response(429, json_body={"error": {"code": 101}}),
+        _response(200, headers={"bitvavo-ratelimit-remaining": "1000"}, json_body={}),
+        _response(200, headers={"bitvavo-ratelimit-remaining": "995"}, json_body={}),
     ]
     called_urls: list[str] = []
 
-    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> httpx.Response:
+    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> http.Response:
         called_urls.append(url)
         return responses.pop(0)
 
@@ -102,20 +121,20 @@ def test_initial_rate_limit_below_threshold(monkeypatch: pytest.MonkeyPatch) -> 
     client = HTTPClient(settings, manager)
 
     responses = [
-        httpx.Response(
+        _response(
             200,
             headers={
                 "bitvavo-ratelimit-remaining": "40",
                 "bitvavo-ratelimit-resetat": "60000",
             },
-            json={},
+            json_body={},
         ),
-        httpx.Response(200, headers={"bitvavo-ratelimit-remaining": "1000"}, json={}),
-        httpx.Response(200, headers={"bitvavo-ratelimit-remaining": "995"}, json={}),
+        _response(200, headers={"bitvavo-ratelimit-remaining": "1000"}, json_body={}),
+        _response(200, headers={"bitvavo-ratelimit-remaining": "995"}, json_body={}),
     ]
     called_urls: list[str] = []
 
-    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> httpx.Response:
+    def fake_request(method: str, url: str, headers: dict[str, str], body: object) -> http.Response:
         called_urls.append(url)
         return responses.pop(0)
 
@@ -153,7 +172,7 @@ def test_request_rotates_keys_when_budget_exhausted(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(manager, "sleep_until_reset", lambda idx: None)
     monkeypatch.setattr(manager, "reset_key", lambda idx: None)
 
-    response = httpx.Response(200, json={})
+    response = _response(200, json_body={})
     monkeypatch.setattr(client, "_make_http_request", lambda m, u, h, b: response)
 
     result = client.request("GET", "/test")
@@ -196,3 +215,90 @@ def test_rotate_key_resets_expired_key(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert client.key_index == 1
     mock_reset.assert_called_once_with(1)
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+@pytest.mark.parametrize("method", ["GET", "POST", "PUT", "DELETE"])
+@pytest.mark.parametrize("status_code", [200, 307])
+def test_native_requests(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    legacy: bool,
+    method: str,
+    status_code: int,
+) -> None:
+    requests: list[http.PreparedRequest] = []
+    timeouts: list[object] = []
+
+    def send(adapter: http.adapters.HTTPAdapter, request: http.PreparedRequest, **kwargs: object) -> http.Response:
+        requests.append(request)
+        timeouts.append(kwargs["timeout"])
+        raw = http.packages.urllib3.HTTPResponse(
+            body=BytesIO(b'{"result":"ok"}'),
+            status=status_code,
+            headers={"bitvavo-ratelimit-remaining": "999", "Location": "https://example.invalid/redirect"},
+            preload_content=False,
+        )
+        return adapter.build_response(request, raw)
+
+    monkeypatch.setattr(http.adapters.HTTPAdapter, "send", send)
+    body = {"market": "BTC-EUR", "clientOrderId": "caf\u00e9"} if method in {"POST", "PUT"} else None
+    if legacy:
+        client = Bitvavo({"APIKEY": "k", "APISECRET": "s", "RESTURL": "https://example.invalid/v2"})
+        result = client.private_request("/test", "", body, method)
+        assert result == {"result": "ok"}
+        assert len(requests) == 1
+    else:
+        settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}], rest_url="https://example.invalid/v2")
+        modern_client = HTTPClient(settings, RateLimitManager(settings.default_rate_limit, settings.rate_limit_buffer))
+        result = modern_client.request(method, "/test", body=body)
+        assert isinstance(result, Success if status_code == 200 else Failure)
+        assert len(requests) == 2
+        assert requests[0].url == "https://example.invalid/v2/account"
+
+    request = requests[-1]
+    assert request.method == method
+    assert request.url == "https://example.invalid/v2/test"
+    assert timeouts[-1] == 10.0
+    assert request.headers["bitvavo-access-key"] == "k"
+    message = f"{request.headers['bitvavo-access-timestamp']}{method}/v2/test".encode()
+    if body is not None:
+        assert request.body == json.dumps(body, separators=(",", ":")).encode()
+        assert request.headers["Content-Type"].split(";")[0] == "application/json"
+        message += request.body
+    else:
+        assert request.body is None
+    assert request.headers["bitvavo-access-signature"] == hmac.new(b"s", message, hashlib.sha256).hexdigest()
+
+
+@pytest.mark.parametrize("exception_type", [http.exceptions.ConnectionError, http.exceptions.Timeout])
+def test_native_transport_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    exception_type: Callable[[str], http.exceptions.RequestException],
+) -> None:
+    error = exception_type("Transport failed")
+
+    def send(adapter: object, request: http.PreparedRequest, **kwargs: object) -> http.Response:
+        raise error
+
+    monkeypatch.setattr(http.adapters.HTTPAdapter, "send", send)
+    settings = BitvavoSettings(api_keys=[{"key": "k", "secret": "s"}])
+    client = HTTPClient(settings, RateLimitManager(settings.default_rate_limit, settings.rate_limit_buffer))
+
+    result = client.request("GET", "/test")
+
+    assert isinstance(result, Failure)
+    assert result.failure() is error
+
+
+def test_legacy_public_request_uses_http(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = _response(200, headers={"bitvavo-ratelimit-remaining": "999"}, json_body={"time": 123})
+    with patch.object(http, "get", return_value=response) as get:
+        client = Bitvavo({"APIKEY": "k", "APISECRET": "s"})
+
+        result = client.public_request("https://example.invalid/time")
+
+    assert result == {"time": 123}
+    assert get.call_args.args == ("https://example.invalid/time",)
+    assert get.call_args.kwargs["timeout"] == 10.0
+    assert get.call_args.kwargs["allow_redirects"] is False

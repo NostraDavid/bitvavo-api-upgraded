@@ -5,10 +5,12 @@
 
 from __future__ import annotations
 
+import json
 import time
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
-import httpx
+import niquests as http
 from returns.result import Failure, Result
 from structlog.stdlib import get_logger
 
@@ -159,7 +161,7 @@ class HTTPClient:
         *,
         body: AnyDict | None = None,
         weight: int = 1,
-    ) -> Result[Any, BitvavoError | httpx.HTTPError]:
+    ) -> Result[Any, BitvavoError | http.exceptions.RequestException]:
         """Make HTTP request and return raw JSON data as a Result.
 
         Args:
@@ -172,7 +174,7 @@ class HTTPClient:
             Result containing raw JSON response or error
 
         Raises:
-            HTTPError: On transport-level failures
+            RequestException: On transport-level failures
         """
         logger.debug("making-request", method=method, endpoint=endpoint, weight=weight)
         idx = self.key_index
@@ -212,7 +214,7 @@ class HTTPClient:
         try:
             response = self._make_http_request(method, url, headers, body)
             logger.debug("request-completed", status_code=response.status_code)
-        except httpx.HTTPError as exc:
+        except http.exceptions.RequestException as exc:
             logger.error("http-request-failed", error=str(exc))
             return Failure(exc)
 
@@ -241,14 +243,14 @@ class HTTPClient:
 
             try:
                 response = self._make_http_request("GET", url, headers, None)
-            except httpx.HTTPError as exc:
+            except http.exceptions.RequestException as exc:
                 logger.warning("rate-limit-init-failed", error=str(exc))
                 return
 
             self._update_rate_limits(response, self.key_index)
 
             err_code = ""
-            if response.status_code == httpx.codes.TOO_MANY_REQUESTS:
+            if response.status_code == http.codes.too_many_requests:
                 try:
                     data = response.json()
                 except ValueError:
@@ -257,7 +259,7 @@ class HTTPClient:
                     err = data.get("error")
                     if isinstance(err, dict):
                         err_code = str(err.get("code", ""))
-            if response.status_code == httpx.codes.TOO_MANY_REQUESTS and err_code == "101":
+            if response.status_code == http.codes.too_many_requests and err_code == "101":
                 logger.info("rate-limited-during-init", error_code=err_code)
                 self.rate_limiter.sleep_until_reset(self.key_index)
                 self.rate_limiter.reset_key(self.key_index)
@@ -291,25 +293,39 @@ class HTTPClient:
         url: str,
         headers: dict[str, str],
         body: AnyDict | None,
-    ) -> httpx.Response:
+    ) -> http.Response:
         """Make the actual HTTP request."""
         timeout = self.settings.access_window_ms / 1000
 
         match method:
             case "GET":
-                return httpx.get(url, headers=headers, timeout=timeout)
+                return http.get(url, headers=headers, timeout=timeout, allow_redirects=False)
             case "POST":
-                return httpx.post(url, headers=headers, json=body, timeout=timeout)
+                return http.post(
+                    url,
+                    headers=headers,
+                    json=body,
+                    json_encoder=partial(json.dumps, separators=(",", ":"), allow_nan=False),
+                    timeout=timeout,
+                    allow_redirects=False,
+                )
             case "PUT":
-                return httpx.put(url, headers=headers, json=body, timeout=timeout)
+                return http.put(
+                    url,
+                    headers=headers,
+                    json=body,
+                    json_encoder=partial(json.dumps, separators=(",", ":"), allow_nan=False),
+                    timeout=timeout,
+                    allow_redirects=False,
+                )
             case "DELETE":
-                return httpx.delete(url, headers=headers, timeout=timeout)
+                return http.delete(url, headers=headers, timeout=timeout, allow_redirects=False)
             case _:
                 msg = f"Unsupported HTTP method: {method}"
                 logger.error("unsupported-http-method", method=method)
                 raise ValueError(msg)
 
-    def _update_rate_limits(self, response: httpx.Response, idx: int) -> None:
+    def _update_rate_limits(self, response: http.Response, idx: int) -> None:
         """Update rate limits based on response."""
         try:
             json_data = response.json()
@@ -327,10 +343,10 @@ class HTTPClient:
             logger.debug("successful-response", key_index=idx)
             self.rate_limiter.update_from_headers(idx, dict(response.headers))
 
-    def _is_rate_limit_error(self, response: httpx.Response, json_data: dict[str, Any]) -> bool:
+    def _is_rate_limit_error(self, response: http.Response, json_data: dict[str, Any]) -> bool:
         """Check if response indicates a rate limit error."""
         status = getattr(response, "status_code", None)
-        if status == httpx.codes.TOO_MANY_REQUESTS:
+        if status == http.codes.too_many_requests:
             return True
 
         err = json_data.get("error")

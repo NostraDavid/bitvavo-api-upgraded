@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-import httpx
+import niquests as http
 from returns.result import Failure, Result, Success
 
 from bitvavo_client.adapters.returns_adapter import BitvavoError
@@ -63,7 +63,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError | TypeError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException | TypeError]:
         """Get account information including fees and capabilities.
 
         Endpoint: GET /v2/account
@@ -104,7 +104,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get account balance.
 
         Args:
@@ -132,7 +132,7 @@ class PrivateAPI(BaseAPI):
         response_required: bool = True,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Place a new order.
 
         Args:
@@ -164,7 +164,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get order by ID.
 
         Args:
@@ -203,7 +203,7 @@ class PrivateAPI(BaseAPI):
         response_required: bool | None = None,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Update an existing limit or trigger order.
 
         Args:
@@ -322,7 +322,7 @@ class PrivateAPI(BaseAPI):
         client_order_id: str | None = None,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Cancel an order.
 
         Args:
@@ -340,8 +340,7 @@ class PrivateAPI(BaseAPI):
             client_order_id takes precedence as per Bitvavo documentation.
         """
         if not order_id and not client_order_id:
-            # Create a validation error using httpx.HTTPError as a fallback
-            error = httpx.RequestError("Either order_id or client_order_id must be provided")
+            error = http.exceptions.RequestException("Either order_id or client_order_id must be provided")
             return Failure(error)
 
         # Build query parameters
@@ -372,7 +371,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get orders for a market.
 
         Args:
@@ -435,7 +434,7 @@ class PrivateAPI(BaseAPI):
         market: str | None = None,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Cancel all orders for a market or the entire account.
 
         Args:
@@ -470,7 +469,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get all open orders.
 
         Args:
@@ -502,7 +501,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get market-specific trading fees.
 
         Returns your current trading fees from the Category of the specified market
@@ -560,7 +559,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError | TypeError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException | TypeError]:
         """Get deposit data for making deposits.
 
         Returns wallet or bank account information required to deposit digital or fiat assets.
@@ -604,7 +603,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get deposit history.
 
         Ensures every deposit dict includes a non-empty "address" key (fallback to txId or "unknown").
@@ -631,7 +630,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get withdrawal history.
 
         Args:
@@ -700,7 +699,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[tuple[Any, dict[str, Any]], BitvavoError | httpx.HTTPError]:
+    ) -> Result[tuple[Any, dict[str, Any]], BitvavoError | http.exceptions.RequestException]:
         """Get account transaction history.
 
         Returns all past transactions for your account with pagination support.
@@ -787,7 +786,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Get trade history for your account.
 
         Returns the specified number of past trades for your account, excluding Price Guarantee.
@@ -882,7 +881,7 @@ class PrivateAPI(BaseAPI):
         *,
         model: type[T] | Any | None = None,
         schema: dict | None = None,
-    ) -> Result[T, BitvavoError | httpx.HTTPError]:
+    ) -> Result[T, BitvavoError | http.exceptions.RequestException]:
         """Withdraw assets.
 
         Args:

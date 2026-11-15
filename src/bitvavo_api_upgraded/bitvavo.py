@@ -6,12 +6,13 @@ import json
 import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from functools import partial
 from pathlib import Path
 from threading import Thread
 from typing import TYPE_CHECKING, Any
 
+import niquests as http
 import websocket as ws_lib
-from httpx import delete, get, post, put
 from structlog.stdlib import get_logger
 from websocket import WebSocketApp  # missing stubs for WebSocketApp
 
@@ -541,7 +542,7 @@ class Bitvavo:
             "bitvavo-access-timestamp": str(now),
             "bitvavo-access-window": str(self.ACCESSWINDOW),
         }
-        r = get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000))
+        r = http.get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000), allow_redirects=False)
 
         # Update rate limit for the specific key used
         if "error" in r.json():
@@ -626,13 +627,27 @@ class Bitvavo:
                 },
             )
         if method == "DELETE":
-            r = delete(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000))
+            r = http.delete(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000), allow_redirects=False)
         elif method == "POST":
-            r = post(url, headers=headers, json=body, timeout=(self.ACCESSWINDOW / 1000))
+            r = http.post(
+                url,
+                headers=headers,
+                json=body,
+                json_encoder=partial(json.dumps, separators=(",", ":"), allow_nan=False),
+                timeout=(self.ACCESSWINDOW / 1000),
+                allow_redirects=False,
+            )
         elif method == "PUT":
-            r = put(url, headers=headers, json=body, timeout=(self.ACCESSWINDOW / 1000))
+            r = http.put(
+                url,
+                headers=headers,
+                json=body,
+                json_encoder=partial(json.dumps, separators=(",", ":"), allow_nan=False),
+                timeout=(self.ACCESSWINDOW / 1000),
+                allow_redirects=False,
+            )
         else:  # method == "GET"
-            r = get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000))
+            r = http.get(url, headers=headers, timeout=(self.ACCESSWINDOW / 1000), allow_redirects=False)
 
         # Update rate limit for the specific key used
         if "error" in r.json():

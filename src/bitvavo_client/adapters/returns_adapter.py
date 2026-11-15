@@ -1,7 +1,7 @@
 """Adapter utilities that return `returns.result.Result` types.
 
 This integrates clean Result-based decoding and lightweight request helpers on top
-of httpx, mapping Bitvavo errors to a structured model.
+of niquests, mapping Bitvavo errors to a structured model.
 
 The adapter is optional and doesn't alter the existing facade. Users who prefer
 functional error handling can import and use these utilities directly.
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-import httpx
+import niquests as http
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from returns.result import Failure, Result, Success
@@ -186,7 +186,7 @@ HTTP_STATUS_OK_MAX = 299
 # ---------------------------------------------------------------------------
 
 
-def _json_from_response(resp: httpx.Response) -> dict[str, Any]:
+def _json_from_response(resp: http.Response) -> dict[str, Any]:
     try:
         data = resp.json()  # type: ignore[no-any-return]
         assert isinstance(data, dict), "Expected JSON response to be a dictionary"
@@ -196,7 +196,7 @@ def _json_from_response(resp: httpx.Response) -> dict[str, Any]:
         return data
 
 
-def _map_error(resp: httpx.Response) -> BitvavoError:
+def _map_error(resp: http.Response) -> BitvavoError:
     payload = _json_from_response(resp)
     code = int(payload.get("errorCode", -1))
     message = str(payload.get("error", payload.get("message", "")) or "")
@@ -251,7 +251,7 @@ def _enhance_dataframe_error(exc: Exception, data: Any, schema: Mapping[str, obj
 
 
 def decode_response_result(  # noqa: C901 (complexity)
-    resp: httpx.Response,
+    resp: http.Response,
     model: type[T] | None,
     schema: Mapping[str, object] | None = None,
 ) -> Result[T | Any, BitvavoError]:
@@ -316,15 +316,15 @@ def decode_response_result(  # noqa: C901 (complexity)
 
 
 def get_json_result(
-    client: httpx.Client,
+    client: http.Session,
     path: str,
     *,
     model: type[T],
 ) -> Result[T | dict[str, Any], BitvavoError]:
     url = f"{settings.base_url.rstrip('/')}/{path.lstrip('/')}"
     try:
-        resp = client.get(url, timeout=settings.timeout_seconds)
-    except httpx.HTTPError as exc:
+        resp = client.get(url, timeout=settings.timeout_seconds, allow_redirects=False)
+    except http.exceptions.RequestException as exc:
         logger.error("HTTP request failed: %s", exc)
         return Failure(
             BitvavoError(
@@ -339,7 +339,7 @@ def get_json_result(
 
 
 def post_json_result(
-    client: httpx.Client,
+    client: http.Session,
     path: str,
     payload: dict[str, Any] | None = None,
     *,
@@ -347,8 +347,8 @@ def post_json_result(
 ) -> Result[T | dict[str, Any], BitvavoError]:
     url = f"{settings.base_url.rstrip('/')}/{path.lstrip('/')}"
     try:
-        resp = client.post(url, json=payload or {}, timeout=settings.timeout_seconds)
-    except httpx.HTTPError as exc:
+        resp = client.post(url, json=payload or {}, timeout=settings.timeout_seconds, allow_redirects=False)
+    except http.exceptions.RequestException as exc:
         logger.error("HTTP request failed: %s", exc)
         return Failure(
             BitvavoError(

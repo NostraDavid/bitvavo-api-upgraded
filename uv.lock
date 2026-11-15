@@ -9,19 +9,19 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version < '3.11' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version < '3.11' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and platform_machine == 'aarch64' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 conflicts = [[
@@ -147,14 +147,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/08/3f/23b2643edfae61210baee60eec95873a4ad4fc6a7c096a725f240a0bf4db/atpublic-9.0.0.tar.gz", hash = "sha256:61ea62d8445d2aaa83b6dffaa3d90f99fcec10e16683ee9b13792cdcdafa0966", size = 27443, upload-time = "2026-10-13T01:49:05.987Z" }
@@ -168,6 +168,7 @@ version = "4.4.1"
 source = { editable = "." }
 dependencies = [
     { name = "niquests" },
+    { name = "pydantic" },
     { name = "pydantic-settings", version = "2.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pydantic-settings", version = "2.16.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "returns", version = "0.26.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -183,22 +184,31 @@ cudf = [
     { name = "narwhals" },
 ]
 dask = [
+    { name = "dask" },
     { name = "narwhals", extra = ["dask"] },
 ]
 duckdb = [
+    { name = "duckdb", version = "1.5.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "duckdb", version = "2.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "narwhals", extra = ["duckdb"] },
 ]
 ibis = [
+    { name = "ibis-framework" },
     { name = "narwhals", extra = ["ibis"] },
 ]
 modin = [
+    { name = "modin" },
     { name = "narwhals", extra = ["modin"], marker = "extra == 'extra-20-bitvavo-api-upgraded-cudf' or extra == 'extra-20-bitvavo-api-upgraded-modin' or extra != 'group-20-bitvavo-api-upgraded-dev'" },
 ]
 pandas = [
     { name = "narwhals", extra = ["pandas"] },
+    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11' or extra == 'extra-20-bitvavo-api-upgraded-cudf' or extra == 'extra-20-bitvavo-api-upgraded-modin' or extra != 'group-20-bitvavo-api-upgraded-dev'" },
+    { name = "pandas", version = "3.1.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and extra == 'group-20-bitvavo-api-upgraded-dev') or (extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra == 'group-20-bitvavo-api-upgraded-dev') or (extra == 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev')" },
 ]
 polars = [
     { name = "narwhals", extra = ["polars"] },
+    { name = "polars", version = "1.35.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "polars", version = "1.39.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
 polars-gpu = [
     { name = "cudf-polars-cu12", version = "26.2.1", source = { registry = "https://pypi.nvidia.com/" }, marker = "python_full_version < '3.11'" },
@@ -209,6 +219,9 @@ polars-gpu = [
 ]
 pyarrow = [
     { name = "narwhals", extra = ["pyarrow"] },
+    { name = "pyarrow", version = "23.0.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and extra == 'extra-20-bitvavo-api-upgraded-cudf') or (extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra == 'group-20-bitvavo-api-upgraded-dev') or (extra == 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev')" },
+    { name = "pyarrow", version = "25.0.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pyarrow", version = "26.0.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and extra != 'extra-20-bitvavo-api-upgraded-cudf') or (extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra == 'group-20-bitvavo-api-upgraded-dev') or (extra == 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev')" },
 ]
 pyspark = [
     { name = "narwhals", extra = ["pyspark"] },
@@ -259,6 +272,10 @@ dev = [
 requires-dist = [
     { name = "cudf-cu12", marker = "extra == 'cudf'", specifier = ">=24.0.0", index = "https://pypi.nvidia.com/" },
     { name = "cudf-polars-cu12", marker = "extra == 'polars-gpu'", specifier = ">=24.0.0" },
+    { name = "dask", marker = "extra == 'dask'" },
+    { name = "duckdb", marker = "extra == 'duckdb'" },
+    { name = "ibis-framework", marker = "extra == 'ibis'" },
+    { name = "modin", marker = "extra == 'modin'" },
     { name = "narwhals", marker = "extra == 'cudf'", specifier = ">=2.0.0" },
     { name = "narwhals", marker = "extra == 'polars-gpu'", specifier = ">=2.0.0" },
     { name = "narwhals", extras = ["dask"], marker = "extra == 'dask'", specifier = ">=2.0.0" },
@@ -272,7 +289,11 @@ requires-dist = [
     { name = "narwhals", extras = ["pyspark-connect"], marker = "extra == 'pyspark-connect'", specifier = ">=2.0.0" },
     { name = "narwhals", extras = ["sqlframe"], marker = "extra == 'sqlframe'", specifier = ">=2.0.0" },
     { name = "niquests", specifier = ">=3.21.0" },
+    { name = "pandas", marker = "extra == 'pandas'" },
+    { name = "polars", marker = "extra == 'polars'" },
     { name = "polars", marker = "extra == 'polars-gpu'" },
+    { name = "pyarrow", marker = "extra == 'pyarrow'" },
+    { name = "pydantic", specifier = ">=2.7.0" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "returns", specifier = ">=0.23.0" },
     { name = "structlog", specifier = ">=25.5.0" },
@@ -299,7 +320,7 @@ dev = [
     { name = "pyarrow", marker = "python_full_version < '3.15'", specifier = ">=7.0.0" },
     { name = "pyarrow", marker = "python_full_version >= '3.15'", specifier = ">=26.0.0" },
     { name = "pytest", specifier = ">=6.2.4" },
-    { name = "pytest-cov", specifier = ">=1" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-dotenv", specifier = ">=0.5.2" },
     { name = "pytest-integration", specifier = ">=0.2.2" },
     { name = "pytest-mock", specifier = ">=3.6.1" },
@@ -333,10 +354,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/fb/37/adf8dd2cde958c2d086bdd87fc36b532fd824bf38f10be6348d65da0c8f9/bracex-3.2.tar.gz", hash = "sha256:0a3d40bfae4caae4d3bfd0ea715874799fab711c38fd4012cc35343e815405cd", size = 29771, upload-time = "2026-10-22T00:28:49.508Z" }
@@ -714,10 +735,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d2/79/e78bd8f75a9b8e32233ce92d4607f0a21ce88a9156cace2884e7175a82f5/coverage-7.17.0.tar.gz", hash = "sha256:cc010a0a7fbdd9bb8bdfd0d3f04a5151275860213cbd7e2b876b29778489c712", size = 991021, upload-time = "2026-10-22T16:06:50.009Z" }
@@ -1052,14 +1073,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -1237,14 +1258,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c2/7c/dfdf5e9cebefd032f57f09b224993e861ecb55f61e36c709544b04b44f70/duckdb-2.0.0.tar.gz", hash = "sha256:09de511ef0dc76a5213e8d3d87a8b89bb4d3e8a6fe73a9f60dc001269946b44f", size = 16771077, upload-time = "2026-10-21T12:51:13.908Z" }
@@ -1310,10 +1331,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d8/28/3893324bcadf8f89b1616637468d766af3f625008c0735bf704fdfa86617/filelock-4.2.4.tar.gz", hash = "sha256:c6d8663535e1650ee430507b4ffbac7b464dd64b7647ea0112a9f406499d163d", size = 652444, upload-time = "2026-10-19T01:57:51.001Z" }
@@ -1474,8 +1495,8 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'win32'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -1518,10 +1539,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -1734,14 +1755,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -1783,14 +1804,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -1846,14 +1867,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -2114,10 +2135,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f4/32/0b4d0297064244f04af4331b65de16237cc3cce07474171ee14222a28981/markdown-3.11.2.tar.gz", hash = "sha256:87bf5d90f2d2882e2c02fcda182c2800456b985bff38913867c49706481514b0", size = 491445, upload-time = "2026-10-19T19:41:42.687Z" }
@@ -2398,14 +2419,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/52/b8/c63995bebbb9ac9c059350e0fb8c82c2420c85aeca7d34e40aecf3df9281/more_itertools-11.2.1.tar.gz", hash = "sha256:cbf08fd0af284dc69718b9b76a8e6203df624d70209ea511e4219d350c856f63", size = 154133, upload-time = "2026-10-14T18:50:30.407Z" }
@@ -2781,10 +2802,10 @@ name = "numpy"
 version = "2.4.6"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
+    "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
@@ -3017,14 +3038,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 wheels = [
@@ -3098,14 +3119,14 @@ name = "pandas"
 version = "2.3.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version < '3.11' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version < '3.11' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and platform_machine == 'aarch64' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and platform_machine == 'x86_64' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and platform_machine != 'aarch64' and platform_machine != 'x86_64' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version < '3.11' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -3179,10 +3200,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -3280,10 +3301,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -3350,10 +3371,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/58/e6/d0abbb256b44e6a05748c6942511ff67db8dbb068de0c35b24bf1b395b09/platformdirs-4.13.5.tar.gz", hash = "sha256:05831adf87d392760f4b5c3a0a95579ab5a10b18b9b9bd43680dcb47544788a0", size = 62362, upload-time = "2026-10-19T01:02:11.778Z" }
@@ -3401,14 +3422,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -3452,14 +3473,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/17/39/c8688696bc22b6c501e3b82ef3be10e543c07a785af5660f30997cd22dd2/polars_runtime_32-1.39.3.tar.gz", hash = "sha256:c728e4f469cafab501947585f36311b8fb222d3e934c6209e83791e0df20b29d", size = 2872335, upload-time = "2026-03-20T11:16:26.581Z" }
@@ -3697,12 +3718,12 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/bc/5e/9cb2a56d5e293aab4e2fbecc5b0620d93227d66b8d5a63c554c31e1f80fe/pyarrow-26.0.1.tar.gz", hash = "sha256:93affcbd8a343e98dc19e9ec8fe17271ebf8fe98102d8b7454175074409f8b72", size = 1237985, upload-time = "2026-11-03T10:54:17.563Z" }
@@ -3962,14 +3983,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -4034,14 +4055,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -4083,10 +4104,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -4494,14 +4515,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -4579,14 +4600,14 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
-    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version >= '3.12' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'extra-20-bitvavo-api-upgraded-modin' and extra == 'group-20-bitvavo-api-upgraded-dev'",
+    "python_full_version == '3.11.*' and extra == 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
     "python_full_version == '3.11.*' and extra != 'extra-20-bitvavo-api-upgraded-cudf' and extra != 'group-20-bitvavo-api-upgraded-dev'",
 ]
 dependencies = [
@@ -4808,10 +4829,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -4859,10 +4880,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -4902,10 +4923,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
@@ -5109,10 +5130,10 @@ resolution-markers = [
     "python_full_version == '3.14.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.14.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'win32'",
+    "python_full_version == '3.11.*' and sys_platform == 'emscripten'",
     "python_full_version == '3.11.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [

@@ -14,6 +14,9 @@ update:
 lint:
     uv run --locked ruff check src tests
 
+dependency-check:
+    uv run --locked deptry src/
+
 format:
     uv run --locked ruff format src tests
 
@@ -32,7 +35,7 @@ test:
 build:
     uv build
 
-check: format-check test build
+check: format-check dependency-check test build
 
 hooks:
     uv run --locked prek install

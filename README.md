@@ -1028,7 +1028,7 @@ Dask using an explicit string schema.
 Modin and cuDF require older dataframe versions. Their extras cannot be combined
 with the development group.
 
-`just check` runs the format check, offline tests and package builds.
+`just check` runs the format check, dependency check, offline tests and package builds.
 `just update` refreshes Python and Nix locks. `just lint` runs the full Ruff
 policy separately and still fails on remaining copyright-notice and positional-
 argument policy findings. Changed Python files retain the existing ISC notice

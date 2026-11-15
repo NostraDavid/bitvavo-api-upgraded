@@ -39,6 +39,7 @@ classifiers = [
 ]
 dependencies = [
     "niquests>=3.21.0",
+    "pydantic>=2.7.0",
     "pydantic-settings >=2.6", # to handle settings
     "returns>=0.23.0",         # for functional programming
     "structlog>=25.5.0",         # for logging
@@ -64,19 +65,19 @@ url = "https://pypi.nvidia.com"
 [tool.uv.sources]
 cudf-cu12 = { index = "nvidia" }
 
-# versions based on https://github.com/narwhals-dev/narwhals/blob/main/pyproject.toml#L37-L47
+# Backend version bounds come from the corresponding Narwhals extras.
 [project.optional-dependencies]
 cudf = ["cudf-cu12>=24.0.0", "narwhals>=2.0.0"]
-dask = ["narwhals[dask]>=2.0.0"]
-duckdb = ["narwhals[duckdb]>=2.0.0"]
-ibis = ["narwhals[ibis]>=2.0.0"]
-modin = ["narwhals[modin]>=2.0.0"]
-pandas = ["narwhals[pandas]>=2.0.0"]
-polars = ["narwhals[polars]>=2.0.0"]
+dask = ["dask", "narwhals[dask]>=2.0.0"]
+duckdb = ["duckdb", "narwhals[duckdb]>=2.0.0"]
+ibis = ["ibis-framework", "narwhals[ibis]>=2.0.0"]
+modin = ["modin", "narwhals[modin]>=2.0.0"]
+pandas = ["narwhals[pandas]>=2.0.0", "pandas"]
+polars = ["narwhals[polars]>=2.0.0", "polars"]
 polars-gpu = ["cudf-polars-cu12>=24.0.0", "polars", "narwhals>=2.0.0"]
 # this may work as well - test later
 # polars-gpu = ["polars[gpu]", "narwhals>=2.0.0"]
-pyarrow = ["narwhals[pyarrow]>=2.0.0"]
+pyarrow = ["narwhals[pyarrow]>=2.0.0", "pyarrow"]
 pyspark = ["narwhals[pyspark]>=2.0.0"]
 pyspark-connect = ["narwhals[pyspark-connect]>=2.0.0"]
 sqlframe = ["narwhals[sqlframe]>=2.0.0"]
@@ -91,7 +92,7 @@ changelog = "https://github.com/Thaumatorium/bitvavo-api-upgraded/blob/master/CH
 dev = [
     "bump-my-version>=0.28.1",   # for version management of the lib
     "coverage[toml]>=7.6.9",     # for checking coverage; use this in tox vs pytest-cov, since pytest-cov does NOT play well with vscode
-    "deptry>=0.21.0",
+    "deptry>=0.21.0",            # for checking for unused dependencies
     "duckdb>=1.0.0",             # DuckDB for testing (lightweight)
     "eval-type-backport>=0.2.2", # eval type for mypy
     "mdformat>=0.7.11",          # for formatting markdown (.md) documents
@@ -102,10 +103,10 @@ dev = [
     "pandas>=2.0.0; python_version < '3.15'", # pandas support for testing
     "pandas>=3.0.6; python_version >= '3.15'",
     "polars>=1.0.0",             # polars support for testing
-    "prek>=0.2.0",
+    "prek>=0.2.0",               # for testing pre-commit hooks
     "pyarrow>=7.0.0; python_version < '3.15'", # Arrow tables for testing
     "pyarrow>=26.0.0; python_version >= '3.15'",
-    "pytest-cov>=1",             # though this was the initial choice over coverage.py, turns out it fucks with vscode debugging, so now it only exists so we can still run tests with coverage within vscode
+    "pytest-cov>=7.0.0",             # though this was the initial choice over coverage.py, turns out it fucks with vscode debugging, so now it only exists so we can still run tests with coverage within vscode
     "pytest-dotenv>=0.5.2",      # for loading environment variables from .env files in tests
     "pytest-integration>=0.2.2", # for @mark additions
     "pytest-mock>=3.6.1",        # for the `mocker` MockerFixture fixture
@@ -115,6 +116,15 @@ dev = [
     "tox>=3.24.4",               # run `tox` to test everything
     "uv>=0.13.4",                # project manager (building, version bump, etc.)
 ]
+
+[tool.deptry.package_module_name_map]
+cudf-cu12 = "cudf"
+cudf-polars-cu12 = "cudf_polars"
+ibis-framework = "ibis"
+
+[tool.deptry.per_rule_ignores]
+# Polars imports its optional GPU engine dynamically.
+DEP002 = ["cudf-polars-cu12"]
 
 [tool.bumpversion]
 current_version = "4.4.1"

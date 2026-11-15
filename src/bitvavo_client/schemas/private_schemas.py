@@ -42,8 +42,8 @@ ORDER_SCHEMA: dict[str, type[pl.String | pl.Int64 | pl.Boolean | pl.Categorical 
                 "fee": pl.String,
                 "feeCurrency": pl.Categorical,
                 "settled": pl.Boolean,
-            }
-        )
+            },
+        ),
     ),
     "feePaid": pl.Float64,
     "feeCurrency": pl.Categorical,

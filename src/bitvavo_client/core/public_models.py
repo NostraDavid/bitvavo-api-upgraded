@@ -614,7 +614,12 @@ class Candle(BaseModel):
             raise ValueError(msg)
         timestamp, open, high, low, close, volume = ohlcv[:6]  # noqa: A001
         return cls(
-            timestamp=int(timestamp), open=str(open), high=str(high), low=str(low), close=str(close), volume=str(volume)
+            timestamp=int(timestamp),
+            open=str(open),
+            high=str(high),
+            low=str(low),
+            close=str(close),
+            volume=str(volume),
         )
 
     def to_ohlcv(self) -> list:
@@ -655,7 +660,7 @@ class Candles(RootModel[list[Candle]]):
                         "low": str(low),
                         "close": str(close),
                         "volume": str(volume),
-                    }
+                    },
                 )
             else:
                 out.append(item)
@@ -996,7 +1001,13 @@ class TradeReportEntry(BaseModel):
     )
 
     @field_validator(
-        "trade_id", "asset_code", "asset_name", "price_currency", "quantity_currency", "venue", "publication_venue"
+        "trade_id",
+        "asset_code",
+        "asset_name",
+        "price_currency",
+        "quantity_currency",
+        "venue",
+        "publication_venue",
     )
     @classmethod
     def _non_empty_str(cls, v: str) -> str:

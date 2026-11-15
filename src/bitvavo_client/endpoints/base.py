@@ -89,7 +89,10 @@ def _get_dataframe_constructor(preference: ModelPreference) -> tuple[Any, str]: 
 
 
 def _create_dataframe_with_constructor(  # noqa: C901 (is too complex)
-    constructor: Any, library_name: str, df_data: list | dict, empty_schema: dict | None
+    constructor: Any,
+    library_name: str,
+    df_data: list | dict,
+    empty_schema: dict | None,
 ) -> Any:
     """Create DataFrame with data using the appropriate constructor."""
 
@@ -183,7 +186,11 @@ def _apply_pandas_like_schema(df: Any, schema: dict) -> Any:
 
 
 def _create_dataframe_from_data(
-    data: Any, preference: ModelPreference, *, items_key: str | None = None, empty_schema: dict[str, Any] | None = None
+    data: Any,
+    preference: ModelPreference,
+    *,
+    items_key: str | None = None,
+    empty_schema: dict[str, Any] | None = None,
 ) -> Result[Any, BitvavoError]:
     """Create a DataFrame from API response data using the specified preference."""
     try:

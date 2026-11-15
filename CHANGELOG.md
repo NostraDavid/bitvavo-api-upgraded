@@ -203,7 +203,7 @@ from bitvavo_api_upgraded.settings import bitvavo_settings
 # Or programmatically
 bitvavo_settings.APIKEYS = [
     {"key": "your_api_key_1", "secret": "your_api_secret_1"},
-    {"key": "your_api_key_2", "secret": "your_api_secret_2"}
+    {"key": "your_api_key_2", "secret": "your_api_secret_2"},
 ]
 
 bitvavo = Bitvavo(**bitvavo_settings.model_dump())
@@ -369,12 +369,7 @@ up-to-date with version [2.9.0](https://docs.bitvavo.com/releases/v2.9.0/).
 
 ```python
 # Before (v1.17.2 and earlier)
-bitvavo.placeOrder(
-    market="BTC-EUR",
-    side="buy",
-    orderType="limit",
-    body={"amount": "0.1", "price": "50000"}
-)
+bitvavo.placeOrder(market="BTC-EUR", side="buy", orderType="limit", body={"amount": "0.1", "price": "50000"})
 
 # After (v2.0.0+)
 bitvavo.placeOrder(
@@ -382,7 +377,7 @@ bitvavo.placeOrder(
     side="buy",
     orderType="limit",
     body={"amount": "0.1", "price": "50000"},
-    operatorId=12345  # Your operator ID
+    operatorId=12345,  # Your operator ID
 )
 ```
 
@@ -391,20 +386,12 @@ bitvavo.placeOrder(
 ```python
 # Generate trade report
 trades = bitvavo.reportTrades(
-    market="BTC-EUR",
-    options={
-        "startDate": "2025-01-01T00:00:00.000Z",
-        "endDate": "2025-01-31T23:59:59.999Z"
-    }
+    market="BTC-EUR", options={"startDate": "2025-01-01T00:00:00.000Z", "endDate": "2025-01-31T23:59:59.999Z"}
 )
 
 # Generate order book report
 book_report = bitvavo.reportBook(
-    market="BTC-EUR",
-    options={
-        "startDate": "2025-01-01T00:00:00.000Z",
-        "endDate": "2025-01-31T23:59:59.999Z"
-    }
+    market="BTC-EUR", options={"startDate": "2025-01-01T00:00:00.000Z", "endDate": "2025-01-31T23:59:59.999Z"}
 )
 
 # Get account history

@@ -36,7 +36,9 @@ class PlaceOrderRequest(BaseModel):
     post_only: bool | None = Field(None, alias="postOnly", description="Post-only flag")
     self_trade_prevention: str | None = Field(None, alias="selfTradePrevention", description="Self-trade prevention")
     disable_market_protection: bool | None = Field(
-        None, alias="disableMarketProtection", description="Disable market protection (deprecated, must be false)"
+        None,
+        alias="disableMarketProtection",
+        description="Disable market protection (deprecated, must be false)",
     )
     response_required: bool | None = Field(None, alias="responseRequired", description="Response required flag")
 
@@ -98,7 +100,9 @@ class UpdateOrderRequest(BaseModel):
     # Either orderId or clientOrderId must be provided
     order_id: str | None = Field(None, alias="orderId", description="Bitvavo identifier of the order to update")
     client_order_id: str | None = Field(
-        None, alias="clientOrderId", description="Your identifier of the order to update"
+        None,
+        alias="clientOrderId",
+        description="Your identifier of the order to update",
     )
 
     # Optional update fields
@@ -109,7 +113,9 @@ class UpdateOrderRequest(BaseModel):
     trigger_amount: str | None = Field(None, alias="triggerAmount", description="Trigger amount as string")
     time_in_force: Literal["GTC", "IOC", "FOK"] | None = Field(None, alias="timeInForce", description="Time in force")
     self_trade_prevention: Literal["decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"] | None = Field(
-        None, alias="selfTradePrevention", description="Self-trade prevention"
+        None,
+        alias="selfTradePrevention",
+        description="Self-trade prevention",
     )
     post_only: bool | None = Field(None, alias="postOnly", description="Post-only flag")
     response_required: bool | None = Field(None, alias="responseRequired", description="Response required flag")
@@ -346,7 +352,9 @@ class Order(BaseModel):
     # Optional fields that may not be present in all order responses
     client_order_id: str | None = Field(None, alias="clientOrderId", description="Client-provided order ID")
     self_trade_prevention: str | None = Field(
-        None, alias="selfTradePrevention", description="Self trade prevention setting"
+        None,
+        alias="selfTradePrevention",
+        description="Self trade prevention setting",
     )
     visible: bool | None = Field(None, description="Whether order is visible in order book")
     on_hold: str | None = Field(None, alias="onHold", description="Amount on hold as string")
@@ -362,22 +370,32 @@ class Order(BaseModel):
     amount_remaining: str | None = Field(None, alias="amountRemaining", description="Remaining amount as string")
     filled_amount: str | None = Field(None, alias="filledAmount", description="Filled amount as string")
     filled_amount_quote: str | None = Field(
-        None, alias="filledAmountQuote", description="Filled quote amount as string"
+        None,
+        alias="filledAmountQuote",
+        description="Filled quote amount as string",
     )
     amount_quote: str | None = Field(
-        None, alias="amountQuote", description="Quote amount as string (for market orders)"
+        None,
+        alias="amountQuote",
+        description="Quote amount as string (for market orders)",
     )
     amount_quote_remaining: str | None = Field(
-        None, alias="amountQuoteRemaining", description="Remaining quote amount as string"
+        None,
+        alias="amountQuoteRemaining",
+        description="Remaining quote amount as string",
     )
     created_ns: int | None = Field(None, alias="createdNs", description="Creation timestamp in nanoseconds")
     updated_ns: int | None = Field(None, alias="updatedNs", description="Last update timestamp in nanoseconds")
     disable_market_protection: bool | None = Field(
-        None, alias="disableMarketProtection", description="Whether market protection is disabled"
+        None,
+        alias="disableMarketProtection",
+        description="Whether market protection is disabled",
     )
     trigger_price: str | None = Field(None, alias="triggerPrice", description="Calculated trigger price as string")
     trigger_amount: str | None = Field(
-        None, alias="triggerAmount", description="User-specified trigger amount as string"
+        None,
+        alias="triggerAmount",
+        description="User-specified trigger amount as string",
     )
     trigger_type: str | None = Field(None, alias="triggerType", description="Type of trigger (e.g., 'price')")
     trigger_reference: str | None = Field(
@@ -386,7 +404,9 @@ class Order(BaseModel):
         description="Price reference for triggering (lastTrade, bestBid, bestAsk, midPrice)",
     )
     restatement_reason: str | None = Field(
-        None, alias="restatementReason", description="Reason for order status change (e.g., cancellation reason)"
+        None,
+        alias="restatementReason",
+        description="Reason for order status change (e.g., cancellation reason)",
     )
 
     @field_validator("side")
@@ -474,7 +494,9 @@ class CancelOrderResponse(BaseModel):
 
     order_id: str = Field(..., alias="orderId", description="Bitvavo identifier of the cancelled order")
     client_order_id: str | None = Field(
-        None, alias="clientOrderId", description="Your identifier of the cancelled order"
+        None,
+        alias="clientOrderId",
+        description="Your identifier of the cancelled order",
     )
     operator_id: int = Field(..., alias="operatorId", description="Operator ID")
 
@@ -743,7 +765,8 @@ class Deposit(BaseModel):
     # For fiat
     iban: str | None = Field(None, description="International bank account number where to deposit assets")
     bic: str | None = Field(
-        None, description="Bank identification code sometimes necessary for international transfers"
+        None,
+        description="Bank identification code sometimes necessary for international transfers",
     )
     description: str | None = Field(None, description="Description which must be used for the deposit")
 
@@ -776,7 +799,9 @@ class TransactionHistoryItem(BaseModel):
 
     transaction_id: str = Field(..., alias="transactionId", description="The unique identifier of the transaction")
     executed_at: str = Field(
-        ..., alias="executedAt", description="The Unix timestamp when the transaction was executed"
+        ...,
+        alias="executedAt",
+        description="The Unix timestamp when the transaction was executed",
     )
     type: Literal[
         "sell",
@@ -795,21 +820,31 @@ class TransactionHistoryItem(BaseModel):
         "manually_assigned_bitvavo",
     ] = Field(..., description="The type of transaction")
     price_currency: str | None = Field(
-        None, alias="priceCurrency", description="The currency in which the transaction was made"
+        None,
+        alias="priceCurrency",
+        description="The currency in which the transaction was made",
     )
     price_amount: str | None = Field(None, alias="priceAmount", description="The amount of the transaction")
     sent_currency: str | None = Field(
-        None, alias="sentCurrency", description="The currency that was sent in the transaction"
+        None,
+        alias="sentCurrency",
+        description="The currency that was sent in the transaction",
     )
     sent_amount: str | None = Field(None, alias="sentAmount", description="The amount that was sent in the transaction")
     received_currency: str | None = Field(
-        None, alias="receivedCurrency", description="The currency that was received in the transaction"
+        None,
+        alias="receivedCurrency",
+        description="The currency that was received in the transaction",
     )
     received_amount: str | None = Field(
-        None, alias="receivedAmount", description="The amount that was received in the transaction"
+        None,
+        alias="receivedAmount",
+        description="The amount that was received in the transaction",
     )
     fees_currency: str | None = Field(
-        None, alias="feesCurrency", description="The currency in which the fees were paid"
+        None,
+        alias="feesCurrency",
+        description="The currency in which the fees were paid",
     )
     fees_amount: str | None = Field(None, alias="feesAmount", description="The amount of fees paid in the transaction")
     address: str | None = Field(None, description="The address where the transaction was made")

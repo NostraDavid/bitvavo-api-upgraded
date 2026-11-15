@@ -265,7 +265,7 @@ class TestConvertCandlesToDataframe:
                 "low": "49000",
                 "close": "50500",
                 "volume": "10.5",
-            }
+            },
         ]
 
         mock_polars = Mock()
@@ -352,7 +352,7 @@ class TestConvertCandlesToDataframe:
                 "low": "49000",
                 "close": "50500",
                 "volume": "10.5",
-            }
+            },
         ]
 
         mock_pandas = Mock()

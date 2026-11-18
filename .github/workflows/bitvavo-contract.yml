@@ -1,0 +1,18 @@
+---
+name: Check Bitvavo API contract
+"on":
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  upstream:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version-file: .python-version
+      - name: Check official schema and Exchange releases
+        run: python scripts/check_bitvavo_contract.py

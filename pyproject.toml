@@ -115,6 +115,8 @@ dev = [
     "tox-uv>=1.16.0",            # to ensure tox can use uv
     "tox>=3.24.4",               # run `tox` to test everything
     "uv>=0.13.4",                # project manager (building, version bump, etc.)
+    "connexion>=3.0.0",
+    "starlette>=1.7.0",
 ]
 
 [tool.deptry.package_module_name_map]
@@ -373,6 +375,7 @@ ignore = [
     "FBT003",  # (boolean-positional-value-in-call) - same as N802
     "T201",    # (print)
     "PLR0913", # (too-many-arguments) Bitvavo API simply has a lot of arguments.
+    "CPY001",  # Missing copyright notice at top of file
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.

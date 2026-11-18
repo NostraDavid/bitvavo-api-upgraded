@@ -972,7 +972,7 @@ class Bitvavo:
         result = self.public_request(f"{self.base}/{market}/trades{postfix}", 5)  # type: ignore[return-value]
         return convert_to_dataframe(result, output_format)
 
-    def candles(
+    def candles(  # noqa: PLR0917
         self,
         market: str,
         interval: str,
@@ -1812,14 +1812,15 @@ class Bitvavo:
         ---
         Args:
         ```python
-        options={} # WARNING - WILL REMOVE ALL OPEN ORDERS ON YOUR ACCOUNT!
-        options={"market":"BTC-EUR"}  # Removes all open orders for this market
+        options={"operatorId": 123} # WARNING - WILL REMOVE ALL OPEN ORDERS ON YOUR ACCOUNT!
+        options={"market":"BTC-EUR", "operatorId": 123}  # Removes all open orders for this market
         ```
 
         ---
         Rate Limit Weight:
         ```python
-        1
+        100  # without market
+        25  # with market
         ```
 
         ---
@@ -1832,7 +1833,8 @@ class Bitvavo:
         ```
         """
         postfix = create_postfix(options)
-        return self.private_request("/orders", postfix, {}, "DELETE")  # type: ignore[return-value]
+        weight = 25 if options and "market" in options else 100
+        return self.private_request("/orders", postfix, {}, "DELETE", weight)  # type: ignore[return-value]
 
     def orders_open(self, options: anydict | None = None) -> list[anydict] | errordict:
         """Get all open orders, either for all markets, or a single market
@@ -1847,8 +1849,8 @@ class Bitvavo:
         ---
         Rate Limit Weight:
         ```python
-        25  # if no market option is used
-        1  # if a market option is used
+        100  # if no market option is used
+        5  # if a market option is used
         ```
 
         ---
@@ -1900,9 +1902,9 @@ class Bitvavo:
         ```
         """
         options = default(options, {})
-        rateLimitingWeight = 25
+        rateLimitingWeight = 100
         if "market" in options:
-            rateLimitingWeight = 1
+            rateLimitingWeight = 5
         postfix = create_postfix(options)
         return self.private_request("/ordersOpen", postfix, {}, "GET", rateLimitingWeight)  # type: ignore[return-value]
 
@@ -3098,7 +3100,7 @@ class Bitvavo:
             options["action"] = "getTicker24h"
             self.do_send(self.ws, json.dumps(options))
 
-        def place_order(
+        def place_order(  # noqa: PLR0917
             self,
             market: str,
             side: str,

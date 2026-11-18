@@ -1,0 +1,42 @@
+{
+  "schema": "exchange-2026-08-07/private.openapi.json",
+  "source_url": "https://docs.bitvavo.com/api-specs/exchange-rest-api.yaml",
+  "source_sha256": "96e52d9f671afe5c877b32f58f7f8ccd3df0aa6e38501dafd7b8cb32c78e0374",
+  "releases_url": "https://docs.bitvavo.com/releases/feed.json",
+  "latest_exchange_release": "https://docs.bitvavo.com/releases/2026-08-07-exchange/",
+  "reviewed_on": "2026-11-15",
+  "release_regressions": {
+    "2025-05-08": "Inactive or missing orders return HTTP 404 / errorCode 240.",
+    "2025-06-30": "operatorId is required for order mutations; orderId/tradeId pagination parameters were removed.",
+    "2025-09-28": "Order prices must be multiples of tickSize.",
+    "2026-05-19": "Mass cancel costs 25/100 and open orders costs 5/100 weight points.",
+    "2026-08-07": "Private trade responses contain operatorId."
+  },
+  "rate_limit_weights": {
+    "GET /account": 1,
+    "GET /balance": 5,
+    "POST /order": 1,
+    "PUT /order": 1,
+    "GET /order": 1,
+    "DELETE /order": 1,
+    "GET /orders": 5,
+    "DELETE /orders": {
+      "market": 25,
+      "all": 100
+    },
+    "GET /ordersOpen": {
+      "market": 5,
+      "all": 100
+    },
+    "GET /trades": 5,
+    "GET /deposit": 1,
+    "GET /depositHistory": 5,
+    "POST /withdrawal": 1,
+    "GET /withdrawalHistory": 5,
+    "GET /account/fees": 1,
+    "GET /account/history": 1
+  },
+  "schema_sha256": "2d009fdbcbebf923104674a3b519c6aa82a196dbf0bbc7cbe29f6fec23883c54",
+  "contract_version": "exchange-2026-08-07",
+  "openapi_info_version": "2.10.0"
+}

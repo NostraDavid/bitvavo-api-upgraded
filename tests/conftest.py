@@ -14,3 +14,4 @@ def block_network(monkeypatch: pytest.MonkeyPatch) -> None:
         pytest.fail("Unit tests must mock network connections")
 
     monkeypatch.setattr(socket.socket, "connect", fail_connect)
+    monkeypatch.setattr(socket, "getaddrinfo", fail_connect)

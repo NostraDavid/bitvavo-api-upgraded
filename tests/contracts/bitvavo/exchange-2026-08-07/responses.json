@@ -1,0 +1,140 @@
+{
+  "order": {
+    "orderId": "00000000-0000-4000-8000-000000000001",
+    "clientOrderId": "00000000-0000-4000-8000-000000000002",
+    "market": "BTC-EUR",
+    "created": 1794700000000,
+    "updated": 1794700000000,
+    "createdNs": 1794700000000000000,
+    "updatedNs": 1794700000000000000,
+    "status": "new",
+    "side": "buy",
+    "orderType": "limit",
+    "amount": "0.01",
+    "amountRemaining": "0.01",
+    "price": "100",
+    "operatorId": 123,
+    "feePaid": "0",
+    "feeCurrency": "EUR",
+    "filledAmount": "0",
+    "filledAmountQuote": "0",
+    "fills": [],
+    "timeInForce": "GTC",
+    "postOnly": false,
+    "selfTradePrevention": "decrementAndCancel",
+    "visible": true
+  },
+  "GET /account": {
+    "fees": {
+      "tier": 0,
+      "volume": "0",
+      "maker": "0.0015",
+      "taker": "0.0025"
+    },
+    "capabilities": [
+      "buy",
+      "sell",
+      "depositCrypto",
+      "depositFiat",
+      "withdrawCrypto",
+      "withdrawFiat"
+    ]
+  },
+  "GET /balance": [
+    {
+      "symbol": "EUR",
+      "available": "1000",
+      "inOrder": "0"
+    },
+    {
+      "symbol": "BTC",
+      "available": "0.5",
+      "inOrder": "0.01"
+    }
+  ],
+  "GET /account/fees": {
+    "tier": "0",
+    "volume": "0",
+    "maker": "0.0015",
+    "taker": "0.0025"
+  },
+  "GET /deposit": {
+    "address": "offline-wallet",
+    "paymentid": "offline-memo"
+  },
+  "GET /depositHistory": [
+    {
+      "timestamp": 1794700000000,
+      "symbol": "BTC",
+      "amount": "0.01",
+      "fee": "0",
+      "address": "offline-wallet",
+      "paymentId": "offline-memo",
+      "txId": "offline-deposit"
+    }
+  ],
+  "GET /withdrawalHistory": [
+    {
+      "timestamp": 1794700000000,
+      "symbol": "BTC",
+      "amount": "0.01",
+      "fee": "0",
+      "status": "completed",
+      "address": "offline-wallet",
+      "paymentId": "offline-memo",
+      "txId": "offline-withdrawal"
+    }
+  ],
+  "GET /trades": [
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "orderId": "00000000-0000-4000-8000-000000000001",
+      "clientOrderId": "00000000-0000-4000-8000-000000000002",
+      "operatorId": 123,
+      "timestamp": 1794700000000,
+      "market": "BTC-EUR",
+      "side": "buy",
+      "amount": "0.01",
+      "price": "100",
+      "taker": true,
+      "fee": "0.001",
+      "feeCurrency": "EUR",
+      "settled": true
+    }
+  ],
+  "GET /account/history": {
+    "items": [
+      {
+        "transactionId": "00000000-0000-4000-8000-000000000003",
+        "executedAt": "2026-11-15T00:00:00.000Z",
+        "type": "deposit",
+        "priceCurrency": "EUR",
+        "priceAmount": "100",
+        "sentCurrency": "EUR",
+        "sentAmount": "100",
+        "receivedCurrency": "BTC",
+        "receivedAmount": "0.01",
+        "feesCurrency": "EUR",
+        "feesAmount": "0",
+        "address": "offline-wallet"
+      },
+      {
+        "transactionId": "00000000-0000-4000-8000-000000000004",
+        "executedAt": "2026-11-15T00:00:00.000Z",
+        "type": "withdrawal",
+        "priceCurrency": "EUR",
+        "priceAmount": "100",
+        "sentCurrency": "EUR",
+        "sentAmount": "100",
+        "receivedCurrency": "BTC",
+        "receivedAmount": "0.01",
+        "feesCurrency": "EUR",
+        "feesAmount": "0",
+        "address": "offline-wallet"
+      }
+    ],
+    "currentPage": 1,
+    "totalPages": 1,
+    "maxItems": 100
+  }
+}

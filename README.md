@@ -1021,9 +1021,16 @@ endpoints do not require authentication.
 Install devenv and direnv, then run `direnv allow`, `just sync` and `just check`.
 The development shell uses Python 3.15. `just test` runs mocked unit tests from a
 temporary working directory so repository `.env` files are not loaded. It clears
-inherited `BITVAVO_` settings and blocks network connections. Live API endpoint
-tests are excluded. Synthetic endpoint tests cover Pandas, Polars, PyArrow and
-Dask using an explicit string schema.
+inherited `BITVAVO_` settings and blocks socket connections and DNS lookups.
+Private endpoint tests use an in-process Connexion provider with synthetic
+credentials and a pinned Bitvavo OpenAPI contract. Public live API tests remain
+excluded. Synthetic endpoint tests cover Pandas, Polars, PyArrow and Dask using
+an explicit string schema.
+
+`just contract-check` detects changes in the official schema and Exchange API
+releases. A weekly workflow runs the same read-only check. See the
+[private API contract notes](tests/contracts/bitvavo/README.md) for the reviewed
+version, documented schema corrections and update procedure.
 
 Modin and cuDF require older dataframe versions. Their extras cannot be combined
 with the development group.

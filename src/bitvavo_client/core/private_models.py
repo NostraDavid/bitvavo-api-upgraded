@@ -512,6 +512,10 @@ class Trade(BaseModel):
     )
 
     id: str = Field(..., description="Trade ID")
+    order_id: str | None = Field(None, alias="orderId", description="Bitvavo order ID")
+    client_order_id: str | None = Field(None, alias="clientOrderId", description="Client order ID")
+    operator_id: int | None = Field(None, alias="operatorId", description="Trader or bot identifier")
+    taker: bool | None = Field(None, description="Whether the trade took liquidity")
     timestamp: int = Field(..., description="Trade timestamp in milliseconds")
     amount: str = Field(..., description="Trade amount as string")
     price: str = Field(..., description="Trade price as string")
@@ -585,7 +589,7 @@ class DepositHistory(BaseModel):
     symbol: str = Field(..., description="Asset symbol (e.g. 'EUR', 'BTC')")
     amount: str = Field(..., description="Deposit amount as string")
     fee: str = Field(..., description="Deposit fee as string")
-    status: str = Field(..., description="Deposit status (completed, pending, etc.)")
+    status: str | None = Field(None, description="Deposit status when provided")
     address: str | None = Field(None, description="Deposit address")
 
     # Optional fields
@@ -650,6 +654,7 @@ class Withdrawal(BaseModel):
     address: str = Field(..., description="Withdrawal address")
 
     # Optional fields
+    payment_id: str | None = Field(None, alias="paymentId", description="Withdrawal payment ID")
     tx_id: str | None = Field(None, alias="txId", description="Transaction ID (for crypto withdrawals)")
 
     @field_validator("amount", "fee")
@@ -818,6 +823,16 @@ class TransactionHistoryItem(BaseModel):
         "loan",
         "external_transferred_funds",
         "manually_assigned_bitvavo",
+        "manually_assigned",
+        "margin_loan_collateral_deposit",
+        "margin_loan_collateral_return",
+        "margin_loan_borrow",
+        "margin_loan_repay",
+        "margin_loan_interest",
+        "margin_loan_liquidation",
+        "convert_buy",
+        "convert_sell",
+        "transfer",
     ] = Field(..., description="The type of transaction")
     price_currency: str | None = Field(
         None,

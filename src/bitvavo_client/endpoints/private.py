@@ -141,12 +141,12 @@ class PrivateAPI(BaseAPI):
             order_type: Order type ('market', 'limit', etc.)
             operator_id: Your identifier for the trader or bot within your account
             body: Order parameters (amount, price, etc.)
-            response_required: Whether to return full order details (True) or minimal response (False)
+            response_required: Full order details (True) or a minimal raw JSON acknowledgement (False)
 
         Returns:
             Order placement result
         """
-        _effective_model, _effective_schema = self._get_effective_model("order", model, schema)
+        effective_model, effective_schema = self._get_effective_model("order", model, schema)
         payload = {
             "market": market,
             "side": side,
@@ -155,7 +155,11 @@ class PrivateAPI(BaseAPI):
             "responseRequired": response_required,
             **body,
         }
-        return self.http.request("POST", "/order", body=payload, weight=1)
+        raw_result = self.http.request("POST", "/order", body=payload, weight=1)
+        # Minimal acknowledgements cannot populate a full Order model.
+        if payload.get("responseRequired") is False:
+            return raw_result
+        return self._convert_raw_result(raw_result, "order", effective_model, effective_schema)
 
     def get_order(
         self,
@@ -175,11 +179,11 @@ class PrivateAPI(BaseAPI):
         Returns:
             Result containing order information or error
         """
+        postfix = create_postfix({"market": market, "orderId": order_id})
         # Get raw data from API
         raw_result = self.http.request(
             "GET",
-            f"/{market}/order",
-            body={"orderId": order_id},
+            f"/order{postfix}",
             weight=1,
         )
         # Convert to desired format
@@ -243,7 +247,7 @@ class PrivateAPI(BaseAPI):
             )
             return Failure(error)
 
-        _effective_model, _effective_schema = self._get_effective_model("order", model, schema)
+        effective_model, effective_schema = self._get_effective_model("order", model, schema)
         payload = self._build_update_order_payload(
             market,
             operator_id,
@@ -260,7 +264,10 @@ class PrivateAPI(BaseAPI):
             response_required=response_required,
         )
 
-        return self.http.request("PUT", "/order", body=payload, weight=1)
+        raw_result = self.http.request("PUT", "/order", body=payload, weight=1)
+        if payload.get("responseRequired") is False:
+            return raw_result
+        return self._convert_raw_result(raw_result, "order", effective_model, effective_schema)
 
     # Keep update_order's existing positional payload mapping.
     def _build_update_order_payload(  # noqa: PLR0917
@@ -461,7 +468,8 @@ class PrivateAPI(BaseAPI):
             params["market"] = market
 
         postfix = create_postfix(params)
-        return self.http.request("DELETE", f"/orders{postfix}", weight=1)
+        weight = 25 if market is not None else 100
+        return self.http.request("DELETE", f"/orders{postfix}", weight=weight)
 
     def orders_open(
         self,
@@ -481,13 +489,12 @@ class PrivateAPI(BaseAPI):
         Returns:
             Result containing open orders data or error
 
-        Rate limit: 25 points (without market), 1 point (with market)
+        Rate limit: 100 points (without market), 5 points (with market)
         """
         effective_model, effective_schema = self._get_effective_model("orders", model, schema)
         postfix = create_postfix(options)
 
-        # Rate limit is 1 point with market parameter, 25 points without
-        weight = 1 if options and "market" in options else 25
+        weight = 5 if options and "market" in options else 100
 
         # Get raw data first
         raw_result = self.http.request("GET", f"/ordersOpen{postfix}", weight=weight)
@@ -644,7 +651,7 @@ class PrivateAPI(BaseAPI):
         postfix = create_postfix(options)
 
         # Get raw data first
-        raw_result = self.http.request("GET", f"/withdrawalHistory{postfix}", weight=1)
+        raw_result = self.http.request("GET", f"/withdrawalHistory{postfix}", weight=5)
 
         # Convert using the shared method
         return self._convert_raw_result(raw_result, "withdrawals", effective_model, effective_schema)

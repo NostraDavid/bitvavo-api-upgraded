@@ -1,0 +1,2547 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Bitvavo REST API",
+    "version": "2.10.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.bitvavo.com/v2"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "Bitvavo-Access-Key": {
+        "name": "Bitvavo-Access-Key",
+        "type": "apiKey",
+        "in": "header"
+      },
+      "Bitvavo-Access-Timestamp": {
+        "name": "Bitvavo-Access-Timestamp",
+        "type": "apiKey",
+        "in": "header"
+      },
+      "Bitvavo-Access-Signature": {
+        "name": "Bitvavo-Access-Signature",
+        "type": "apiKey",
+        "in": "header"
+      },
+      "Bitvavo-Access-Window": {
+        "name": "Bitvavo-Access-Window",
+        "type": "apiKey",
+        "in": "header"
+      }
+    }
+  },
+  "paths": {
+    "/account": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "fees": {
+                      "type": "object",
+                      "properties": {
+                        "taker": {
+                          "type": "string"
+                        },
+                        "maker": {
+                          "type": "string"
+                        },
+                        "volume": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/balance": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "symbol": {
+                        "type": "string"
+                      },
+                      "available": {
+                        "type": "string"
+                      },
+                      "inOrder": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/order": {
+      "post": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "market",
+                  "side",
+                  "orderType",
+                  "operatorId"
+                ],
+                "properties": {
+                  "market": {
+                    "type": "string"
+                  },
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "buy",
+                      "sell"
+                    ]
+                  },
+                  "orderType": {
+                    "type": "string",
+                    "enum": [
+                      "market",
+                      "limit",
+                      "stopLoss",
+                      "stopLossLimit",
+                      "takeProfit",
+                      "takeProfitLimit"
+                    ]
+                  },
+                  "operatorId": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "clientOrderId": {
+                    "type": "string",
+                    "format": "UUID"
+                  },
+                  "amount": {
+                    "type": "string"
+                  },
+                  "amountQuote": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "string"
+                  },
+                  "triggerAmount": {
+                    "type": "string"
+                  },
+                  "triggerType": {
+                    "type": "string",
+                    "enum": [
+                      "price"
+                    ]
+                  },
+                  "triggerReference": {
+                    "type": "string",
+                    "enum": [
+                      "lastTrade",
+                      "bestBid",
+                      "bestAsk",
+                      "midPrice"
+                    ]
+                  },
+                  "timeInForce": {
+                    "type": "string",
+                    "enum": [
+                      "GTC",
+                      "IOC",
+                      "FOK"
+                    ],
+                    "default": "GTC"
+                  },
+                  "postOnly": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "selfTradePrevention": {
+                    "type": "string",
+                    "enum": [
+                      "cancelBoth",
+                      "cancelNewest",
+                      "cancelOldest",
+                      "decrementAndCancel"
+                    ],
+                    "default": "decrementAndCancel"
+                  },
+                  "disableMarketProtection": {
+                    "type": "boolean",
+                    "default": false,
+                    "deprecated": true
+                  },
+                  "responseRequired": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "codGroupId": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "bitvavo-ratelimit-remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "bitvavo-ratelimit-resetat": {
+                "schema": {
+                  "type": "integer",
+                  "format": "unix-timestamp in milliseconds"
+                }
+              },
+              "bitvavo-ratelimit-limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "title": "responseRequired=true",
+                      "type": "object",
+                      "properties": {
+                        "orderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "clientOrderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "market": {
+                          "type": "string"
+                        },
+                        "created": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "updated": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "new",
+                            "awaitingTrigger",
+                            "canceled",
+                            "expired",
+                            "filled",
+                            "partiallyFilled"
+                          ]
+                        },
+                        "side": {
+                          "type": "string",
+                          "enum": [
+                            "buy",
+                            "sell"
+                          ]
+                        },
+                        "orderType": {
+                          "type": "string",
+                          "enum": [
+                            "limit",
+                            "market"
+                          ]
+                        },
+                        "amount": {
+                          "type": "string"
+                        },
+                        "amountRemaining": {
+                          "type": "string"
+                        },
+                        "price": {
+                          "type": "string"
+                        },
+                        "amountQuote": {
+                          "type": "string"
+                        },
+                        "amountQuoteRemaining": {
+                          "type": "string"
+                        },
+                        "onHold": {
+                          "type": "string"
+                        },
+                        "onHoldCurrency": {
+                          "type": "string"
+                        },
+                        "triggerPrice": {
+                          "type": "string"
+                        },
+                        "triggerAmount": {
+                          "type": "string"
+                        },
+                        "triggerType": {
+                          "type": "string",
+                          "enum": [
+                            "price"
+                          ]
+                        },
+                        "triggerReference": {
+                          "type": "string",
+                          "enum": [
+                            "lastTrade",
+                            "bestBid",
+                            "bestAsk",
+                            "midPrice"
+                          ]
+                        },
+                        "filledAmount": {
+                          "type": "string"
+                        },
+                        "filledAmountQuote": {
+                          "type": "string"
+                        },
+                        "feePaid": {
+                          "type": "string"
+                        },
+                        "feeCurrency": {
+                          "type": "string"
+                        },
+                        "fills": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "timestamp": {
+                                "type": "integer",
+                                "format": "unix-timestamp in milliseconds"
+                              },
+                              "amount": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "string"
+                              },
+                              "taker": {
+                                "type": "boolean"
+                              },
+                              "fee": {
+                                "type": "string"
+                              },
+                              "feeCurrency": {
+                                "type": "string"
+                              },
+                              "settled": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        },
+                        "selfTradePrevention": {
+                          "type": "string",
+                          "enum": [
+                            "decrementAndCancel",
+                            "cancelOldest",
+                            "cancelNewest",
+                            "cancelBoth"
+                          ]
+                        },
+                        "visible": {
+                          "type": "boolean"
+                        },
+                        "timeInForce": {
+                          "type": "string",
+                          "enum": [
+                            "GTC",
+                            "IOC",
+                            "FOK"
+                          ]
+                        },
+                        "postOnly": {
+                          "type": "boolean"
+                        },
+                        "disableMarketProtection": {
+                          "type": "boolean",
+                          "deprecated": true
+                        },
+                        "operatorId": {
+                          "type": "integer",
+                          "format": "int64"
+                        },
+                        "restatementReason": {
+                          "type": "string",
+                          "enum": [
+                            "decrementOnSelfTradePrevention",
+                            "cancelOnSelfTradePrevention",
+                            "cancelOnPlacementPriceProtection",
+                            "cancelOnExecutionPriceProtection",
+                            "cancelOnSpreadProtection",
+                            "cancelOnReferencePriceProtection",
+                            "cancelPostOnlyOnAuctionMatching",
+                            "cancelOnMaintenance",
+                            "cancelOnDisconnect",
+                            "cancelOnDelisting",
+                            "cancelOnLockPlaced",
+                            "cancelOnAdminRequest",
+                            "cancelPostOnly"
+                          ]
+                        },
+                        "createdNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        },
+                        "updatedNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        },
+                        "codGroupId": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    {
+                      "title": "responseRequired=false",
+                      "type": "object",
+                      "properties": {
+                        "market": {
+                          "type": "string"
+                        },
+                        "orderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "clientOrderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "created": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "updated": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "createdNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        },
+                        "updatedNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "market",
+                  "operatorId"
+                ],
+                "properties": {
+                  "market": {
+                    "type": "string"
+                  },
+                  "orderId": {
+                    "type": "string",
+                    "format": "UUID"
+                  },
+                  "operatorId": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "clientOrderId": {
+                    "type": "string",
+                    "format": "UUID"
+                  },
+                  "amount": {
+                    "type": "string"
+                  },
+                  "amountQuote": {
+                    "type": "string"
+                  },
+                  "amountRemaining": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "string"
+                  },
+                  "triggerAmount": {
+                    "type": "string"
+                  },
+                  "timeInForce": {
+                    "type": "string",
+                    "enum": [
+                      "GTC",
+                      "IOC",
+                      "FOK"
+                    ]
+                  },
+                  "selfTradePrevention": {
+                    "type": "string",
+                    "enum": [
+                      "decrementAndCancel",
+                      "cancelOldest",
+                      "cancelNewest",
+                      "cancelBoth"
+                    ]
+                  },
+                  "postOnly": {
+                    "type": "boolean"
+                  },
+                  "responseRequired": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "bitvavo-ratelimit-remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "bitvavo-ratelimit-resetat": {
+                "schema": {
+                  "type": "integer",
+                  "format": "unix-timestamp in milliseconds"
+                }
+              },
+              "bitvavo-ratelimit-limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "title": "responseRequired=true",
+                      "type": "object",
+                      "properties": {
+                        "orderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "clientOrderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "market": {
+                          "type": "string"
+                        },
+                        "created": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "updated": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "new",
+                            "awaitingTrigger",
+                            "canceled",
+                            "expired",
+                            "filled",
+                            "partiallyFilled"
+                          ]
+                        },
+                        "side": {
+                          "type": "string",
+                          "enum": [
+                            "buy",
+                            "sell"
+                          ]
+                        },
+                        "orderType": {
+                          "type": "string",
+                          "enum": [
+                            "limit",
+                            "market"
+                          ]
+                        },
+                        "amount": {
+                          "type": "string"
+                        },
+                        "amountRemaining": {
+                          "type": "string"
+                        },
+                        "price": {
+                          "type": "string"
+                        },
+                        "amountQuote": {
+                          "type": "string"
+                        },
+                        "amountQuoteRemaining": {
+                          "type": "string"
+                        },
+                        "onHold": {
+                          "type": "string"
+                        },
+                        "onHoldCurrency": {
+                          "type": "string"
+                        },
+                        "triggerPrice": {
+                          "type": "string"
+                        },
+                        "triggerAmount": {
+                          "type": "string"
+                        },
+                        "triggerType": {
+                          "type": "string",
+                          "enum": [
+                            "price"
+                          ]
+                        },
+                        "triggerReference": {
+                          "type": "string",
+                          "enum": [
+                            "lastTrade",
+                            "bestBid",
+                            "bestAsk",
+                            "midPrice"
+                          ]
+                        },
+                        "filledAmount": {
+                          "type": "string"
+                        },
+                        "filledAmountQuote": {
+                          "type": "string"
+                        },
+                        "feePaid": {
+                          "type": "string"
+                        },
+                        "feeCurrency": {
+                          "type": "string"
+                        },
+                        "fills": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "timestamp": {
+                                "type": "integer",
+                                "format": "unix-timestamp in milliseconds"
+                              },
+                              "amount": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "string"
+                              },
+                              "taker": {
+                                "type": "boolean"
+                              },
+                              "fee": {
+                                "type": "string"
+                              },
+                              "feeCurrency": {
+                                "type": "string"
+                              },
+                              "settled": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        },
+                        "selfTradePrevention": {
+                          "type": "string",
+                          "enum": [
+                            "decrementAndCancel",
+                            "cancelOldest",
+                            "cancelNewest",
+                            "cancelBoth"
+                          ]
+                        },
+                        "visible": {
+                          "type": "boolean"
+                        },
+                        "timeInForce": {
+                          "type": "string",
+                          "enum": [
+                            "GTC",
+                            "IOC",
+                            "FOK"
+                          ]
+                        },
+                        "postOnly": {
+                          "type": "boolean"
+                        },
+                        "disableMarketProtection": {
+                          "type": "boolean",
+                          "deprecated": true
+                        },
+                        "operatorId": {
+                          "type": "integer",
+                          "format": "int64"
+                        },
+                        "restatementReason": {
+                          "type": "string",
+                          "enum": [
+                            "decrementOnSelfTradePrevention",
+                            "cancelOnSelfTradePrevention",
+                            "cancelOnPlacementPriceProtection",
+                            "cancelOnExecutionPriceProtection",
+                            "cancelOnSpreadProtection",
+                            "cancelOnReferencePriceProtection",
+                            "cancelPostOnlyOnAuctionMatching",
+                            "cancelOnMaintenance",
+                            "cancelOnDisconnect",
+                            "cancelOnDelisting",
+                            "cancelOnLockPlaced",
+                            "cancelOnAdminRequest",
+                            "cancelPostOnly"
+                          ]
+                        },
+                        "createdNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        },
+                        "updatedNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        },
+                        "codGroupId": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    {
+                      "title": "responseRequired=false",
+                      "type": "object",
+                      "properties": {
+                        "market": {
+                          "type": "string"
+                        },
+                        "orderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "clientOrderId": {
+                          "type": "string",
+                          "format": "UUID"
+                        },
+                        "created": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "updated": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "createdNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        },
+                        "updatedNs": {
+                          "type": "integer",
+                          "format": "unix-timestamp in nanoseconds"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            }
+          },
+          {
+            "name": "clientOrderId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "bitvavo-ratelimit-remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "bitvavo-ratelimit-resetat": {
+                "schema": {
+                  "type": "integer",
+                  "format": "unix-timestamp in milliseconds"
+                }
+              },
+              "bitvavo-ratelimit-limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "format": "UUID"
+                    },
+                    "clientOrderId": {
+                      "type": "string",
+                      "format": "UUID"
+                    },
+                    "market": {
+                      "type": "string"
+                    },
+                    "created": {
+                      "type": "integer",
+                      "format": "unix-timestamp in milliseconds"
+                    },
+                    "updated": {
+                      "type": "integer",
+                      "format": "unix-timestamp in milliseconds"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "new",
+                        "awaitingTrigger",
+                        "canceled",
+                        "expired",
+                        "filled",
+                        "partiallyFilled"
+                      ]
+                    },
+                    "side": {
+                      "type": "string",
+                      "enum": [
+                        "buy",
+                        "sell"
+                      ]
+                    },
+                    "orderType": {
+                      "type": "string",
+                      "enum": [
+                        "limit",
+                        "market"
+                      ]
+                    },
+                    "amount": {
+                      "type": "string"
+                    },
+                    "amountRemaining": {
+                      "type": "string"
+                    },
+                    "price": {
+                      "type": "string"
+                    },
+                    "amountQuote": {
+                      "type": "string"
+                    },
+                    "amountQuoteRemaining": {
+                      "type": "string"
+                    },
+                    "onHold": {
+                      "type": "string"
+                    },
+                    "onHoldCurrency": {
+                      "type": "string"
+                    },
+                    "triggerPrice": {
+                      "type": "string"
+                    },
+                    "triggerAmount": {
+                      "type": "string"
+                    },
+                    "triggerType": {
+                      "type": "string",
+                      "enum": [
+                        "price"
+                      ]
+                    },
+                    "triggerReference": {
+                      "type": "string",
+                      "enum": [
+                        "lastTrade",
+                        "bestBid",
+                        "bestAsk",
+                        "midPrice"
+                      ]
+                    },
+                    "filledAmount": {
+                      "type": "string"
+                    },
+                    "filledAmountQuote": {
+                      "type": "string"
+                    },
+                    "feePaid": {
+                      "type": "string"
+                    },
+                    "feeCurrency": {
+                      "type": "string"
+                    },
+                    "fills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "timestamp": {
+                            "type": "integer",
+                            "format": "unix-timestamp in milliseconds"
+                          },
+                          "amount": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "string"
+                          },
+                          "taker": {
+                            "type": "boolean"
+                          },
+                          "fee": {
+                            "type": "string"
+                          },
+                          "feeCurrency": {
+                            "type": "string"
+                          },
+                          "settled": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "selfTradePrevention": {
+                      "type": "string",
+                      "enum": [
+                        "decrementAndCancel",
+                        "cancelOldest",
+                        "cancelNewest",
+                        "cancelBoth"
+                      ]
+                    },
+                    "visible": {
+                      "type": "boolean"
+                    },
+                    "timeInForce": {
+                      "type": "string",
+                      "enum": [
+                        "GTC",
+                        "IOC",
+                        "FOK"
+                      ]
+                    },
+                    "postOnly": {
+                      "type": "boolean"
+                    },
+                    "disableMarketProtection": {
+                      "type": "boolean",
+                      "deprecated": true
+                    },
+                    "createdNs": {
+                      "type": "integer",
+                      "format": "unix-timestamp in nanoseconds"
+                    },
+                    "updatedNs": {
+                      "type": "integer",
+                      "format": "unix-timestamp in nanoseconds"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            }
+          },
+          {
+            "name": "operatorId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "clientOrderId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "bitvavo-ratelimit-remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "bitvavo-ratelimit-resetat": {
+                "schema": {
+                  "type": "integer",
+                  "format": "unix-timestamp in milliseconds"
+                }
+              },
+              "bitvavo-ratelimit-limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "format": "UUID"
+                    },
+                    "clientOrderId": {
+                      "type": "string",
+                      "format": "UUID"
+                    },
+                    "operatorId": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 500
+            }
+          },
+          {
+            "name": "start",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "end",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "maximum": 8640000000000000
+            }
+          },
+          {
+            "name": "orderIdFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            }
+          },
+          {
+            "name": "orderIdTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "orderId": {
+                        "type": "string",
+                        "format": "UUID"
+                      },
+                      "clientOrderId": {
+                        "type": "string",
+                        "format": "UUID"
+                      },
+                      "market": {
+                        "type": "string"
+                      },
+                      "created": {
+                        "type": "integer",
+                        "format": "unix-timestamp in milliseconds"
+                      },
+                      "updated": {
+                        "type": "integer",
+                        "format": "unix-timestamp in milliseconds"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "new",
+                          "awaitingTrigger",
+                          "canceled",
+                          "expired",
+                          "filled",
+                          "partiallyFilled"
+                        ]
+                      },
+                      "side": {
+                        "type": "string",
+                        "enum": [
+                          "buy",
+                          "sell"
+                        ]
+                      },
+                      "orderType": {
+                        "type": "string",
+                        "enum": [
+                          "limit",
+                          "market"
+                        ]
+                      },
+                      "amount": {
+                        "type": "string"
+                      },
+                      "amountRemaining": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "string"
+                      },
+                      "amountQuote": {
+                        "type": "string"
+                      },
+                      "amountQuoteRemaining": {
+                        "type": "string"
+                      },
+                      "onHold": {
+                        "type": "string"
+                      },
+                      "onHoldCurrency": {
+                        "type": "string"
+                      },
+                      "triggerPrice": {
+                        "type": "string"
+                      },
+                      "triggerAmount": {
+                        "type": "string"
+                      },
+                      "triggerType": {
+                        "type": "string",
+                        "enum": [
+                          "price"
+                        ]
+                      },
+                      "triggerReference": {
+                        "type": "string",
+                        "enum": [
+                          "lastTrade",
+                          "bestBid",
+                          "bestAsk",
+                          "midPrice"
+                        ]
+                      },
+                      "filledAmount": {
+                        "type": "string"
+                      },
+                      "filledAmountQuote": {
+                        "type": "string"
+                      },
+                      "feePaid": {
+                        "type": "string"
+                      },
+                      "feeCurrency": {
+                        "type": "string"
+                      },
+                      "fills": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "timestamp": {
+                              "type": "integer",
+                              "format": "unix-timestamp in milliseconds"
+                            },
+                            "amount": {
+                              "type": "string"
+                            },
+                            "price": {
+                              "type": "string"
+                            },
+                            "taker": {
+                              "type": "boolean"
+                            },
+                            "fee": {
+                              "type": "string"
+                            },
+                            "feeCurrency": {
+                              "type": "string"
+                            },
+                            "settled": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      },
+                      "selfTradePrevention": {
+                        "type": "string",
+                        "enum": [
+                          "decrementAndCancel",
+                          "cancelOldest",
+                          "cancelNewest",
+                          "cancelBoth"
+                        ]
+                      },
+                      "visible": {
+                        "type": "boolean"
+                      },
+                      "timeInForce": {
+                        "type": "string",
+                        "enum": [
+                          "GTC",
+                          "IOC",
+                          "FOK"
+                        ]
+                      },
+                      "postOnly": {
+                        "type": "boolean"
+                      },
+                      "disableMarketProtection": {
+                        "type": "boolean",
+                        "deprecated": true
+                      },
+                      "createdNs": {
+                        "type": "integer",
+                        "format": "unix-timestamp in nanoseconds"
+                      },
+                      "updatedNs": {
+                        "type": "integer",
+                        "format": "unix-timestamp in nanoseconds"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "operatorId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "orderId": {
+                        "type": "string",
+                        "format": "UUID"
+                      },
+                      "operatorId": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/ordersOpen": {
+      "get": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "base",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "format": "UUID"
+                    },
+                    "clientOrderId": {
+                      "type": "string",
+                      "format": "UUID"
+                    },
+                    "market": {
+                      "type": "string"
+                    },
+                    "created": {
+                      "type": "integer",
+                      "format": "unix-timestamp in milliseconds"
+                    },
+                    "updated": {
+                      "type": "integer",
+                      "format": "unix-timestamp in milliseconds"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "new",
+                        "awaitingTrigger",
+                        "canceled",
+                        "expired",
+                        "filled",
+                        "partiallyFilled"
+                      ]
+                    },
+                    "side": {
+                      "type": "string",
+                      "enum": [
+                        "buy",
+                        "sell"
+                      ]
+                    },
+                    "orderType": {
+                      "type": "string",
+                      "enum": [
+                        "limit",
+                        "market"
+                      ]
+                    },
+                    "amount": {
+                      "type": "string"
+                    },
+                    "amountRemaining": {
+                      "type": "string"
+                    },
+                    "price": {
+                      "type": "string"
+                    },
+                    "amountQuote": {
+                      "type": "string"
+                    },
+                    "amountQuoteRemaining": {
+                      "type": "string"
+                    },
+                    "onHold": {
+                      "type": "string"
+                    },
+                    "onHoldCurrency": {
+                      "type": "string"
+                    },
+                    "triggerPrice": {
+                      "type": "string"
+                    },
+                    "triggerAmount": {
+                      "type": "string"
+                    },
+                    "triggerType": {
+                      "type": "string",
+                      "enum": [
+                        "price"
+                      ]
+                    },
+                    "triggerReference": {
+                      "type": "string",
+                      "enum": [
+                        "lastTrade",
+                        "bestBid",
+                        "bestAsk",
+                        "midPrice"
+                      ]
+                    },
+                    "filledAmount": {
+                      "type": "string"
+                    },
+                    "filledAmountQuote": {
+                      "type": "string"
+                    },
+                    "feePaid": {
+                      "type": "string"
+                    },
+                    "feeCurrency": {
+                      "type": "string"
+                    },
+                    "fills": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "timestamp": {
+                            "type": "integer",
+                            "format": "unix-timestamp in milliseconds"
+                          },
+                          "amount": {
+                            "type": "string"
+                          },
+                          "price": {
+                            "type": "string"
+                          },
+                          "taker": {
+                            "type": "boolean"
+                          },
+                          "fee": {
+                            "type": "string"
+                          },
+                          "feeCurrency": {
+                            "type": "string"
+                          },
+                          "settled": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "selfTradePrevention": {
+                      "type": "string",
+                      "enum": [
+                        "decrementAndCancel",
+                        "cancelOldest",
+                        "cancelNewest",
+                        "cancelBoth"
+                      ]
+                    },
+                    "visible": {
+                      "type": "boolean"
+                    },
+                    "timeInForce": {
+                      "type": "string",
+                      "enum": [
+                        "GTC",
+                        "IOC",
+                        "FOK"
+                      ]
+                    },
+                    "postOnly": {
+                      "type": "boolean"
+                    },
+                    "disableMarketProtection": {
+                      "type": "boolean",
+                      "deprecated": true
+                    },
+                    "operatorId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "createdNs": {
+                      "type": "integer",
+                      "format": "unix-timestamp in nanoseconds"
+                    },
+                    "updatedNs": {
+                      "type": "integer",
+                      "format": "unix-timestamp in nanoseconds"
+                    },
+                    "codGroupId": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/trades": {
+      "get": {
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 500
+            }
+          },
+          {
+            "name": "start",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "end",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "maximum": 8640000000000000
+            }
+          },
+          {
+            "name": "tradeIdFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tradeIdTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tradeId",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "operatorId"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "orderId": {
+                        "type": "string",
+                        "format": "UUID"
+                      },
+                      "clientOrderId": {
+                        "type": "string",
+                        "format": "UUID"
+                      },
+                      "operatorId": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "timestamp": {
+                        "type": "integer",
+                        "format": "unix-timestamp in milliseconds"
+                      },
+                      "market": {
+                        "type": "string"
+                      },
+                      "side": {
+                        "type": "string",
+                        "enum": [
+                          "buy",
+                          "sell"
+                        ]
+                      },
+                      "amount": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "string"
+                      },
+                      "taker": {
+                        "type": "boolean"
+                      },
+                      "fee": {
+                        "type": "string"
+                      },
+                      "feeCurrency": {
+                        "type": "string"
+                      },
+                      "settled": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/deposit": {
+      "get": {
+        "tags": [
+          "Transfer"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "title": "Digital asset",
+                      "type": "object",
+                      "properties": {
+                        "address": {
+                          "type": "string"
+                        },
+                        "paymentid": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "title": "Fiat",
+                      "type": "object",
+                      "properties": {
+                        "iban": {
+                          "type": "string"
+                        },
+                        "bic": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/depositHistory": {
+      "get": {
+        "tags": [
+          "Transfer"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "symbol",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 500
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "minimum": 0
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "maximum": 8640000000000000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "title": "Digital asset",
+                      "type": "object",
+                      "properties": {
+                        "timestamp": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "symbol": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "string"
+                        },
+                        "address": {
+                          "type": "string"
+                        },
+                        "paymentId": {
+                          "type": "string"
+                        },
+                        "txId": {
+                          "type": "string"
+                        },
+                        "fee": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "title": "Fiat",
+                      "type": "object",
+                      "properties": {
+                        "timestamp": {
+                          "type": "integer",
+                          "format": "unix-timestamp in milliseconds"
+                        },
+                        "symbol": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "string"
+                        },
+                        "fee": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "address": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/withdrawal": {
+      "post": {
+        "tags": [
+          "Transfer"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "symbol",
+                  "amount",
+                  "address"
+                ],
+                "properties": {
+                  "symbol": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "string"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "paymentId": {
+                    "type": "string"
+                  },
+                  "internal": {
+                    "type": "boolean",
+                    "default": false,
+                    "deprecated": true
+                  },
+                  "addWithdrawalFee": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "bitvavo-ratelimit-remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "bitvavo-ratelimit-resetat": {
+                "schema": {
+                  "type": "integer",
+                  "format": "unix-timestamp in milliseconds"
+                }
+              },
+              "bitvavo-ratelimit-limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "symbol": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/withdrawalHistory": {
+      "get": {
+        "tags": [
+          "Transfer"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "symbol",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 500
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "minimum": 0
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "maximum": 8640000000000000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "timestamp": {
+                      "type": "integer",
+                      "format": "unix-timestamp in milliseconds"
+                    },
+                    "symbol": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "string"
+                    },
+                    "address": {
+                      "type": "string"
+                    },
+                    "paymentId": {
+                      "type": "string"
+                    },
+                    "txId": {
+                      "type": "string"
+                    },
+                    "fee": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "awaiting_processing",
+                        "awaiting_email_confirmation",
+                        "awaiting_bitvavo_inspection",
+                        "approved",
+                        "sending",
+                        "in_mempool",
+                        "processed",
+                        "completed",
+                        "canceled"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/account/fees": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "market",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "quote",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EUR",
+                "USDC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tier": {
+                      "type": "string"
+                    },
+                    "volume": {
+                      "type": "string"
+                    },
+                    "taker": {
+                      "type": "string"
+                    },
+                    "maker": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/account/history": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "Bitvavo-Access-Key": [],
+            "Bitvavo-Access-Timestamp": [],
+            "Bitvavo-Access-Signature": [],
+            "Bitvavo-Access-Window": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "unix-timestamp in milliseconds",
+              "maximum": 8640000000000000
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "maxItems",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "sell",
+                "buy",
+                "staking",
+                "fixed_staking",
+                "deposit",
+                "withdrawal",
+                "affiliate",
+                "distribution",
+                "internal_transfer",
+                "withdrawal_cancelled",
+                "rebate",
+                "loan",
+                "external_transferred_funds",
+                "manually_assigned",
+                "margin_loan_collateral_deposit",
+                "margin_loan_collateral_return",
+                "margin_loan_borrow",
+                "margin_loan_repay",
+                "margin_loan_interest",
+                "margin_loan_liquidation",
+                "convert_buy",
+                "convert_sell",
+                "transfer"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "transactionId": {
+                            "type": "string"
+                          },
+                          "executedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "sell",
+                              "buy",
+                              "staking",
+                              "fixed_staking",
+                              "deposit",
+                              "withdrawal",
+                              "affiliate",
+                              "distribution",
+                              "internal_transfer",
+                              "withdrawal_cancelled",
+                              "rebate",
+                              "loan",
+                              "external_transferred_funds",
+                              "manually_assigned",
+                              "manually_assigned_bitvavo",
+                              "margin_loan_collateral_deposit",
+                              "margin_loan_collateral_return",
+                              "margin_loan_borrow",
+                              "margin_loan_repay",
+                              "margin_loan_interest",
+                              "margin_loan_liquidation",
+                              "convert_buy",
+                              "convert_sell",
+                              "transfer"
+                            ]
+                          },
+                          "priceCurrency": {
+                            "type": "string"
+                          },
+                          "priceAmount": {
+                            "type": "string"
+                          },
+                          "sentCurrency": {
+                            "type": "string"
+                          },
+                          "sentAmount": {
+                            "type": "string"
+                          },
+                          "receivedCurrency": {
+                            "type": "string"
+                          },
+                          "receivedAmount": {
+                            "type": "string"
+                          },
+                          "feesCurrency": {
+                            "type": "string"
+                          },
+                          "feesAmount": {
+                            "type": "string"
+                          },
+                          "address": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "currentPage": {
+                      "type": "integer"
+                    },
+                    "totalPages": {
+                      "type": "integer"
+                    },
+                    "maxItems": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "description": ""
+          },
+          "4XX": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
